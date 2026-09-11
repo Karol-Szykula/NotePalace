@@ -1,0 +1,33 @@
+{ 
+  "compilerOptions": {
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "target": "es2018",
+    "skipLibCheck": true,
+    "types": [
+      "jest",
+      "node"
+    ],
+    "paths": {
+      "src/*": [
+        "./src/*"
+      ]
+    },
+    "allowJs": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "lib": [
+      "dom",
+      "es2018",
+      "scripthost",
+      "ES2020.String"
+
+    ],
+  },
+  "include": [
+    "**/*.ts", "jest.config.js",
+  ]
+}
