@@ -1,10 +1,10 @@
 {
-  "id": "better-flashcards",
-  "name": "Better Flashcards",
+  "id": "ankipalace",
+  "name": "AnkiPalace",
   "version": "1.0.2",
   "minAppVersion": "1.0.0",
-  "description": "Sync flashcards to Anki using tags, inline separators, and cloze syntax. Fork of the original Flashcards plugin with bug fixes.",
-  "author": "Mihir Patel (fork of reuseman/flashcards)",
-  "authorUrl": "https://github.com/mihirpatel1112",
+  "description": "Sync notes to Anki using tags, inline separators, and cloze syntax.",
+  "author": "Karol Szykuła",
+  "authorUrl": "https://github.com/Karol-Szykula",
   "isDesktopOnly": true
 }

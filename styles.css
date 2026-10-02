@@ -1,54 +1,59 @@
 :root {
-  --flashcards-import-wizard-modal-min-height: 31.25rem;
-  --flashcards-import-wizard-modal-edge-gap:   0.75rem;
-  --flashcards-import-wizard-modal__page-view-margin-top:    0.5rem;
-  --flashcards-import-wizard-modal__page-view-margin-bottom: 0.5rem;
-  --flashcards-import-wizard-modal__page-view-padding-right: 0.25rem;
-  --flashcards-import-wizard-modal-height:     60vh;
-  --flashcards-import-wizard-modal-max-height: 90vh;
-  --flashcards-import-wizard-modal__list-divider: 0.0625rem solid var(--background-modifier-border);
-  --flashcards-import-wizard-modal__list-stripe-background: rgba(127, 127, 127, 0.08);
-  --flashcards-import-wizard-modal__list-header-font-size: 0.85em;
+  --ankipalace-note-transfer-wizard-modal-min-height: 31.25rem;
+  --ankipalace-note-transfer-wizard-modal-height:     60vh;
+  --ankipalace-note-transfer-wizard-modal-max-height: 90vh;
+  --ankipalace-note-transfer-wizard-modal__list-divider: 0.0625rem solid var(--background-modifier-border);
+  --ankipalace-note-transfer-wizard-modal__list-stripe-background: rgba(127, 127, 127, 0.08);
+  --ankipalace-note-transfer-wizard-modal__list-header-font-size: 0.85em;
 
-  --flashcards-import-wizard-modal__page-indicator-gap:           0.75rem;
-  --flashcards-import-wizard-modal__page-indicator-margin-top:    0.75rem;
-  --flashcards-import-wizard-modal__page-indicator-margin-bottom: 0.75rem;
-  --flashcards-import-wizard-modal__page-indicator-font-size:     0.9em;
-  --flashcards-import-wizard-modal__page-number-size:             1.25rem;
-  --flashcards-import-wizard-modal__page-active-background:       var(--interactive-accent);
-  --flashcards-import-wizard-modal__page-active-text:             var(--text-on-accent);
-  --flashcards-import-wizard-modal__page-muted-text:              var(--text-muted);
-  --flashcards-import-wizard-modal__page-separator-text:          var(--text-faint);
+  --ankipalace-note-transfer-wizard-modal__page-indicator-gap:           0.75rem;
+  --ankipalace-note-transfer-wizard-modal__page-indicator-margin-top:    0.75rem;
+  --ankipalace-note-transfer-wizard-modal__page-indicator-margin-bottom: 0.75rem;
+  --ankipalace-note-transfer-wizard-modal__page-indicator-font-size:     0.9em;
+  --ankipalace-note-transfer-wizard-modal__page-number-size:             1.25rem;
+  --ankipalace-note-transfer-wizard-modal__page-active-background:       var(--interactive-accent);
+  --ankipalace-note-transfer-wizard-modal__page-active-text:             var(--text-on-accent);
+  --ankipalace-note-transfer-wizard-modal__page-muted-text:              var(--text-muted);
+  --ankipalace-note-transfer-wizard-modal__page-separator-text:          var(--text-faint);
 
-  --flashcards-import-wizard-modal__page-view-margin-top:    0.5rem;
-  --flashcards-import-wizard-modal__page-view-margin-bottom: 0.5rem;
+  --ankipalace-note-transfer-wizard-modal__page-view-margin-top:    0.5rem;
+  --ankipalace-note-transfer-wizard-modal__page-view-margin-bottom: 0.5rem;
+  --ankipalace-note-transfer-wizard-modal__page-view-padding-right: 0.25rem;
 
-  --flashcards-import-wizard-modal__footer-gap: 0.5rem;
+  --ankipalace-note-transfer-wizard-modal__footer-gap: 0.5rem;
+  --ankipalace-note-transfer-wizard-modal__edge-gap:   0.75rem;
 
-  --flashcards-import-wizard-modal__row-gap:     0.5rem;
-  --flashcards-import-wizard-modal__row-padding: 0.375rem 0.25rem;
-  --flashcards-import-wizard-modal__row-indent:  1.125rem;
+  --ankipalace-note-transfer-wizard-modal__row-gap:     0.5rem;
+  --ankipalace-note-transfer-wizard-modal__row-padding: 0.375rem 0.25rem;
+  --ankipalace-note-transfer-wizard-modal__row-indent:  1.125rem;
 
-  --flashcards-import-wizard-modal__field-row-padding:      0.25rem 0;
-  --flashcards-import-wizard-modal__model-section-margin:   0.75rem 0;
-  --flashcards-import-wizard-modal__field-sample-max-width: 40%;
+  --ankipalace-note-import-wizard-modal__field-row-padding:      0.25rem 0;
+  --ankipalace-note-import-wizard-modal__model-section-margin:   0.75rem 0;
+  --ankipalace-note-import-wizard-modal__field-sample-max-width: 40%;
 
-  --flashcards-import-wizard-modal__preview-details-font-size:     0.9em;
-  --flashcards-import-wizard-modal__preview-details-margin:        0.25rem 0 0.25rem 1.5rem;
-  --flashcards-import-wizard-modal__preview-pagination-gap:        0.5rem;
-  --flashcards-import-wizard-modal__preview-pagination-margin-top: 0.5rem;
+  --ankipalace-note-import-wizard-modal__preview-pagination-gap:        0.5rem;
+  --ankipalace-note-import-wizard-modal__preview-pagination-margin-top: 0.5rem;
+
+  --note-form-gap:           0.5rem;
+  --note-form-field-gap:     0.25rem;
+  --note-form-input-padding: 0.375rem 0.5rem;
+  --note-form-input-radius:  0.375rem;
+  --note-form-label-font-size: 0.85em;
+
+  --ankipalace-dev-reset-gap:     0.75rem;
+  --ankipalace-dev-reset-padding: 0.75rem;
 }
 
-.modal:has(> .modal-content > .flashcards-import-wizard-modal) {
+.modal:has(> .modal-content > .ankipalace-note-transfer-wizard-modal) {
   display:        flex;
   flex-direction: column;
-  height:         var(--flashcards-import-wizard-modal-height);
-  min-height:     var(--flashcards-import-wizard-modal-min-height);
-  max-height:     var(--flashcards-import-wizard-modal-max-height);
+  height:         var(--ankipalace-note-transfer-wizard-modal-height);
+  min-height:     var(--ankipalace-note-transfer-wizard-modal-min-height);
+  max-height:     var(--ankipalace-note-transfer-wizard-modal-max-height);
   overflow:       hidden;
 }
 
-.modal:has(> .modal-content > .flashcards-import-wizard-modal) > .modal-content {
+.modal:has(> .modal-content > .ankipalace-note-transfer-wizard-modal) > .modal-content {
   display:        flex;
   flex-direction: column;
   flex:           1;
@@ -56,7 +61,7 @@
   overflow:       hidden;
 }
 
-.flashcards-import-wizard-modal {
+.ankipalace-note-transfer-wizard-modal {
   display:        flex;
   box-sizing:     border-box;
   flex-direction: column;
@@ -64,192 +69,354 @@
   min-height:     0;
 }
 
-.flashcards-import-wizard-modal__page-view {
+.ankipalace-note-transfer-wizard-modal__page-view {
   flex:           1;
   min-height:     0;
   overflow-y:     auto;
-  margin-top:     var(--flashcards-import-wizard-modal__page-view-margin-top);
-  margin-bottom:  var(--flashcards-import-wizard-modal__page-view-margin-bottom);
-  padding-right:  var(--flashcards-import-wizard-modal__page-view-padding-right);
+  margin-top:     var(--ankipalace-note-transfer-wizard-modal__page-view-margin-top);
+  margin-bottom:  var(--ankipalace-note-transfer-wizard-modal__page-view-margin-bottom);
+  padding-right:  var(--ankipalace-note-transfer-wizard-modal__page-view-padding-right);
 }
 
-.flashcards-import-wizard-modal__page-indicator {
-  display:       flex;
-  align-items:   center;
+.ankipalace-note-transfer-wizard-modal__page-indicator {
+  display:         flex;
+  align-items:     center;
   justify-content: center;
-  gap:           var(--flashcards-import-wizard-modal__page-indicator-gap);
-  margin-top:    var(--flashcards-import-wizard-modal__page-indicator-margin-top);
-  margin-bottom: var(--flashcards-import-wizard-modal__page-indicator-margin-bottom);
-  font-size:     var(--flashcards-import-wizard-modal__page-indicator-font-size);
-
-  .flashcards-import-wizard-modal__page {
-    display:     inline-flex;
-    align-items: center;
-    gap:         0.375rem;
-    color:       var(--flashcards-import-wizard-modal__page-muted-text);
-  }
-
-  .flashcards-import-wizard-modal__page-number {
-    display:         inline-flex;
-    align-items:     center;
-    justify-content: center;
-    width:           var(--flashcards-import-wizard-modal__page-number-size);
-    height:          var(--flashcards-import-wizard-modal__page-number-size);
-    border:          0.0625rem solid currentColor;
-    border-radius:   50%;
-    font-size:       0.8em;
-  }
-
-  .flashcards-import-wizard-modal__page--active {
-    font-weight: bold;
-    color:       var(--flashcards-import-wizard-modal__page-active-text);
-
-    .flashcards-import-wizard-modal__page-number {
-      background:   var(--flashcards-import-wizard-modal__page-active-background);
-      border-color: var(--flashcards-import-wizard-modal__page-active-background);
-    }
-  }
-
-  .flashcards-import-wizard-modal__page--done {
-    color: var(--flashcards-import-wizard-modal__page-muted-text);
-
-    .flashcards-import-wizard-modal__page-number {
-      color: var(--flashcards-import-wizard-modal__page-muted-text);
-    }
-  }
-
-  .flashcards-import-wizard-modal__page-separator {
-    color: var(--flashcards-import-wizard-modal__page-separator-text);
-  }
+  gap:             var(--ankipalace-note-transfer-wizard-modal__page-indicator-gap);
+  margin-top:      var(--ankipalace-note-transfer-wizard-modal__page-indicator-margin-top);
+  margin-bottom:   var(--ankipalace-note-transfer-wizard-modal__page-indicator-margin-bottom);
+  font-size:       var(--ankipalace-note-transfer-wizard-modal__page-indicator-font-size);
 }
 
-.flashcards-import-wizard-modal__footer {
+.ankipalace-note-transfer-wizard-modal__page {
+  display:     inline-flex;
+  align-items: center;
+  gap:         0.375rem;
+  color:       var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+}
+
+.ankipalace-note-transfer-wizard-modal__page-number {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           var(--ankipalace-note-transfer-wizard-modal__page-number-size);
+  height:          var(--ankipalace-note-transfer-wizard-modal__page-number-size);
+  border:          0.0625rem solid currentColor;
+  border-radius:   50%;
+  font-size:       0.8em;
+}
+
+.ankipalace-note-transfer-wizard-modal__page--active {
+  font-weight: bold;
+  color:       var(--ankipalace-note-transfer-wizard-modal__page-active-text);
+}
+
+.ankipalace-note-transfer-wizard-modal__page--active .ankipalace-note-transfer-wizard-modal__page-number {
+  background:   var(--ankipalace-note-transfer-wizard-modal__page-active-background);
+  border-color: var(--ankipalace-note-transfer-wizard-modal__page-active-background);
+}
+
+.ankipalace-note-transfer-wizard-modal__page--done {
+  color: var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+}
+
+.ankipalace-note-transfer-wizard-modal__page--done .ankipalace-note-transfer-wizard-modal__page-number {
+  color: var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+}
+
+.ankipalace-note-transfer-wizard-modal__page-separator {
+  color: var(--ankipalace-note-transfer-wizard-modal__page-separator-text);
+}
+
+.ankipalace-note-transfer-wizard-modal__footer {
   display:         flex;
   flex-shrink:     0;
   justify-content: space-between;
-  gap:             var(--flashcards-import-wizard-modal__footer-gap);
-  margin-top:      var(--flashcards-import-wizard-modal-edge-gap);
-  margin-bottom:   var(--flashcards-import-wizard-modal-edge-gap);
-
-  .flashcards-import-wizard-modal__footer-right {
-    display: flex;
-    gap:     var(--flashcards-import-wizard-modal__footer-gap);
-  }
+  gap:             var(--ankipalace-note-transfer-wizard-modal__footer-gap);
+  margin-top:      var(--ankipalace-note-transfer-wizard-modal-edge-gap);
+  margin-bottom:   var(--ankipalace-note-transfer-wizard-modal-edge-gap);
 }
 
-.flashcards-import-wizard-modal__deck-row {
-  padding: var(--flashcards-import-wizard-modal__row-padding);
-
-  &--disabled {
-    opacity: 0.5;
-  }
-
-  .modal-content & > label {
-    display:     inline-flex;
-    align-items: center;
-    gap:         var(--flashcards-import-wizard-modal__row-gap);
-    margin:      0;
-    line-height: 1.4;
-    cursor:      pointer;
-  }
-
-  & input[type="radio"] {
-    margin:      0;
-    flex-shrink: 0;
-  }
+.ankipalace-note-transfer-wizard-modal__footer-right {
+  display: flex;
+  gap:     var(--ankipalace-note-transfer-wizard-modal__footer-gap);
 }
 
-.flashcards-import-wizard-modal__deck-label-text {
+.ankipalace-note-transfer-wizard-modal__footer-center {
+  display: flex;
+  align-items: center;
+  gap:     var(--ankipalace-note-transfer-wizard-modal__footer-gap);
+}
+
+.ankipalace-note-transfer-wizard-modal__footer-page-indicator {
+  font-size: var(--ankipalace-note-transfer-wizard-modal__page-indicator-font-size);
+  color:     var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+}
+
+.ankipalace-note-import-wizard-modal__scope-row {
+  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+}
+
+.ankipalace-note-import-wizard-modal__scope-row--disabled {
+  opacity: 0.5;
+}
+
+.modal-content .ankipalace-note-import-wizard-modal__scope-row > label {
+  display:     inline-flex;
+  align-items: center;
+  gap:         var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  margin:      0;
+  line-height: 1.4;
+  cursor:      pointer;
+}
+
+.ankipalace-note-import-wizard-modal__scope-row input[type="radio"] {
+  margin:      0;
+  flex-shrink: 0;
+}
+
+.ankipalace-note-import-wizard-modal__scope-label-text {
   transform: translateY(-0.0625rem);
 }
 
-.flashcards-import-wizard-modal__model-section {
-  margin: var(--flashcards-import-wizard-modal__model-section-margin);
+.ankipalace-note-import-wizard-modal__scope-radio {
+  cursor: pointer;
 }
 
-.flashcards-import-wizard-modal__model-badge--recognized {
+.ankipalace-note-import-wizard-modal__scope-radio:disabled {
+  cursor:         default;
+  pointer-events: none;
+}
+
+.ankipalace-note-import-wizard-modal__model-section {
+  margin: var(--ankipalace-note-import-wizard-modal__model-section-margin);
+}
+
+.ankipalace-note-import-wizard-modal__model-badge--recognized {
   color:     var(--text-success);
   font-size: 0.85em;
 }
 
-.flashcards-import-wizard-modal__field-row {
-  padding: var(--flashcards-import-wizard-modal__field-row-padding);
-
-  .flashcards-import-wizard-modal__field-sample {
-    opacity:       0.7;
-    overflow:      hidden;
-    text-overflow: ellipsis;
-    white-space:   nowrap;
-    max-width:     var(--flashcards-import-wizard-modal__field-sample-max-width);
-  }
+.ankipalace-note-import-wizard-modal__field-row {
+  padding: var(--ankipalace-note-import-wizard-modal__field-row-padding);
 }
 
-.flashcards-import-wizard-modal__preview-row {
-  padding: var(--flashcards-import-wizard-modal__row-padding);
-
-  & label {
-    display: flex;
-    gap:     var(--flashcards-import-wizard-modal__row-gap);
-    cursor:  pointer;
-  }
+.ankipalace-note-import-wizard-modal__field-sample {
+  opacity:       0.7;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+  max-width:     var(--ankipalace-note-import-wizard-modal__field-sample-max-width);
 }
 
-.flashcards-import-wizard-modal__preview-badge--conflict {
-  color: var(--text-warning);
+.ankipalace-note-import-wizard-modal__preview-row {
+  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
 }
 
-.flashcards-import-wizard-modal__preview-badge--new {
+.ankipalace-note-import-wizard-modal__preview-row label {
+  display: flex;
+  gap:     var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  cursor:  pointer;
+}
+
+.ankipalace-note-import-wizard-modal__preview-row--imported {
+  opacity: 0.5;
+}
+
+.ankipalace-note-import-wizard-modal__preview-badge--imported {
+  color: var(--text-faint);
+}
+
+.ankipalace-note-import-wizard-modal__preview-badge--new {
   color: var(--text-success);
 }
 
-.flashcards-import-wizard-modal__preview-details {
-  margin:    var(--flashcards-import-wizard-modal__preview-details-margin);
-  font-size: var(--flashcards-import-wizard-modal__preview-details-font-size);
+.ankipalace-note-import-wizard-modal__preview-badge--overwrite {
+  color: var(--text-error);
 }
 
-.flashcards-import-wizard-modal__preview-pagination {
+.ankipalace-note-import-wizard-modal__preview-badge--skipped {
+  color: var(--text-warning);
+}
+
+.ankipalace-note-import-wizard-modal__preview-pagination {
   display:     flex;
   align-items: center;
-  gap:         var(--flashcards-import-wizard-modal__preview-pagination-gap);
-  margin-top:  var(--flashcards-import-wizard-modal__preview-pagination-margin-top);
+  gap:         var(--ankipalace-note-import-wizard-modal__preview-pagination-gap);
+  margin-top:  var(--ankipalace-note-import-wizard-modal__preview-pagination-margin-top);
 }
 
-.flashcards-import-wizard-modal__list {
+.ankipalace-note-export-wizard-modal__scope-row {
+  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+}
+
+.ankipalace-note-export-wizard-modal__scope-row--disabled {
+  opacity: 0.5;
+}
+
+.modal-content .ankipalace-note-export-wizard-modal__scope-row > label {
+  display:     inline-flex;
+  align-items: center;
+  gap:         var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  margin:      0;
+  line-height: 1.4;
+  cursor:      pointer;
+}
+
+.ankipalace-note-export-wizard-modal__scope-row input[type="radio"] {
+  margin:      0;
+  flex-shrink: 0;
+}
+
+.ankipalace-note-export-wizard-modal__scope-label-text {
+  transform: translateY(-0.0625rem);
+}
+
+.ankipalace-note-export-wizard-modal__scope-radio {
+  cursor: pointer;
+}
+
+.ankipalace-note-export-wizard-modal__scope-radio:disabled {
+  cursor:         default;
+  pointer-events: none;
+}
+
+.ankipalace-note-export-wizard-modal__preview-row {
+  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+}
+
+.ankipalace-note-export-wizard-modal__preview-row label {
+  display: flex;
+  gap:     var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  cursor:  pointer;
+}
+
+.ankipalace-note-export-wizard-modal__preview-row--imported {
+  opacity: 0.5;
+}
+
+.ankipalace-note-export-wizard-modal__preview-badge--imported {
+  color: var(--text-faint);
+}
+
+.ankipalace-note-export-wizard-modal__preview-badge--new {
+  color: var(--text-success);
+}
+
+.ankipalace-note-export-wizard-modal__preview-badge--overwrite {
+  color: var(--text-error);
+}
+
+.ankipalace-note-export-wizard-modal__preview-badge--skipped {
+  color: var(--text-warning);
+}
+
+.ankipalace-note-transfer-wizard-modal__list {
   display: grid;
 }
 
-.flashcards-import-wizard-modal__list-header,
-.flashcards-import-wizard-modal__list-row {
-  column-gap:            var(--flashcards-import-wizard-modal__row-gap);
+.ankipalace-note-transfer-wizard-modal__list-header,
+.ankipalace-note-transfer-wizard-modal__list-row {
+  column-gap:            var(--ankipalace-note-transfer-wizard-modal__row-gap);
   display:               grid;
   grid-column:           1 / -1;
   grid-template-columns: subgrid;
 }
 
-.flashcards-import-wizard-modal__list-cell {
+.ankipalace-note-transfer-wizard-modal__list-cell {
   min-width: 0;
 }
 
-.flashcards-import-wizard-modal__list-header {
-  font-size: var(--flashcards-import-wizard-modal__list-header-font-size);
+.ankipalace-note-transfer-wizard-modal__list-header {
+  font-size: var(--ankipalace-note-transfer-wizard-modal__list-header-font-size);
   opacity:   0.7;
+  position:  sticky;
+  top:       0;
+  background: var(--background-primary);
+  z-index:   1;
 }
 
-.flashcards-import-wizard-modal__labeled-control {
+.ankipalace-note-transfer-wizard-modal__labeled-control {
   display:     inline-flex;
   align-items: center;
-  gap:         var(--flashcards-import-wizard-modal__row-gap);
+  gap:         var(--ankipalace-note-transfer-wizard-modal__row-gap);
   cursor:      pointer;
 }
 
-.flashcards-import-wizard-modal__list--dividers-bottom > *:not(:last-child) {
-  border-bottom: var(--flashcards-import-wizard-modal__list-divider);
+.ankipalace-note-transfer-wizard-modal__labeled-control--disabled {
+  cursor: default;
 }
 
-.flashcards-import-wizard-modal__list--dividers-top > *:not(:first-child) {
-  border-top: var(--flashcards-import-wizard-modal__list-divider);
+.ankipalace-note-transfer-wizard-modal__list--dividers-bottom > *:not(:last-child) {
+  border-bottom: var(--ankipalace-note-transfer-wizard-modal__list-divider);
 }
 
-.flashcards-import-wizard-modal__list--striped > *:nth-child(even) {
-  background: var(--flashcards-import-wizard-modal__list-stripe-background);
+.ankipalace-note-transfer-wizard-modal__list--dividers-top > *:not(:first-child) {
+  border-top: var(--ankipalace-note-transfer-wizard-modal__list-divider);
+}
+
+.ankipalace-note-transfer-wizard-modal__list--striped > *:nth-child(even) {
+  background: var(--ankipalace-note-transfer-wizard-modal__list-stripe-background);
+}
+
+.note-form {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--note-form-gap);
+}
+
+.note-form__field {
+  display:        flex;
+  flex-direction: column;
+  gap:            var(--note-form-field-gap);
+}
+
+.note-form__label {
+  color:     var(--text-muted);
+  font-size: var(--note-form-label-font-size);
+}
+
+.note-form__input {
+  box-sizing:    border-box;
+  width:         100%;
+  padding:       var(--note-form-input-padding);
+  border-radius: var(--note-form-input-radius);
+}
+
+.note-form__input--readonly {
+  color:      var(--text-muted);
+  background: var(--background-secondary);
+}
+
+.note-form__error {
+  color: var(--text-error);
+}
+
+.note-form__banner {
+  padding:       var(--note-form-input-padding);
+  border-radius: var(--note-form-input-radius);
+  color:         var(--text-warning);
+  background:    var(--background-secondary);
+}
+
+.ankipalace-dev-reset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ankipalace-dev-reset-gap);
+  padding: var(--ankipalace-dev-reset-padding);
+}
+
+.ankipalace-dev-reset__warning {
+  margin: 0;
+  color: var(--text-normal);
+}
+
+.ankipalace-dev-reset__actions {
+  display:         flex;
+  justify-content: flex-end;
+  gap:            var(--ankipalace-dev-reset-gap);
+}
+
+.ankipalace-dev-reset__confirm-button {
+  color: var(--text-error);
 }
