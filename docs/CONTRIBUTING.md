@@ -4,7 +4,7 @@ Contributions via bug reports, bug fixes, are welcome. If you have ideas about f
 ## How to build?
 You need to pull the repository, install the dependencies with `node` and then build with the command `npm run dev`. It will automatically move the files into the `docs/test-vault` and hot reload the plugin.
 
-    $ git clone git@github.com:Karol-Szykula/AnkiPalace.git
-    $ cd AnkiPalace
-    ~/AnkiPalace$ npm install
-    ~/AnkiPalace$ npm run dev
+    $ git clone git@github.com:Karol-Szykula/NotePalace.git
+    $ cd NotePalace
+    ~/NotePalace$ npm install
+    ~/NotePalace$ npm run dev

@@ -1,38 +1,38 @@
 :root {
-  --ankipalace-note-transfer-wizard-modal-min-height: 31.25rem;
-  --ankipalace-note-transfer-wizard-modal-height:     60vh;
-  --ankipalace-note-transfer-wizard-modal-max-height: 90vh;
-  --ankipalace-note-transfer-wizard-modal__list-divider: 0.0625rem solid var(--background-modifier-border);
-  --ankipalace-note-transfer-wizard-modal__list-stripe-background: rgba(127, 127, 127, 0.08);
-  --ankipalace-note-transfer-wizard-modal__list-header-font-size: 0.85em;
+  --notepalace-note-transfer-wizard-modal-min-height: 31.25rem;
+  --notepalace-note-transfer-wizard-modal-height:     60vh;
+  --notepalace-note-transfer-wizard-modal-max-height: 90vh;
+  --notepalace-note-transfer-wizard-modal__list-divider: 0.0625rem solid var(--background-modifier-border);
+  --notepalace-note-transfer-wizard-modal__list-stripe-background: rgba(127, 127, 127, 0.08);
+  --notepalace-note-transfer-wizard-modal__list-header-font-size: 0.85em;
 
-  --ankipalace-note-transfer-wizard-modal__page-indicator-gap:           0.75rem;
-  --ankipalace-note-transfer-wizard-modal__page-indicator-margin-top:    0.75rem;
-  --ankipalace-note-transfer-wizard-modal__page-indicator-margin-bottom: 0.75rem;
-  --ankipalace-note-transfer-wizard-modal__page-indicator-font-size:     0.9em;
-  --ankipalace-note-transfer-wizard-modal__page-number-size:             1.25rem;
-  --ankipalace-note-transfer-wizard-modal__page-active-background:       var(--interactive-accent);
-  --ankipalace-note-transfer-wizard-modal__page-active-text:             var(--text-on-accent);
-  --ankipalace-note-transfer-wizard-modal__page-muted-text:              var(--text-muted);
-  --ankipalace-note-transfer-wizard-modal__page-separator-text:          var(--text-faint);
+  --notepalace-note-transfer-wizard-modal__page-indicator-gap:           0.75rem;
+  --notepalace-note-transfer-wizard-modal__page-indicator-margin-top:    0.75rem;
+  --notepalace-note-transfer-wizard-modal__page-indicator-margin-bottom: 0.75rem;
+  --notepalace-note-transfer-wizard-modal__page-indicator-font-size:     0.9em;
+  --notepalace-note-transfer-wizard-modal__page-number-size:             1.25rem;
+  --notepalace-note-transfer-wizard-modal__page-active-background:       var(--interactive-accent);
+  --notepalace-note-transfer-wizard-modal__page-active-text:             var(--text-on-accent);
+  --notepalace-note-transfer-wizard-modal__page-muted-text:              var(--text-muted);
+  --notepalace-note-transfer-wizard-modal__page-separator-text:          var(--text-faint);
 
-  --ankipalace-note-transfer-wizard-modal__page-view-margin-top:    0.5rem;
-  --ankipalace-note-transfer-wizard-modal__page-view-margin-bottom: 0.5rem;
-  --ankipalace-note-transfer-wizard-modal__page-view-padding-right: 0.25rem;
+  --notepalace-note-transfer-wizard-modal__page-view-margin-top:    0.5rem;
+  --notepalace-note-transfer-wizard-modal__page-view-margin-bottom: 0.5rem;
+  --notepalace-note-transfer-wizard-modal__page-view-padding-right: 0.25rem;
 
-  --ankipalace-note-transfer-wizard-modal__footer-gap: 0.5rem;
-  --ankipalace-note-transfer-wizard-modal__edge-gap:   0.75rem;
+  --notepalace-note-transfer-wizard-modal__footer-gap: 0.5rem;
+  --notepalace-note-transfer-wizard-modal__edge-gap:   0.75rem;
 
-  --ankipalace-note-transfer-wizard-modal__row-gap:     0.5rem;
-  --ankipalace-note-transfer-wizard-modal__row-padding: 0.375rem 0.25rem;
-  --ankipalace-note-transfer-wizard-modal__row-indent:  1.125rem;
+  --notepalace-note-transfer-wizard-modal__row-gap:     0.5rem;
+  --notepalace-note-transfer-wizard-modal__row-padding: 0.375rem 0.25rem;
+  --notepalace-note-transfer-wizard-modal__row-indent:  1.125rem;
 
-  --ankipalace-note-import-wizard-modal__field-row-padding:      0.25rem 0;
-  --ankipalace-note-import-wizard-modal__model-section-margin:   0.75rem 0;
-  --ankipalace-note-import-wizard-modal__field-sample-max-width: 40%;
+  --notepalace-note-import-wizard-modal__field-row-padding:      0.25rem 0;
+  --notepalace-note-import-wizard-modal__model-section-margin:   0.75rem 0;
+  --notepalace-note-import-wizard-modal__field-sample-max-width: 40%;
 
-  --ankipalace-note-import-wizard-modal__preview-pagination-gap:        0.5rem;
-  --ankipalace-note-import-wizard-modal__preview-pagination-margin-top: 0.5rem;
+  --notepalace-note-import-wizard-modal__preview-pagination-gap:        0.5rem;
+  --notepalace-note-import-wizard-modal__preview-pagination-margin-top: 0.5rem;
 
   --note-form-gap:           0.5rem;
   --note-form-field-gap:     0.25rem;
@@ -40,20 +40,20 @@
   --note-form-input-radius:  0.375rem;
   --note-form-label-font-size: 0.85em;
 
-  --ankipalace-dev-reset-gap:     0.75rem;
-  --ankipalace-dev-reset-padding: 0.75rem;
+  --notepalace-dev-reset-gap:     0.75rem;
+  --notepalace-dev-reset-padding: 0.75rem;
 }
 
-.modal:has(> .modal-content > .ankipalace-note-transfer-wizard-modal) {
+.modal:has(> .modal-content > .notepalace-note-transfer-wizard-modal) {
   display:        flex;
   flex-direction: column;
-  height:         var(--ankipalace-note-transfer-wizard-modal-height);
-  min-height:     var(--ankipalace-note-transfer-wizard-modal-min-height);
-  max-height:     var(--ankipalace-note-transfer-wizard-modal-max-height);
+  height:         var(--notepalace-note-transfer-wizard-modal-height);
+  min-height:     var(--notepalace-note-transfer-wizard-modal-min-height);
+  max-height:     var(--notepalace-note-transfer-wizard-modal-max-height);
   overflow:       hidden;
 }
 
-.modal:has(> .modal-content > .ankipalace-note-transfer-wizard-modal) > .modal-content {
+.modal:has(> .modal-content > .notepalace-note-transfer-wizard-modal) > .modal-content {
   display:        flex;
   flex-direction: column;
   flex:           1;
@@ -61,7 +61,7 @@
   overflow:       hidden;
 }
 
-.ankipalace-note-transfer-wizard-modal {
+.notepalace-note-transfer-wizard-modal {
   display:        flex;
   box-sizing:     border-box;
   flex-direction: column;
@@ -69,266 +69,266 @@
   min-height:     0;
 }
 
-.ankipalace-note-transfer-wizard-modal__page-view {
+.notepalace-note-transfer-wizard-modal__page-view {
   flex:           1;
   min-height:     0;
   overflow-y:     auto;
-  margin-top:     var(--ankipalace-note-transfer-wizard-modal__page-view-margin-top);
-  margin-bottom:  var(--ankipalace-note-transfer-wizard-modal__page-view-margin-bottom);
-  padding-right:  var(--ankipalace-note-transfer-wizard-modal__page-view-padding-right);
+  margin-top:     var(--notepalace-note-transfer-wizard-modal__page-view-margin-top);
+  margin-bottom:  var(--notepalace-note-transfer-wizard-modal__page-view-margin-bottom);
+  padding-right:  var(--notepalace-note-transfer-wizard-modal__page-view-padding-right);
 }
 
-.ankipalace-note-transfer-wizard-modal__page-indicator {
+.notepalace-note-transfer-wizard-modal__page-indicator {
   display:         flex;
   align-items:     center;
   justify-content: center;
-  gap:             var(--ankipalace-note-transfer-wizard-modal__page-indicator-gap);
-  margin-top:      var(--ankipalace-note-transfer-wizard-modal__page-indicator-margin-top);
-  margin-bottom:   var(--ankipalace-note-transfer-wizard-modal__page-indicator-margin-bottom);
-  font-size:       var(--ankipalace-note-transfer-wizard-modal__page-indicator-font-size);
+  gap:             var(--notepalace-note-transfer-wizard-modal__page-indicator-gap);
+  margin-top:      var(--notepalace-note-transfer-wizard-modal__page-indicator-margin-top);
+  margin-bottom:   var(--notepalace-note-transfer-wizard-modal__page-indicator-margin-bottom);
+  font-size:       var(--notepalace-note-transfer-wizard-modal__page-indicator-font-size);
 }
 
-.ankipalace-note-transfer-wizard-modal__page {
+.notepalace-note-transfer-wizard-modal__page {
   display:     inline-flex;
   align-items: center;
   gap:         0.375rem;
-  color:       var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+  color:       var(--notepalace-note-transfer-wizard-modal__page-muted-text);
 }
 
-.ankipalace-note-transfer-wizard-modal__page-number {
+.notepalace-note-transfer-wizard-modal__page-number {
   display:         inline-flex;
   align-items:     center;
   justify-content: center;
-  width:           var(--ankipalace-note-transfer-wizard-modal__page-number-size);
-  height:          var(--ankipalace-note-transfer-wizard-modal__page-number-size);
+  width:           var(--notepalace-note-transfer-wizard-modal__page-number-size);
+  height:          var(--notepalace-note-transfer-wizard-modal__page-number-size);
   border:          0.0625rem solid currentColor;
   border-radius:   50%;
   font-size:       0.8em;
 }
 
-.ankipalace-note-transfer-wizard-modal__page--active {
+.notepalace-note-transfer-wizard-modal__page--active {
   font-weight: bold;
-  color:       var(--ankipalace-note-transfer-wizard-modal__page-active-text);
+  color:       var(--notepalace-note-transfer-wizard-modal__page-active-text);
 }
 
-.ankipalace-note-transfer-wizard-modal__page--active .ankipalace-note-transfer-wizard-modal__page-number {
-  background:   var(--ankipalace-note-transfer-wizard-modal__page-active-background);
-  border-color: var(--ankipalace-note-transfer-wizard-modal__page-active-background);
+.notepalace-note-transfer-wizard-modal__page--active .notepalace-note-transfer-wizard-modal__page-number {
+  background:   var(--notepalace-note-transfer-wizard-modal__page-active-background);
+  border-color: var(--notepalace-note-transfer-wizard-modal__page-active-background);
 }
 
-.ankipalace-note-transfer-wizard-modal__page--done {
-  color: var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+.notepalace-note-transfer-wizard-modal__page--done {
+  color: var(--notepalace-note-transfer-wizard-modal__page-muted-text);
 }
 
-.ankipalace-note-transfer-wizard-modal__page--done .ankipalace-note-transfer-wizard-modal__page-number {
-  color: var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+.notepalace-note-transfer-wizard-modal__page--done .notepalace-note-transfer-wizard-modal__page-number {
+  color: var(--notepalace-note-transfer-wizard-modal__page-muted-text);
 }
 
-.ankipalace-note-transfer-wizard-modal__page-separator {
-  color: var(--ankipalace-note-transfer-wizard-modal__page-separator-text);
+.notepalace-note-transfer-wizard-modal__page-separator {
+  color: var(--notepalace-note-transfer-wizard-modal__page-separator-text);
 }
 
-.ankipalace-note-transfer-wizard-modal__footer {
+.notepalace-note-transfer-wizard-modal__footer {
   display:         flex;
   flex-shrink:     0;
   justify-content: space-between;
-  gap:             var(--ankipalace-note-transfer-wizard-modal__footer-gap);
-  margin-top:      var(--ankipalace-note-transfer-wizard-modal-edge-gap);
-  margin-bottom:   var(--ankipalace-note-transfer-wizard-modal-edge-gap);
+  gap:             var(--notepalace-note-transfer-wizard-modal__footer-gap);
+  margin-top:      var(--notepalace-note-transfer-wizard-modal-edge-gap);
+  margin-bottom:   var(--notepalace-note-transfer-wizard-modal-edge-gap);
 }
 
-.ankipalace-note-transfer-wizard-modal__footer-right {
+.notepalace-note-transfer-wizard-modal__footer-right {
   display: flex;
-  gap:     var(--ankipalace-note-transfer-wizard-modal__footer-gap);
+  gap:     var(--notepalace-note-transfer-wizard-modal__footer-gap);
 }
 
-.ankipalace-note-transfer-wizard-modal__footer-center {
+.notepalace-note-transfer-wizard-modal__footer-center {
   display: flex;
   align-items: center;
-  gap:     var(--ankipalace-note-transfer-wizard-modal__footer-gap);
+  gap:     var(--notepalace-note-transfer-wizard-modal__footer-gap);
 }
 
-.ankipalace-note-transfer-wizard-modal__footer-page-indicator {
-  font-size: var(--ankipalace-note-transfer-wizard-modal__page-indicator-font-size);
-  color:     var(--ankipalace-note-transfer-wizard-modal__page-muted-text);
+.notepalace-note-transfer-wizard-modal__footer-page-indicator {
+  font-size: var(--notepalace-note-transfer-wizard-modal__page-indicator-font-size);
+  color:     var(--notepalace-note-transfer-wizard-modal__page-muted-text);
 }
 
-.ankipalace-note-import-wizard-modal__scope-row {
-  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+.notepalace-note-import-wizard-modal__scope-row {
+  padding: var(--notepalace-note-transfer-wizard-modal__row-padding);
 }
 
-.ankipalace-note-import-wizard-modal__scope-row--disabled {
+.notepalace-note-import-wizard-modal__scope-row--disabled {
   opacity: 0.5;
 }
 
-.modal-content .ankipalace-note-import-wizard-modal__scope-row > label {
+.modal-content .notepalace-note-import-wizard-modal__scope-row > label {
   display:     inline-flex;
   align-items: center;
-  gap:         var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  gap:         var(--notepalace-note-transfer-wizard-modal__row-gap);
   margin:      0;
   line-height: 1.4;
   cursor:      pointer;
 }
 
-.ankipalace-note-import-wizard-modal__scope-row input[type="radio"] {
+.notepalace-note-import-wizard-modal__scope-row input[type="radio"] {
   margin:      0;
   flex-shrink: 0;
 }
 
-.ankipalace-note-import-wizard-modal__scope-label-text {
+.notepalace-note-import-wizard-modal__scope-label-text {
   transform: translateY(-0.0625rem);
 }
 
-.ankipalace-note-import-wizard-modal__scope-radio {
+.notepalace-note-import-wizard-modal__scope-radio {
   cursor: pointer;
 }
 
-.ankipalace-note-import-wizard-modal__scope-radio:disabled {
+.notepalace-note-import-wizard-modal__scope-radio:disabled {
   cursor:         default;
   pointer-events: none;
 }
 
-.ankipalace-note-import-wizard-modal__model-section {
-  margin: var(--ankipalace-note-import-wizard-modal__model-section-margin);
+.notepalace-note-import-wizard-modal__model-section {
+  margin: var(--notepalace-note-import-wizard-modal__model-section-margin);
 }
 
-.ankipalace-note-import-wizard-modal__model-badge--recognized {
+.notepalace-note-import-wizard-modal__model-badge--recognized {
   color:     var(--text-success);
   font-size: 0.85em;
 }
 
-.ankipalace-note-import-wizard-modal__field-row {
-  padding: var(--ankipalace-note-import-wizard-modal__field-row-padding);
+.notepalace-note-import-wizard-modal__field-row {
+  padding: var(--notepalace-note-import-wizard-modal__field-row-padding);
 }
 
-.ankipalace-note-import-wizard-modal__field-sample {
+.notepalace-note-import-wizard-modal__field-sample {
   opacity:       0.7;
   overflow:      hidden;
   text-overflow: ellipsis;
   white-space:   nowrap;
-  max-width:     var(--ankipalace-note-import-wizard-modal__field-sample-max-width);
+  max-width:     var(--notepalace-note-import-wizard-modal__field-sample-max-width);
 }
 
-.ankipalace-note-import-wizard-modal__preview-row {
-  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+.notepalace-note-import-wizard-modal__preview-row {
+  padding: var(--notepalace-note-transfer-wizard-modal__row-padding);
 }
 
-.ankipalace-note-import-wizard-modal__preview-row label {
+.notepalace-note-import-wizard-modal__preview-row label {
   display: flex;
-  gap:     var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  gap:     var(--notepalace-note-transfer-wizard-modal__row-gap);
   cursor:  pointer;
 }
 
-.ankipalace-note-import-wizard-modal__preview-row--imported {
+.notepalace-note-import-wizard-modal__preview-row--imported {
   opacity: 0.5;
 }
 
-.ankipalace-note-import-wizard-modal__preview-badge--imported {
+.notepalace-note-import-wizard-modal__preview-badge--imported {
   color: var(--text-faint);
 }
 
-.ankipalace-note-import-wizard-modal__preview-badge--new {
+.notepalace-note-import-wizard-modal__preview-badge--new {
   color: var(--text-success);
 }
 
-.ankipalace-note-import-wizard-modal__preview-badge--overwrite {
+.notepalace-note-import-wizard-modal__preview-badge--overwrite {
   color: var(--text-error);
 }
 
-.ankipalace-note-import-wizard-modal__preview-badge--skipped {
+.notepalace-note-import-wizard-modal__preview-badge--skipped {
   color: var(--text-warning);
 }
 
-.ankipalace-note-import-wizard-modal__preview-pagination {
+.notepalace-note-import-wizard-modal__preview-pagination {
   display:     flex;
   align-items: center;
-  gap:         var(--ankipalace-note-import-wizard-modal__preview-pagination-gap);
-  margin-top:  var(--ankipalace-note-import-wizard-modal__preview-pagination-margin-top);
+  gap:         var(--notepalace-note-import-wizard-modal__preview-pagination-gap);
+  margin-top:  var(--notepalace-note-import-wizard-modal__preview-pagination-margin-top);
 }
 
-.ankipalace-note-export-wizard-modal__scope-row {
-  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+.notepalace-note-export-wizard-modal__scope-row {
+  padding: var(--notepalace-note-transfer-wizard-modal__row-padding);
 }
 
-.ankipalace-note-export-wizard-modal__scope-row--disabled {
+.notepalace-note-export-wizard-modal__scope-row--disabled {
   opacity: 0.5;
 }
 
-.modal-content .ankipalace-note-export-wizard-modal__scope-row > label {
+.modal-content .notepalace-note-export-wizard-modal__scope-row > label {
   display:     inline-flex;
   align-items: center;
-  gap:         var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  gap:         var(--notepalace-note-transfer-wizard-modal__row-gap);
   margin:      0;
   line-height: 1.4;
   cursor:      pointer;
 }
 
-.ankipalace-note-export-wizard-modal__scope-row input[type="radio"] {
+.notepalace-note-export-wizard-modal__scope-row input[type="radio"] {
   margin:      0;
   flex-shrink: 0;
 }
 
-.ankipalace-note-export-wizard-modal__scope-label-text {
+.notepalace-note-export-wizard-modal__scope-label-text {
   transform: translateY(-0.0625rem);
 }
 
-.ankipalace-note-export-wizard-modal__scope-radio {
+.notepalace-note-export-wizard-modal__scope-radio {
   cursor: pointer;
 }
 
-.ankipalace-note-export-wizard-modal__scope-radio:disabled {
+.notepalace-note-export-wizard-modal__scope-radio:disabled {
   cursor:         default;
   pointer-events: none;
 }
 
-.ankipalace-note-export-wizard-modal__preview-row {
-  padding: var(--ankipalace-note-transfer-wizard-modal__row-padding);
+.notepalace-note-export-wizard-modal__preview-row {
+  padding: var(--notepalace-note-transfer-wizard-modal__row-padding);
 }
 
-.ankipalace-note-export-wizard-modal__preview-row label {
+.notepalace-note-export-wizard-modal__preview-row label {
   display: flex;
-  gap:     var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  gap:     var(--notepalace-note-transfer-wizard-modal__row-gap);
   cursor:  pointer;
 }
 
-.ankipalace-note-export-wizard-modal__preview-row--imported {
+.notepalace-note-export-wizard-modal__preview-row--imported {
   opacity: 0.5;
 }
 
-.ankipalace-note-export-wizard-modal__preview-badge--imported {
+.notepalace-note-export-wizard-modal__preview-badge--imported {
   color: var(--text-faint);
 }
 
-.ankipalace-note-export-wizard-modal__preview-badge--new {
+.notepalace-note-export-wizard-modal__preview-badge--new {
   color: var(--text-success);
 }
 
-.ankipalace-note-export-wizard-modal__preview-badge--overwrite {
+.notepalace-note-export-wizard-modal__preview-badge--overwrite {
   color: var(--text-error);
 }
 
-.ankipalace-note-export-wizard-modal__preview-badge--skipped {
+.notepalace-note-export-wizard-modal__preview-badge--skipped {
   color: var(--text-warning);
 }
 
-.ankipalace-note-transfer-wizard-modal__list {
+.notepalace-note-transfer-wizard-modal__list {
   display: grid;
 }
 
-.ankipalace-note-transfer-wizard-modal__list-header,
-.ankipalace-note-transfer-wizard-modal__list-row {
-  column-gap:            var(--ankipalace-note-transfer-wizard-modal__row-gap);
+.notepalace-note-transfer-wizard-modal__list-header,
+.notepalace-note-transfer-wizard-modal__list-row {
+  column-gap:            var(--notepalace-note-transfer-wizard-modal__row-gap);
   display:               grid;
   grid-column:           1 / -1;
   grid-template-columns: subgrid;
 }
 
-.ankipalace-note-transfer-wizard-modal__list-cell {
+.notepalace-note-transfer-wizard-modal__list-cell {
   min-width: 0;
 }
 
-.ankipalace-note-transfer-wizard-modal__list-header {
-  font-size: var(--ankipalace-note-transfer-wizard-modal__list-header-font-size);
+.notepalace-note-transfer-wizard-modal__list-header {
+  font-size: var(--notepalace-note-transfer-wizard-modal__list-header-font-size);
   opacity:   0.7;
   position:  sticky;
   top:       0;
@@ -336,27 +336,27 @@
   z-index:   1;
 }
 
-.ankipalace-note-transfer-wizard-modal__labeled-control {
+.notepalace-note-transfer-wizard-modal__labeled-control {
   display:     inline-flex;
   align-items: center;
-  gap:         var(--ankipalace-note-transfer-wizard-modal__row-gap);
+  gap:         var(--notepalace-note-transfer-wizard-modal__row-gap);
   cursor:      pointer;
 }
 
-.ankipalace-note-transfer-wizard-modal__labeled-control--disabled {
+.notepalace-note-transfer-wizard-modal__labeled-control--disabled {
   cursor: default;
 }
 
-.ankipalace-note-transfer-wizard-modal__list--dividers-bottom > *:not(:last-child) {
-  border-bottom: var(--ankipalace-note-transfer-wizard-modal__list-divider);
+.notepalace-note-transfer-wizard-modal__list--dividers-bottom > *:not(:last-child) {
+  border-bottom: var(--notepalace-note-transfer-wizard-modal__list-divider);
 }
 
-.ankipalace-note-transfer-wizard-modal__list--dividers-top > *:not(:first-child) {
-  border-top: var(--ankipalace-note-transfer-wizard-modal__list-divider);
+.notepalace-note-transfer-wizard-modal__list--dividers-top > *:not(:first-child) {
+  border-top: var(--notepalace-note-transfer-wizard-modal__list-divider);
 }
 
-.ankipalace-note-transfer-wizard-modal__list--striped > *:nth-child(even) {
-  background: var(--ankipalace-note-transfer-wizard-modal__list-stripe-background);
+.notepalace-note-transfer-wizard-modal__list--striped > *:nth-child(even) {
+  background: var(--notepalace-note-transfer-wizard-modal__list-stripe-background);
 }
 
 .note-form {
@@ -399,24 +399,24 @@
   background:    var(--background-secondary);
 }
 
-.ankipalace-dev-reset {
+.notepalace-dev-reset {
   display: flex;
   flex-direction: column;
-  gap: var(--ankipalace-dev-reset-gap);
-  padding: var(--ankipalace-dev-reset-padding);
+  gap: var(--notepalace-dev-reset-gap);
+  padding: var(--notepalace-dev-reset-padding);
 }
 
-.ankipalace-dev-reset__warning {
+.notepalace-dev-reset__warning {
   margin: 0;
   color: var(--text-normal);
 }
 
-.ankipalace-dev-reset__actions {
+.notepalace-dev-reset__actions {
   display:         flex;
   justify-content: flex-end;
-  gap:            var(--ankipalace-dev-reset-gap);
+  gap:            var(--notepalace-dev-reset-gap);
 }
 
-.ankipalace-dev-reset__confirm-button {
+.notepalace-dev-reset__confirm-button {
   color: var(--text-error);
 }

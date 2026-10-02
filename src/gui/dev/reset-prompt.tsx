@@ -2,10 +2,10 @@ import type { JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
 
 const devResetClasses = {
-  actions: "ankipalace-dev-reset__actions",
-  confirmButton: "ankipalace-dev-reset__confirm-button",
-  prompt: "ankipalace-dev-reset",
-  warning: "ankipalace-dev-reset__warning",
+  actions: "notepalace-dev-reset__actions",
+  confirmButton: "notepalace-dev-reset__confirm-button",
+  prompt: "notepalace-dev-reset",
+  warning: "notepalace-dev-reset__warning",
 } as const;
 
 export interface ResetPromptProps {

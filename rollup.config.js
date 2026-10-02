@@ -23,7 +23,7 @@ const getTypescriptPlugin = (outDir) =>
 export default {
   input: "main.dev.ts",
   output: {
-    dir: "docs/test-vault/.obsidian/plugins/ankipalace/",
+    dir: "docs/test-vault/.obsidian/plugins/notepalace/",
     entryFileNames: "main.js",
     sourcemap: "inline",
     format: "cjs",
@@ -31,10 +31,10 @@ export default {
   },
   external: ["obsidian"],
   plugins: [
-    getTypescriptPlugin("docs/test-vault/.obsidian/plugins/ankipalace/"),
+    getTypescriptPlugin("docs/test-vault/.obsidian/plugins/notepalace/"),
     nodeResolve({ browser: true }),
     commonjs(),
-    copyFile("manifest.json", "docs/test-vault/.obsidian/plugins/ankipalace/"),
-    copyFile("styles.css", "docs/test-vault/.obsidian/plugins/ankipalace/"),
+    copyFile("manifest.json", "docs/test-vault/.obsidian/plugins/notepalace/"),
+    copyFile("styles.css", "docs/test-vault/.obsidian/plugins/notepalace/"),
   ],
 };
