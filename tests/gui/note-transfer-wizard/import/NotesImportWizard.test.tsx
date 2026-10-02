@@ -295,7 +295,7 @@ describe("NotesImportWizard - last page", () => {
 
     // then
     const vault = app.vault as unknown as ObsidianVault;
-    const packPath = ".obsidian/plugins/ankipalace/packs/My-Model.json";
+    const packPath = ".obsidian/plugins/notepalace/packs/My-Model.json";
     const adapter = vault.adapter as unknown as {
       read(path: string): Promise<string>;
     };

@@ -143,7 +143,7 @@ async function renderPreview(scenarioOverride?: PreviewScenario) {
 function previewRow(summaryText: string): HTMLElement {
   const summary = screen.getByText(summaryText);
   const row = summary.closest(
-    "div.ankipalace-note-export-wizard-modal__preview-row",
+    "div.notepalace-note-export-wizard-modal__preview-row",
   );
   if (row === null) {
     throw new Error(`No preview row found for ${summaryText}`);

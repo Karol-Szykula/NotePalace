@@ -1,4 +1,4 @@
-# AnkiPalace (dev)
+# NotePalace (dev)
 
 ## Commands
 

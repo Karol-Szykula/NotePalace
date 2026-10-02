@@ -136,7 +136,7 @@ describe("savePack and loadPack", () => {
     // given
     const app = App.createConfigured__({
       files: {
-        ".obsidian/plugins/ankipalace/packs/My-Model.json": "not json{{{",
+        ".obsidian/plugins/notepalace/packs/My-Model.json": "not json{{{",
       },
     });
     const vault = app.vault as unknown as ObsidianVault;

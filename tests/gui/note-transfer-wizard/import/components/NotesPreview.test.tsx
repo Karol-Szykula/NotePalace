@@ -164,7 +164,7 @@ async function renderPreview(scenarioOverride?: PreviewScenario) {
 function previewRow(summaryText: string): HTMLElement {
   const summary = screen.getByText(summaryText);
   const row = summary.closest(
-    "div.ankipalace-note-import-wizard-modal__preview-row",
+    "div.notepalace-note-import-wizard-modal__preview-row",
   );
   if (row === null) {
     throw new Error(`No preview row found for ${summaryText}`);
@@ -186,7 +186,7 @@ describe("NotesPreview", () => {
     expect(upToDate).not.toBeNull();
     expect(
       upToDate.closest(
-        "div.ankipalace-note-import-wizard-modal__preview-row--imported",
+        "div.notepalace-note-import-wizard-modal__preview-row--imported",
       ),
     ).not.toBeNull();
     expect(boxes.filter((box) => box.hasAttribute("disabled"))).toHaveLength(4);
