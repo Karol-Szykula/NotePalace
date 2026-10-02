@@ -69,7 +69,7 @@
   `main.dev.ts`, a subclass that the release build (`main.ts`) never imports.
   Add a new dev command there, never in `main.ts`.
 - CSS changes do not trigger the rollup watcher: copy `styles.css`
-  to `docs/test-vault/.obsidian/plugins/ankipalace/` manually
+  to `docs/test-vault/.obsidian/plugins/notepalace/` manually
   and diff to confirm.
 - Test vault (`docs/test-vault`) is fixture data: revert unintended
   modifications instead of committing them.

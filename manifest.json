@@ -1,6 +1,6 @@
 {
-  "id": "ankipalace",
-  "name": "AnkiPalace",
+  "id": "notepalace",
+  "name": "NotePalace",
   "version": "1.0.2",
   "minAppVersion": "1.0.0",
   "description": "Sync notes to Anki using tags, inline separators, and cloze syntax.",

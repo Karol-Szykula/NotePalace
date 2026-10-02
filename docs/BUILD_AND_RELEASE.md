@@ -29,7 +29,7 @@ This creates `main.js` in the repository root. The plugin manifest is `manifest.
 | Entry | Built by | Output | Contains the dev commands |
 | --- | --- | --- | --- |
 | `main.ts` | `npm run build` (esbuild) | `main.js` in the repository root, released | no |
-| `main.dev.ts` | `npm run dev` (rollup watcher) | `docs/test-vault/.obsidian/plugins/ankipalace/main.js` | yes |
+| `main.dev.ts` | `npm run dev` (rollup watcher) | `docs/test-vault/.obsidian/plugins/notepalace/main.js` | yes |
 
 `main.dev.ts` is a subclass of the plugin class that registers the developer
 commands (`Dev: reset plugin data`) after the normal ones. The release build
@@ -55,7 +55,7 @@ npm run release
 The release folder will be created at:
 
 ```text
-dist/ankipalace/
+dist/notepalace/
 ```
 
 It contains the files Obsidian needs:
@@ -67,24 +67,24 @@ manifest.json
 
 If a future version adds `styles.css`, include that file in the release folder too.
 
-For a GitHub release, upload `main.js` and `manifest.json` as release assets. You can also zip the contents of `dist/ankipalace/`, but the files should be at the top level of the zip.
+For a GitHub release, upload `main.js` and `manifest.json` as release assets. You can also zip the contents of `dist/notepalace/`, but the files should be at the top level of the zip.
 
 ## Manual install in Obsidian
 
 Create this folder inside your vault:
 
 ```text
-<your-vault>/.obsidian/plugins/ankipalace/
+<your-vault>/.obsidian/plugins/notepalace/
 ```
 
 Copy the release files into it:
 
 ```text
-<your-vault>/.obsidian/plugins/ankipalace/main.js
-<your-vault>/.obsidian/plugins/ankipalace/manifest.json
+<your-vault>/.obsidian/plugins/notepalace/main.js
+<your-vault>/.obsidian/plugins/notepalace/manifest.json
 ```
 
-Then restart Obsidian and enable **AnkiPalace** under:
+Then restart Obsidian and enable **NotePalace** under:
 
 ```text
 Settings -> Community plugins

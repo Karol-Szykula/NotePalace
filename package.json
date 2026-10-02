@@ -1,12 +1,12 @@
 {
-  "name": "ankipalace",
+  "name": "notepalace",
   "version": "0.2.1",
   "description": "An Anki integration.",
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
     "build": "esbuild main.ts --bundle --external:obsidian --format=cjs --platform=browser --target=es2018 --outfile=main.js --sourcemap=inline",
-    "release": "npm run build && mkdir -p dist/ankipalace && cp main.js manifest.json styles.css dist/ankipalace/",
+    "release": "npm run build && mkdir -p dist/notepalace && cp main.js manifest.json styles.css dist/notepalace/",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

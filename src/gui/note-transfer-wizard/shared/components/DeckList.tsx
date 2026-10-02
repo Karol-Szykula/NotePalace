@@ -137,7 +137,7 @@ export function DeckList({
                 key={name}
                 onSelect={() => onSelect(name)}
                 style={{
-                  paddingLeft: `calc(${depth} * var(--ankipalace-note-transfer-wizard-modal__row-indent) + 0.25rem)`,
+                  paddingLeft: `calc(${depth} * var(--notepalace-note-transfer-wizard-modal__row-indent) + 0.25rem)`,
                 }}
               />
             );

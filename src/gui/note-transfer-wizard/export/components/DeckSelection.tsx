@@ -122,7 +122,7 @@ export function DeckSelection({
           )
         }
         inputClassName={exportScopeClasses.scopeRadio}
-        inputName="ankipalace-note-export-wizard-modal-scope"
+        inputName="notepalace-note-export-wizard-modal-scope"
         items={folders.map(toDeckItem)}
         labelClassName={exportScopeClasses.scopeLabelText}
         onSelect={onSelectDeckName}

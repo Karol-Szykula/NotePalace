@@ -14,7 +14,7 @@ export interface NotePack {
   packVersion: number;
 }
 
-const pluginFolderName = "ankipalace";
+const pluginFolderName = "notepalace";
 
 interface PackFolderListing {
   files: string[];

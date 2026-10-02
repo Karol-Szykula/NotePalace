@@ -15,9 +15,9 @@ function describe(detail: unknown): string[] {
 
 export const logger: Logger = {
   error: (message, detail) => {
-    console.error(`AnkiPalace: ${message}`, ...describe(detail));
+    console.error(`NotePalace: ${message}`, ...describe(detail));
   },
   warn: (message, detail) => {
-    console.warn(`AnkiPalace: ${message}`, ...describe(detail));
+    console.warn(`NotePalace: ${message}`, ...describe(detail));
   },
 };

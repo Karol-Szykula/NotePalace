@@ -9,7 +9,7 @@ import { logger } from "src/services/logger";
 import { describeUnknown } from "src/services/anki/anki";
 import {
   clozeModelName,
-  ankipalaceIcon,
+  notepalaceIcon,
   noteFormLanguage,
   noticeTimeout,
 } from "src/conf/constants";
@@ -30,11 +30,11 @@ const insertNoteFormCommandName = "Insert note form";
 const newNoteFileCommandName = "New note file";
 const newClozeNoteFileCommandName = "New cloze note file";
 
-export default class AnkiPalace extends Plugin {
+export default class NotePalace extends Plugin {
   override settings!: ISettings;
 
   override async onload() {
-    addIcon("ankipalace", ankipalaceIcon);
+    addIcon("notepalace", notepalaceIcon);
 
     const anki = new Anki();
     this.settings = normalizeSettings(await this.loadData());

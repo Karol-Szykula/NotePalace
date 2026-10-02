@@ -1,7 +1,7 @@
 import { registerDevCommands } from "src/dev/commands";
-import AnkiPalace from "./main";
+import NotePalace from "./main";
 
-export default class AnkiPalaceDev extends AnkiPalace {
+export default class NotePalaceDev extends NotePalace {
   override async onload() {
     await super.onload();
     registerDevCommands(this);
