@@ -51,7 +51,7 @@ describe("resetPluginData", () => {
       deckImportSnapshots: { Languages: languagesSnapshot() },
       fieldMappings: { Basic: { Front: "Front" } },
       ignoredDirectories: "Archive",
-      lastSyncRev: 7,
+
       noteLifecycle: { 101: syncedCleanRecord(1, "hash-101") },
     });
 

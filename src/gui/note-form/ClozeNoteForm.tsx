@@ -7,7 +7,7 @@ import type { NoteFormData, NoteFormEdit } from "src/entities/note-form-data";
 const clozeShape = noteShapeFor(clozeModelName);
 
 export interface ClozeNoteFormProps {
-  readonly className?: string;
+  readonly className?: string | undefined;
   readonly data: NoteFormData;
   readonly onEdit: (edit: NoteFormEdit) => void;
 }

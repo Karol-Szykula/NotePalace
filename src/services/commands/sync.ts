@@ -144,9 +144,13 @@ async function syncDeckNotes(
     }
     const currentHash = await blockContentHash(block);
     const record = settings.noteLifecycle[note.noteId];
+    const blockInput =
+      block.id !== undefined
+        ? { id: block.id, hash: currentHash }
+        : { hash: currentHash, id: undefined as number | undefined };
     const status = classifyNoteLifecycle({
       anki: note,
-      block: { id: block.id ?? undefined, hash: currentHash },
+      block: blockInput,
       record,
     });
     if (status === "synced.clean") {
@@ -202,6 +206,7 @@ async function syncDeckNotes(
       notes: eligible,
       targetFolder: "",
       vaultNoteIndex: index,
+      previewStatuses: undefined,
     },
     yaml,
   );
@@ -212,10 +217,6 @@ async function syncDeckNotes(
       report.syncedHashes[noteId] ?? "",
       Date.now(),
     );
-  }
-  const importedMods = Object.values(report.syncedNotes);
-  if (importedMods.length > 0) {
-    settings.lastSyncRev = Math.max(settings.lastSyncRev, ...importedMods);
   }
   settings.deckImportSnapshots[snapshot.deckName] = {
     ...snapshot,

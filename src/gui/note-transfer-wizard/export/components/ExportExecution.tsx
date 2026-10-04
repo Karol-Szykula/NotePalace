@@ -12,12 +12,12 @@ import { commonWizardClasses } from "@shared/classes";
 
 export interface ExportExecutionProps {
   readonly anki: Anki;
-  readonly className?: string;
+  readonly className?: string | undefined;
   readonly forcedNoteIds: Record<number, boolean>;
   readonly ignoredDirectories: string;
   readonly notesSelectedToExport: Record<number, boolean>;
   readonly onFinish: (report: ExportReport) => void;
-  readonly previewStatuses?: Record<number, NoteLifecycleStatus>;
+  readonly previewStatuses?: Record<number, NoteLifecycleStatus> | undefined;
   readonly settings: ISettings;
   readonly vault: Vault;
 }

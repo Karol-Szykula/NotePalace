@@ -63,7 +63,7 @@ export interface ExecuteExportRequest {
   forcedNoteIds?: number[];
   ignoredDirectories: string;
   onProgress?: (processed: number, total: number) => void;
-  previewStatuses?: Record<number, NoteLifecycleStatus>;
+  previewStatuses: Record<number, NoteLifecycleStatus> | undefined;
 }
 
 interface BlockScan {
@@ -218,12 +218,14 @@ export async function classifyVaultBlock(
   anki: AnkiNoteInfo | undefined,
   record: NoteLifecycleRecord | undefined,
 ): Promise<NoteLifecycleStatus> {
+  const hash = await blockContentHash(block);
+  const blockInput =
+    block.id !== undefined
+      ? { id: block.id, hash }
+      : { hash, id: undefined as number | undefined };
   return classifyNoteLifecycle({
     anki,
-    block: {
-      id: block.id,
-      hash: await blockContentHash(block),
-    },
+    block: blockInput,
     record,
   });
 }
@@ -464,18 +466,4 @@ export async function executeExport(
   await recordSyncedBaselines(anki, settings, plan.synced);
   await writeBackIds(vault, plan.idWrites, yaml);
   return plan.report;
-}
-
-export function formatExportReport(report: ExportReport): string {
-  return (
-    `Export: ${report.created} created, ${report.updated} updated, ` +
-    `${report.enrolled} enrolled, ${report.unchanged} unchanged, ` +
-    `${report.forced} forced, ${report.skipped} skipped, ` +
-    `${report.mediaFiles} media files, ${report.skippedConflicts} skipped as conflicts, ` +
-    `${report.skippedDeleted} skipped as deleted, ` +
-    `${report.skippedForSync} left to Sync, ` +
-    `${report.skippedModelMismatch} skipped on model mismatch, ` +
-    `${report.skippedUnmapped} skipped without pack, ` +
-    `${report.skippedUnreadable} skipped unreadable`
-  );
 }

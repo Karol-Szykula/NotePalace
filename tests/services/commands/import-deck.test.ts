@@ -321,6 +321,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -346,6 +347,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -380,6 +382,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -408,6 +411,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -532,6 +536,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -561,6 +566,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -588,6 +594,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -632,6 +639,7 @@ describe("executeImport", () => {
         targetFolder: "",
         noteLifecycle: {},
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -680,6 +688,7 @@ describe("executeImport", () => {
         targetFolder: "",
         noteLifecycle: {},
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -728,6 +737,7 @@ describe("executeImport", () => {
         targetFolder: "",
         noteLifecycle: {},
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -761,6 +771,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -795,6 +806,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -832,6 +844,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -869,6 +882,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -904,6 +918,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -949,6 +964,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -991,6 +1007,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1023,6 +1040,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: { Front: "Skip", Back: "Skip" } },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1065,6 +1083,7 @@ describe("executeImport", () => {
         fieldMappings: { Basic: basicMapping() },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1104,6 +1123,7 @@ describe("executeImport", () => {
         fieldMappings: { Cloze: { Text: "Text", Extra: "Extra" } },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1148,6 +1168,7 @@ describe("executeImport", () => {
         fieldMappings: { "My Model": { Question: "Front", Answer: "Back" } },
         targetFolder: "",
         noteLifecycle: {},
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1184,6 +1205,7 @@ describe("executeImport", () => {
         notes,
         targetFolder: "",
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1222,6 +1244,7 @@ describe("executeImport", () => {
         notes,
         targetFolder: "",
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1252,6 +1275,7 @@ describe("executeImport", () => {
         noteLifecycle: {},
         notes,
         targetFolder: "",
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1288,6 +1312,7 @@ describe("executeImport", () => {
           },
         },
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1333,6 +1358,7 @@ describe("executeImport", () => {
           },
         },
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1379,6 +1405,7 @@ describe("executeImport", () => {
           },
         },
         vaultNoteIndex,
+        previewStatuses: undefined,
       },
       jsonEngine,
     );
@@ -1415,6 +1442,7 @@ describe("executeImport", () => {
           calls += 1;
           return calls > 1;
         },
+        previewStatuses: undefined,
       },
       jsonEngine,
     );

@@ -12,10 +12,10 @@ import { listClasses } from "../classes/common";
 
 export interface ListRowProps {
   readonly cells: ReactNode[];
-  readonly className?: string;
-  readonly disabled?: boolean;
-  readonly onSelect?: () => void;
-  readonly style?: CSSProperties;
+  readonly className?: string | undefined;
+  readonly disabled?: boolean | undefined;
+  readonly onSelect?: (() => void) | undefined;
+  readonly style?: CSSProperties | undefined;
 }
 
 export function ListRow({
@@ -48,12 +48,12 @@ export function ListRow({
 }
 
 export interface LabeledControlProps {
-  readonly className?: string;
+  readonly className?: string | undefined;
   readonly control: ReactNode;
-  readonly controlLabel?: string;
-  readonly disabled?: boolean;
+  readonly controlLabel?: string | undefined;
+  readonly disabled?: boolean | undefined;
   readonly label: ReactNode;
-  readonly tooltip?: string;
+  readonly tooltip?: string | undefined;
 }
 
 function accessibleControl(

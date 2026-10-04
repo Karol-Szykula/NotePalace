@@ -3,19 +3,21 @@ import { mergeClasses } from "src/gui/classes";
 import { footerClasses } from "../classes/common";
 
 export interface FooterButton {
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   label: string;
   onClick: () => void;
 }
 
 export interface FooterProps {
-  readonly className?: string;
+  readonly className?: string | undefined;
   readonly leftButtons: FooterButton[];
-  readonly pagination?: {
-    readonly currentPage: number;
-    readonly totalPages: number;
-    readonly onPageChange: (page: number) => void;
-  };
+  readonly pagination?:
+    | {
+        readonly currentPage: number;
+        readonly totalPages: number;
+        readonly onPageChange: (page: number) => void;
+      }
+    | undefined;
   readonly rightButtons: FooterButton[];
 }
 
