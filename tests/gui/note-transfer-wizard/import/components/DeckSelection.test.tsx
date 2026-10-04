@@ -56,7 +56,7 @@ function respondWithDeckNotes(deckCards: Record<string, number[]>) {
 
 function renderDeckSelection(
   vaultNoteIndex = new Map<number, string>(),
-  syncState = { fallbackRev: 0, syncedMods: {} },
+  syncState = { syncedMods: {} },
 ) {
   const onSelectDeckName = jest.fn();
   render(
@@ -97,6 +97,7 @@ describe("DeckSelection", () => {
         [11, importedFileName],
         [22, importedFileName],
       ]),
+      { syncedMods: {} },
     );
 
     // when
@@ -134,7 +135,7 @@ describe("DeckSelection", () => {
         [11, "Languages-11.md"],
         [22, "Languages-22.md"],
       ]),
-      { fallbackRev: 100, syncedMods: {} },
+      { syncedMods: { 11: 100, 22: 100 } },
     );
 
     // when
@@ -146,7 +147,7 @@ describe("DeckSelection", () => {
     expect(counter).toBeInTheDocument();
   });
 
-  test("given a per-note sync older than the global rev when the list renders then prefers the per-note rev", async () => {
+  test("given per-note sync state when the list renders then uses per-note rev", async () => {
     // given
     AnkiConnectMock.setResponder((request) => {
       switch (request.action) {
@@ -171,7 +172,7 @@ describe("DeckSelection", () => {
         [11, "Languages-11.md"],
         [22, "Languages-22.md"],
       ]),
-      { fallbackRev: 300, syncedMods: { 11: 100, 22: 100 } },
+      { syncedMods: { 11: 100, 22: 100 } },
     );
 
     // when

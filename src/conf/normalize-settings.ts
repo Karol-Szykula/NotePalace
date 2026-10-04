@@ -25,10 +25,6 @@ export function normalizeSettings(stored: unknown): ISettings {
       typeof stored["ignoredDirectories"] === "string"
         ? stored["ignoredDirectories"]
         : defaultSettings().ignoredDirectories,
-    lastSyncRev:
-      typeof stored["lastSyncRev"] === "number"
-        ? stored["lastSyncRev"]
-        : defaultSettings().lastSyncRev,
     noteLifecycle: normalizedRecord(stored["noteLifecycle"]),
   };
 }

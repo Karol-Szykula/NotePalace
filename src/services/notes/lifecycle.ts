@@ -231,9 +231,9 @@ export function syncedCleanRecord(
 }
 
 export interface LifecycleInputs {
-  anki?: AnkiNoteInfo;
-  block?: { id?: number; hash: string };
-  record?: NoteLifecycleRecord;
+  anki?: AnkiNoteInfo | undefined;
+  block?: { id: number | undefined; hash?: string } | undefined;
+  record?: NoteLifecycleRecord | undefined;
 }
 
 export function classifyNoteLifecycle(

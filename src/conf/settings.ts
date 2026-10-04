@@ -12,6 +12,5 @@ export interface ISettings {
   deckImportSnapshots: Record<string, DeckImportSnapshot>;
   fieldMappings: Record<string, Record<string, string>>;
   ignoredDirectories: string;
-  lastSyncRev: number;
   noteLifecycle: Record<number, NoteLifecycleRecord>;
 }

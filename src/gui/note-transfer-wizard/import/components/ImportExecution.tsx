@@ -18,7 +18,7 @@ import { commonWizardClasses } from "../../shared/classes";
 
 export interface ImportExecutionProps {
   readonly anki: Anki;
-  readonly className?: string;
+  readonly className?: string | undefined;
   readonly deckName: string;
   readonly fieldMappings: Record<string, FieldMap>;
   readonly forcedNoteIds: Record<number, boolean>;
@@ -26,9 +26,9 @@ export interface ImportExecutionProps {
   readonly notes: AnkiNoteInfo[];
   readonly notesSelectedToImport: Record<number, boolean>;
   readonly onFinish: (report: ImportExecutionReport) => void;
-  readonly previewStatuses?: Record<number, NoteLifecycleStatus>;
+  readonly previewStatuses?: Record<number, NoteLifecycleStatus> | undefined;
   readonly vault: Vault;
-  readonly vaultNoteIndex?: VaultNoteIndex;
+  readonly vaultNoteIndex?: VaultNoteIndex | undefined;
 }
 
 type ExecutionPhase = "running" | "done" | "failed";

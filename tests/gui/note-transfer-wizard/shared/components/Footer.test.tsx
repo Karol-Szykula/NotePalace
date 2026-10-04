@@ -11,7 +11,7 @@ import { Footer, type FooterButton } from "@shared/components/Footer";
 function renderFooter(
   leftButtons: FooterButton[] = [{ label: "Cancel", onClick: jest.fn() }],
   rightButtons: FooterButton[] = [{ label: "Next", onClick: jest.fn() }],
-  className?: string,
+  className?: string | undefined,
 ) {
   render(
     <Footer

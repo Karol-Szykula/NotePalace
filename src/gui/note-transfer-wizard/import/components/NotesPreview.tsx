@@ -242,19 +242,25 @@ export function NotesPreview({
         const block = isInVaultIndex
           ? await findVaultNoteBlock(vault, vaultNoteIndex, note.noteId)
           : null;
+        const hash = block
+          ? await computeContentHash(
+              block.front,
+              block.back,
+              block.tags,
+              block.model,
+            )
+          : undefined;
+        let blockInput: { id: number | undefined; hash?: string } | undefined;
+        if (block !== null && hash !== undefined) {
+          blockInput = { id: block.id, hash };
+        } else if (block !== null) {
+          blockInput = { id: block.id };
+        } else {
+          blockInput = undefined;
+        }
         const status = classifyNoteLifecycle({
           anki: note,
-          block: block
-            ? {
-                hash: await computeContentHash(
-                  block.front,
-                  block.back,
-                  block.tags,
-                  block.model,
-                ),
-                id: block.id,
-              }
-            : undefined,
+          block: blockInput,
           record: noteLifecycle[note.noteId],
         });
         items.push({

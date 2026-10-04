@@ -68,7 +68,7 @@ async function exportOneNote(
     new Anki(),
     vault,
     settings,
-    { ignoredDirectories: "" },
+    { ignoredDirectories: "", previewStatuses: undefined },
     jsonEngine,
   );
   if (report.created !== 1) {
@@ -97,6 +97,7 @@ async function importDeck(
       notes: ankiState.notes,
       targetFolder: "",
       vaultNoteIndex,
+      previewStatuses: undefined,
     },
     jsonEngine,
   );
@@ -188,7 +189,7 @@ describe("export then import round trip", () => {
       new Anki(),
       vault,
       settings,
-      { ignoredDirectories: "" },
+      { ignoredDirectories: "", previewStatuses: undefined },
       jsonEngine,
     );
 
