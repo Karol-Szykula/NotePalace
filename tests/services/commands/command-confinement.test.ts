@@ -77,6 +77,7 @@ async function importOneNote(note: AnkiNoteInfo): Promise<ObsidianVault> {
       notes: [note],
       targetFolder: "",
       vaultNoteIndex: await collectVaultNoteIndex(vault),
+      previewStatuses: undefined,
     },
     jsonEngine,
   );
@@ -121,7 +122,7 @@ describe("the export command stays inside its confinement", () => {
       new Anki(),
       vault,
       createSettings(),
-      { ignoredDirectories: "" },
+      { ignoredDirectories: "", previewStatuses: undefined },
       jsonEngine,
     );
 
@@ -141,7 +142,7 @@ describe("the export command stays inside its confinement", () => {
       new Anki(),
       vault,
       createSettings(),
-      { ignoredDirectories: "" },
+      { ignoredDirectories: "", previewStatuses: undefined },
       jsonEngine,
     );
 

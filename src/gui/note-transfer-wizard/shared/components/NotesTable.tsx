@@ -13,6 +13,27 @@ export interface ColumnDef<T> {
   readonly width: string;
 }
 
+interface NoteRowProps<T> {
+  readonly columns: ColumnDef<T>[];
+  readonly forcedNoteIds: Record<number, boolean>;
+  readonly forceStrategy: ForceStrategy;
+  readonly getDefaultSelected: (item: T) => boolean;
+  readonly getNoteId: (item: T) => number;
+  readonly getRow: (item: T) => SyncDecisionRow;
+  readonly getRowClassName: (item: T) => string | undefined;
+  readonly getStatus: (item: T) => NoteLifecycleStatus;
+  readonly index: number;
+  readonly isSelectionLocked: (item: T) => boolean | undefined;
+  readonly item: T;
+  readonly notesSelectedToImport: Record<number, boolean>;
+  readonly onForcedChange: (noteId: number, isForced: boolean) => void;
+  readonly onSelectedChange: (
+    selected: Record<number, boolean>,
+    noteId: number,
+    isSelected: boolean,
+  ) => void;
+}
+
 export interface NotesTableProps<T> {
   readonly bulkActionHandler: () => void;
   readonly bulkActionLabel: string;
@@ -27,7 +48,7 @@ export interface NotesTableProps<T> {
   readonly getRowClassName?: (item: T) => string | undefined;
   readonly getStatus: (item: T) => NoteLifecycleStatus;
   readonly isResurrectable: (item: T) => boolean;
-  readonly isSelectionLocked?: (item: T) => boolean;
+  readonly isSelectionLocked?: (item: T) => boolean | undefined;
   readonly items: T[];
   readonly notesSelectedToImport: Record<number, boolean>;
   readonly onForcedChange: (noteId: number, isForced: boolean) => void;
@@ -38,8 +59,8 @@ export interface NotesTableProps<T> {
     isSelected: boolean,
   ) => void;
   readonly pageSize: number;
-  readonly resurrectionWarning?: string;
-  readonly selectionNotice?: string;
+  readonly resurrectionWarning?: string | undefined;
+  readonly selectionNotice?: string | undefined;
 }
 
 function NoteRow<T>({
@@ -57,28 +78,9 @@ function NoteRow<T>({
   getStatus,
   isSelectionLocked,
   forceStrategy,
-}: {
-  readonly item: T;
-  readonly index: number;
-  readonly columns: ColumnDef<T>[];
-  readonly forcedNoteIds: Record<number, boolean>;
-  readonly notesSelectedToImport: Record<number, boolean>;
-  readonly onForcedChange: (noteId: number, isForced: boolean) => void;
-  readonly onSelectedChange: (
-    selected: Record<number, boolean>,
-    noteId: number,
-    isSelected: boolean,
-  ) => void;
-  readonly getDefaultSelected: (item: T) => boolean;
-  readonly getNoteId: (item: T) => number;
-  readonly getRow: (item: T) => SyncDecisionRow;
-  readonly getRowClassName?: (item: T) => string | undefined;
-  readonly getStatus: (item: T) => NoteLifecycleStatus;
-  readonly isSelectionLocked?: (item: T) => boolean;
-  readonly forceStrategy: ForceStrategy;
-}): JSX.Element {
+}: NoteRowProps<T>): JSX.Element {
   const noteId = getNoteId(item);
-  const isLocked = isSelectionLocked?.(item) ?? false;
+  const isLocked = isSelectionLocked(item) ?? false;
   const isSelected = isLocked
     ? true
     : (notesSelectedToImport[noteId] ?? getDefaultSelected(item));
@@ -124,7 +126,7 @@ function NoteRow<T>({
             <div key={colIndex}>{col.render(item, index)}</div>
           )),
       ]}
-      className={mergeClasses(listClasses.listRow, getRowClassName?.(item))}
+      className={mergeClasses(listClasses.listRow, getRowClassName(item))}
       key={noteId}
     />
   );
@@ -214,10 +216,10 @@ export function NotesTable<T>({
             getDefaultSelected={getDefaultSelected}
             getNoteId={getNoteId}
             getRow={getRow}
-            getRowClassName={getRowClassName}
+            getRowClassName={getRowClassName ?? (() => undefined)}
             getStatus={getStatus}
             index={index}
-            isSelectionLocked={isSelectionLocked}
+            isSelectionLocked={isSelectionLocked ?? (() => undefined)}
             item={item}
             key={getNoteId(item)}
             notesSelectedToImport={notesSelectedToImport}

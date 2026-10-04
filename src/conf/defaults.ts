@@ -5,6 +5,5 @@ export const defaultSettings = (): ISettings => ({
   deckImportSnapshots: {},
   fieldMappings: {},
   ignoredDirectories: "",
-  lastSyncRev: 0,
   noteLifecycle: {},
 });

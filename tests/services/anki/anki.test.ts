@@ -44,7 +44,7 @@ function createNote(): BasicNote {
   );
 }
 
-function multiActions(): { action: string; modelName?: string }[] {
+function multiActions(): { action: string; modelName: string | undefined }[] {
   return multiSubActions().map((sub) => ({
     action: sub.action,
     modelName: sub.params["modelName"] as string | undefined,
