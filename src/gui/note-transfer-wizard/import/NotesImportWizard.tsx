@@ -65,7 +65,6 @@ interface ImportWizardPageDeps {
   ) => void;
   readonly settings: ISettings;
   readonly syncState: {
-    readonly fallbackRev: number;
     readonly syncedMods: Record<number, number>;
   };
   readonly vault: Vault;
@@ -238,10 +237,6 @@ export function NotesImportWizard({
         importedAt: Date.now(),
       },
     };
-    const importedMods = Object.values(report.syncedNotes);
-    if (importedMods.length > 0) {
-      settings.lastSyncRev = Math.max(settings.lastSyncRev, ...importedMods);
-    }
     void saveSettings();
   };
 
@@ -262,10 +257,9 @@ export function NotesImportWizard({
       syncedMods[Number(id)] = record.lastMod;
     }
     return {
-      fallbackRev: settings.lastSyncRev,
       syncedMods,
     };
-  }, [settings.lastSyncRev, settings.noteLifecycle]);
+  }, [settings.noteLifecycle]);
 
   const pages = useMemo(
     () =>

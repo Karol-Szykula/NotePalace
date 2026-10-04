@@ -49,16 +49,15 @@ export interface ClassifiedNote {
   note: AnkiNoteInfo;
   previewStatus: NotePreviewStatus;
   status: NoteLifecycleStatus;
-  vaultPath?: string;
+  vaultPath?: string | undefined;
 }
 
 export interface NoteSyncState {
-  fallbackRev: number;
   syncedMods: Record<number, number>;
 }
 
 function noteSyncRev(sync: NoteSyncState, noteId: number): number {
-  return sync.syncedMods[noteId] ?? sync.fallbackRev;
+  return sync.syncedMods[noteId] ?? 0;
 }
 
 export function isNoteUpdatedSince(
@@ -78,9 +77,9 @@ export interface ExecuteImportRequest {
   noteLifecycle: Record<number, NoteLifecycleRecord>;
   notes: AnkiNoteInfo[];
   onProgress?: (processed: number, total: number) => void;
-  previewStatuses?: Record<number, NoteLifecycleStatus>;
+  previewStatuses: Record<number, NoteLifecycleStatus> | undefined;
   targetFolder: string;
-  vaultNoteIndex?: VaultNoteIndex;
+  vaultNoteIndex?: VaultNoteIndex | undefined;
 }
 
 export interface ImportExecutionReport {
@@ -208,20 +207,20 @@ async function statusForImport(
   const block = request.vaultNoteIndex
     ? await findVaultNoteBlock(vault, request.vaultNoteIndex, note.noteId, yaml)
     : null;
+  const hash = block
+    ? await computeContentHash(block.front, block.back, block.tags, block.model)
+    : undefined;
+  let blockInput: { id: number | undefined; hash?: string } | undefined;
+  if (block !== null && hash !== undefined) {
+    blockInput = { id: block.id, hash };
+  } else if (block !== null) {
+    blockInput = { id: block.id };
+  } else {
+    blockInput = undefined;
+  }
   return classifyNoteLifecycle({
     anki: note,
-    block:
-      block === null
-        ? undefined
-        : {
-            id: block.id,
-            hash: await computeContentHash(
-              block.front,
-              block.back,
-              block.tags,
-              block.model,
-            ),
-          },
+    block: blockInput,
     record: request.noteLifecycle[note.noteId],
   });
 }

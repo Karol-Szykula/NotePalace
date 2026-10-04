@@ -5,7 +5,7 @@ import type { NoteShape } from "src/entities/note-shapes";
 import type { NoteFormData, NoteFormEdit } from "src/entities/note-form-data";
 
 export interface NoteFormFieldsProps {
-  readonly className?: string;
+  readonly className?: string | undefined;
   readonly data: NoteFormData;
   readonly onEdit: (edit: NoteFormEdit) => void;
   readonly shape: NoteShape;

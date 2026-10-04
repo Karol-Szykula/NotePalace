@@ -14,7 +14,6 @@ describe("normalizeSettings", () => {
       deckImportSnapshots: {},
       fieldMappings: {},
       ignoredDirectories: "",
-      lastSyncRev: 0,
       noteLifecycle: {},
     });
   });
@@ -35,7 +34,6 @@ describe("normalizeSettings", () => {
     // given
     const stored: unknown = {
       ignoredDirectories: 7,
-      lastSyncRev: "later",
       ankiConnectPermission: "yes",
     };
 
@@ -44,7 +42,6 @@ describe("normalizeSettings", () => {
 
     // then
     expect(settings.ignoredDirectories).toBe("");
-    expect(settings.lastSyncRev).toBe(0);
     expect(settings.ankiConnectPermission).toBe(false);
   });
 
@@ -53,7 +50,6 @@ describe("normalizeSettings", () => {
     const stored = {
       ankiConnectPermission: true,
       ignoredDirectories: "templates",
-      lastSyncRev: 42,
     };
 
     // when
@@ -62,6 +58,5 @@ describe("normalizeSettings", () => {
     // then
     expect(settings.ankiConnectPermission).toBe(true);
     expect(settings.ignoredDirectories).toBe("templates");
-    expect(settings.lastSyncRev).toBe(42);
   });
 });

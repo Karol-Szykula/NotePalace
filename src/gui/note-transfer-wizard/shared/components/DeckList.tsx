@@ -10,25 +10,25 @@ export interface DeckItem {
   readonly name: string;
   readonly shortName: string;
   readonly syncedCount: number;
-  readonly tooltip?: string;
+  readonly tooltip?: string | undefined;
   readonly totalCount: number;
-  readonly updatedCount: number | null;
+  readonly updatedCount: number | null | undefined;
 }
 
 export interface DeckListProps {
-  readonly alreadySyncedTooltip?: string;
-  readonly className?: string;
-  readonly emptyTooltip?: string;
+  readonly alreadySyncedTooltip?: string | undefined;
+  readonly className?: string | undefined;
+  readonly emptyTooltip?: string | undefined;
   readonly getRowClassName?: (
     item: DeckItem,
     isDisabled: boolean,
   ) => string | undefined;
-  readonly inputClassName?: string;
-  readonly inputName?: string;
+  readonly inputClassName?: string | undefined;
+  readonly inputName?: string | undefined;
   readonly items: DeckItem[];
-  readonly labelClassName?: string;
+  readonly labelClassName?: string | undefined;
   readonly onSelect: (name: string) => void;
-  readonly prompt?: string;
+  readonly prompt?: string | undefined;
   readonly selectedName: string;
 }
 
@@ -72,7 +72,9 @@ export function DeckList({
             tooltip,
           }) => {
             const upToDateCount =
-              updatedCount === null ? syncedCount : totalCount - updatedCount;
+              updatedCount === null || updatedCount === undefined
+                ? syncedCount
+                : totalCount - updatedCount;
             const isFullyImported =
               totalCount > 0 && upToDateCount === totalCount;
             const isEmptyDeck = totalCount === 0;

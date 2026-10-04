@@ -3,7 +3,7 @@ import { mergeClasses } from "src/gui/classes";
 import { pageIndicatorClasses } from "../classes/common";
 
 export interface PageIndicatorProps {
-  readonly connectors?: boolean;
+  readonly connectors?: boolean | undefined;
   readonly currentPage: number;
   readonly pages: string[];
 }
