@@ -15,6 +15,7 @@ import {
   syncDecisionTableMarkdownCommandCentric,
   syncDecisionTableMermaid,
   type OutcomeKind,
+  type ResponsibleComponent,
   type SyncCommand,
   type SyncDecisionAct,
 } from "src/services/notes/decision-table";
@@ -97,6 +98,14 @@ const kinds: readonly OutcomeKind[] = [
   "skip",
 ];
 
+const responsibleComponents: readonly ResponsibleComponent[] = [
+  "create-from-anki",
+  "create-in-anki",
+  "bidirectional-sync",
+  "enroll-in-anki",
+  "cleanup-vault",
+];
+
 const confinement: Record<SyncCommand, readonly SyncDecisionAct[]> = {
   export: ["EXPORT", "PUSH", "FORCE_PUSH", "ENROLL", "CHECK", OUT_OF_SCOPE],
   import: [
@@ -112,12 +121,12 @@ const confinement: Record<SyncCommand, readonly SyncDecisionAct[]> = {
 };
 
 describe("the decision table is total", () => {
-  test("given every command and status when a row is read then it has an act, an owner and a rationale", () => {
+  test("given every command and status when a row is read then it has an act, a responsibleComponent and a rationale", () => {
     for (const command of SYNC_COMMANDS) {
       for (const status of NOTE_LIFECYCLE_STATUSES) {
         const row = syncDecisionFor(command, status);
         expect(row.act).toBeDefined();
-        expect(row.owner).toBeDefined();
+        expect(row.responsibleComponent).toBeDefined();
         expect(row.rationale.length).toBeGreaterThan(0);
       }
     }
@@ -154,34 +163,47 @@ describe("the decision table is total", () => {
     }
   });
 
-  test("given a wizard row that is out of scope when read then another command owns the note", () => {
+  test("given a wizard row that is out of scope when read then another component is responsible for the note", () => {
+    const ownComponent: Record<"export" | "import", ResponsibleComponent> = {
+      export: "create-in-anki",
+      import: "create-from-anki",
+    };
     for (const command of ["export", "import"] as const) {
       for (const status of NOTE_LIFECYCLE_STATUSES) {
         const row = syncDecisionFor(command, status);
         if (row.act === OUT_OF_SCOPE) {
-          expect(row.owner).not.toBe(command);
+          expect(row.responsibleComponent).not.toBe(ownComponent[command]);
         }
       }
     }
   });
 
-  test("given a Sync row that is out of scope when read then the owner is a known command or the purge", () => {
+  test("given a lifecycle status when it is read in every command then all three rows name one responsible component", () => {
     for (const status of NOTE_LIFECYCLE_STATUSES) {
-      const row = syncDecisionFor("sync", status);
-      expect(["export", "import", "purge", "sync", "wizard"]).toContain(
-        row.owner,
+      const named = SYNC_COMMANDS.map(
+        (command) => syncDecisionFor(command, status).responsibleComponent,
       );
+      expect(new Set(named).size).toBe(1);
     }
   });
 
-  test("given the two states Sync owns without a row then the rationale names the missing producer", () => {
+  test("given every command and status when a row is read then its responsible component is a known component", () => {
+    for (const command of SYNC_COMMANDS) {
+      for (const status of NOTE_LIFECYCLE_STATUSES) {
+        const row = syncDecisionFor(command, status);
+        expect(responsibleComponents).toContain(row.responsibleComponent);
+      }
+    }
+  });
+
+  test("given the two states only Sync resolves when read then the rationale names the missing producer", () => {
     for (const status of [
       "ankiOnly.fileDeleted",
       "vaultOnly.ankiDeleted",
     ] as const) {
       const row = syncDecisionFor("sync", status);
       expect(row.act).toBe(OUT_OF_SCOPE);
-      expect(row.owner).toBe("sync");
+      expect(row.responsibleComponent).toBe("bidirectional-sync");
       expect(row.rationale).toMatch(/OBSID-(19|20)/);
     }
   });
