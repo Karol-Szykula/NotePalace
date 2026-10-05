@@ -24,10 +24,10 @@ ${noteLifecycleMermaid().replace(/\(/g, "<br/>").replace(/\)/g, "")}
 
 ## 2. Decision Tables — Command Policies
 
-**Location:** \`src/services/notes/decision-table.ts:33-255\`  
-**3 commands × 11 states = 33 rows**
+**Location:** \`src/services/notes/decision-table.ts\`  
+**1 canonical decision × 11 states, projected into 3 command tables = 33 rows**
 
-This is the **second independent authority**. It defines what each command (import/export/sync) does in each state — which event to emit, whether force changes it, who owns the decision, and why.
+This is the **second independent authority**. One canonical table per state defines what each command (import/export/sync) does in that state — which event to emit, whether force changes it, which component is responsible, and why. The three command tables are derived from it at runtime.
 
 ### 1. Export Wizard (force: Obsidian wins)
 
