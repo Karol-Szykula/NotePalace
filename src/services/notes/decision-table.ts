@@ -10,20 +10,42 @@ export const SYNC_COMMANDS = ["export", "import", "sync"] as const;
 
 export type SyncCommand = (typeof SYNC_COMMANDS)[number];
 
-type SyncCommandOwner = SyncCommand | "purge" | "wizard";
-
 export type SyncDecisionAct = NoteLifecycleEvent | typeof OUT_OF_SCOPE;
 
 export type OutcomeKind =
   "conflict" | "create" | "missing" | "quiet" | "skip" | "overwrite";
+
+export type ResponsibleComponent =
+  | "create-from-anki"
+  | "create-in-anki"
+  | "bidirectional-sync"
+  | "enroll-in-anki"
+  | "cleanup-vault";
+
+type ForceWinner = "anki" | "none" | "obsidian";
 
 export interface SyncDecisionRow {
   act: SyncDecisionAct;
   forcedAct?: SyncDecisionAct;
   forcedOutcome?: string;
   kind: OutcomeKind;
-  owner: SyncCommandOwner;
   rationale: string;
+  responsibleComponent: ResponsibleComponent;
+}
+
+interface CommandRule {
+  readonly act: SyncDecisionAct;
+  readonly forcedAct?: SyncDecisionAct;
+  readonly forcedOutcome?: string;
+  readonly kind: OutcomeKind;
+  readonly rationale: string;
+}
+interface CanonicalDecision {
+  readonly export: CommandRule;
+  readonly import: CommandRule;
+  readonly responsibleComponent: ResponsibleComponent;
+  readonly status: NoteLifecycleStatus;
+  readonly sync: CommandRule;
 }
 
 const enrolsSameFile =
@@ -31,229 +53,298 @@ const enrolsSameFile =
 
 const staleRecord = "Only a stale record left: Purge ledger forgets it.";
 
+const forceWinnerByCommand: Record<SyncCommand, ForceWinner> = {
+  export: "obsidian",
+  import: "anki",
+  sync: "none",
+};
+
+const forceWinnerLabel: Record<ForceWinner, string> = {
+  anki: "Anki wins",
+  none: "no force",
+  obsidian: "Obsidian wins",
+};
+
+const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
+  "ankiOnly.neverImported": {
+    status: "ankiOnly.neverImported",
+    responsibleComponent: "create-from-anki",
+    export: {
+      act: OUT_OF_SCOPE,
+      kind: "create",
+      rationale: "Anki only: the import wizard brings it in.",
+    },
+    import: {
+      act: "IMPORT",
+      kind: "create",
+      rationale: "Anki only: creates the file.",
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "create",
+      rationale: "Untracked Anki note: counted as needing import.",
+    },
+  },
+  "ankiOnly.fileDeleted": {
+    status: "ankiOnly.fileDeleted",
+    responsibleComponent: "bidirectional-sync",
+    export: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale: "File gone: Sync decides, nothing to push.",
+    },
+    import: {
+      act: OUT_OF_SCOPE,
+      forcedAct: "RESURRECT",
+      forcedOutcome: "re-creates the file you deleted.",
+      kind: "missing",
+      rationale: "File gone: Sync decides, Anki wins re-creates it.",
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale:
+        "No file: the purge path handles it outside this table, the tombstone rule arrives with OBSID-19.",
+    },
+  },
+  "synced.clean": {
+    status: "synced.clean",
+    responsibleComponent: "bidirectional-sync",
+    export: {
+      act: "CHECK",
+      kind: "quiet",
+      rationale: "Both sides match: nothing to write.",
+    },
+    import: {
+      act: "CHECK",
+      forcedOutcome: "rewrites the same content.",
+      kind: "quiet",
+      rationale: "Both sides match: rewrites nothing.",
+    },
+    sync: {
+      act: "CHECK",
+      kind: "quiet",
+      rationale: "Both sides match: nothing to do.",
+    },
+  },
+  "synced.ankiNewer": {
+    status: "synced.ankiNewer",
+    responsibleComponent: "bidirectional-sync",
+    export: {
+      act: OUT_OF_SCOPE,
+      forcedAct: "FORCE_PUSH",
+      forcedOutcome: "overwrites Anki.",
+      kind: "skip",
+      rationale: "Newer in Anki: skipped, use Sync.",
+    },
+    import: {
+      act: "PULL",
+      kind: "overwrite",
+      rationale: "Newer in Anki: overwrites your file.",
+    },
+    sync: {
+      act: "PULL",
+      kind: "overwrite",
+      rationale: "Newer in Anki: refreshes the vault file.",
+    },
+  },
+  "synced.vaultNewer": {
+    status: "synced.vaultNewer",
+    responsibleComponent: "create-in-anki",
+    export: {
+      act: "PUSH",
+      kind: "overwrite",
+      rationale: "Newer in Obsidian: pushes to Anki.",
+    },
+    import: {
+      act: OUT_OF_SCOPE,
+      forcedAct: "FORCE_PULL",
+      forcedOutcome: "overwrites your newer edits.",
+      kind: "skip",
+      rationale: "Newer in Obsidian: skipped, use Sync.",
+    },
+    sync: {
+      act: "PUSH",
+      kind: "overwrite",
+      rationale: "Newer in Obsidian: pushes to Anki.",
+    },
+  },
+  "synced.diverged": {
+    status: "synced.diverged",
+    responsibleComponent: "bidirectional-sync",
+    export: {
+      act: OUT_OF_SCOPE,
+      forcedAct: "FORCE_PUSH",
+      forcedOutcome: "overwrites Anki.",
+      kind: "conflict",
+      rationale: "Edited in both: skipped, use Sync.",
+    },
+    import: {
+      act: OUT_OF_SCOPE,
+      forcedAct: "FORCE_PULL",
+      forcedOutcome: "overwrites your newer edits.",
+      kind: "conflict",
+      rationale: "Edited in both: newest wins on Sync.",
+    },
+    sync: {
+      act: "RESOLVE_NEWEST",
+      kind: "conflict",
+      rationale: "Edited in both: the newer side wins.",
+    },
+  },
+  "linked.unenrolled": {
+    status: "linked.unenrolled",
+    responsibleComponent: "enroll-in-anki",
+    export: {
+      act: "ENROLL",
+      kind: "quiet",
+      rationale: "Has an id but no record: enrols it, writes nothing.",
+    },
+    import: {
+      act: "ENROLL",
+      kind: "quiet",
+      rationale: enrolsSameFile,
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "quiet",
+      rationale: "Enrolling is the wizards' job.",
+    },
+  },
+  "vaultOnly.unexported": {
+    status: "vaultOnly.unexported",
+    responsibleComponent: "create-in-anki",
+    export: {
+      act: "EXPORT",
+      kind: "create",
+      rationale: "Vault only: creates the Anki note, writes the id back.",
+    },
+    import: {
+      act: OUT_OF_SCOPE,
+      kind: "create",
+      rationale: "Vault only: the export wizard creates it.",
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "create",
+      rationale: "Vault only: the export wizard creates it.",
+    },
+  },
+  "vaultOnly.unenrolled": {
+    status: "vaultOnly.unenrolled",
+    responsibleComponent: "enroll-in-anki",
+    export: {
+      act: "ENROLL",
+      kind: "quiet",
+      rationale: "Has an id but no record: enrols it, writes nothing.",
+    },
+    import: {
+      act: "ENROLL",
+      kind: "quiet",
+      rationale: enrolsSameFile,
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "quiet",
+      rationale: "Enrolling is the wizards' job.",
+    },
+  },
+  "vaultOnly.ankiDeleted": {
+    status: "vaultOnly.ankiDeleted",
+    responsibleComponent: "bidirectional-sync",
+    export: {
+      act: OUT_OF_SCOPE,
+      forcedAct: "EXPORT",
+      forcedOutcome: "re-creates it in Anki.",
+      kind: "missing",
+      rationale: "Gone from Anki: Sync applies the deletion.",
+    },
+    import: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale: "Gone from Anki: Sync deletes the file.",
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale:
+        "Gone from Anki: the purge path handles it, DELETE_FILE arrives with OBSID-20.",
+    },
+  },
+  orphaned: {
+    status: "orphaned",
+    responsibleComponent: "cleanup-vault",
+    export: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale: staleRecord,
+    },
+    import: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale: staleRecord,
+    },
+    sync: {
+      act: OUT_OF_SCOPE,
+      kind: "missing",
+      rationale: staleRecord,
+    },
+  },
+};
+
+function forceLabelFor(command: SyncCommand): string {
+  return forceWinnerLabel[forceWinnerByCommand[command]];
+}
+
+function renderForcedOutcome(outcome: string, command: SyncCommand): string {
+  return `${forceLabelFor(command)}: ${outcome}`;
+}
+
+function forcedActOf(rule: CommandRule): Pick<SyncDecisionRow, "forcedAct"> {
+  return rule.forcedAct === undefined ? {} : { forcedAct: rule.forcedAct };
+}
+
+function forcedOutcomeOf(
+  rule: CommandRule,
+  command: SyncCommand,
+): Pick<SyncDecisionRow, "forcedOutcome"> {
+  return rule.forcedOutcome === undefined
+    ? {}
+    : { forcedOutcome: renderForcedOutcome(rule.forcedOutcome, command) };
+}
+
+function deriveRow(
+  canonical: CanonicalDecision,
+  command: SyncCommand,
+): SyncDecisionRow {
+  const rule = canonical[command];
+  return {
+    act: rule.act,
+    ...forcedActOf(rule),
+    ...forcedOutcomeOf(rule, command),
+    kind: rule.kind,
+    responsibleComponent: canonical.responsibleComponent,
+    rationale: rule.rationale,
+  };
+}
+
+function deriveTable(
+  command: SyncCommand,
+): Record<NoteLifecycleStatus, SyncDecisionRow> {
+  const table: Partial<Record<NoteLifecycleStatus, SyncDecisionRow>> = {};
+  for (const status of NOTE_LIFECYCLE_STATUSES) {
+    table[status] = deriveRow(canonicalDecisions[status], command);
+  }
+  return table as Record<NoteLifecycleStatus, SyncDecisionRow>;
+}
+
 const decisions: Record<
   SyncCommand,
   Record<NoteLifecycleStatus, SyncDecisionRow>
 > = {
-  import: {
-    "ankiOnly.neverImported": {
-      act: "IMPORT",
-      kind: "create",
-      owner: "import",
-      rationale: "Anki only: creates the file.",
-    },
-    "ankiOnly.fileDeleted": {
-      act: OUT_OF_SCOPE,
-      forcedAct: "RESURRECT",
-      forcedOutcome: "Anki wins: re-creates the file you deleted.",
-      kind: "missing",
-      owner: "sync",
-      rationale: "File gone: Sync decides, Anki wins re-creates it.",
-    },
-    "synced.clean": {
-      act: "CHECK",
-      forcedOutcome: "Anki wins: rewrites the same content.",
-      kind: "quiet",
-      owner: "sync",
-      rationale: "Both sides match: rewrites nothing.",
-    },
-    "synced.ankiNewer": {
-      act: "PULL",
-      kind: "overwrite",
-      owner: "sync",
-      rationale: "Newer in Anki: overwrites your file.",
-    },
-    "synced.vaultNewer": {
-      act: OUT_OF_SCOPE,
-      forcedAct: "FORCE_PULL",
-      forcedOutcome: "Anki wins: overwrites your newer edits.",
-      kind: "skip",
-      owner: "sync",
-      rationale: "Newer in Obsidian: skipped, use Sync.",
-    },
-    "synced.diverged": {
-      act: OUT_OF_SCOPE,
-      forcedAct: "FORCE_PULL",
-      forcedOutcome: "Anki wins: overwrites your newer edits.",
-      kind: "conflict",
-      owner: "sync",
-      rationale: "Edited in both: newest wins on Sync.",
-    },
-    "linked.unenrolled": {
-      act: "ENROLL",
-      kind: "quiet",
-      owner: "wizard",
-      rationale: enrolsSameFile,
-    },
-    "vaultOnly.unexported": {
-      act: OUT_OF_SCOPE,
-      kind: "create",
-      owner: "export",
-      rationale: "Vault only: the export wizard creates it.",
-    },
-    "vaultOnly.unenrolled": {
-      act: "ENROLL",
-      kind: "quiet",
-      owner: "wizard",
-      rationale: enrolsSameFile,
-    },
-    "vaultOnly.ankiDeleted": {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "sync",
-      rationale: "Gone from Anki: Sync deletes the file.",
-    },
-    orphaned: {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "purge",
-      rationale: staleRecord,
-    },
-  },
-  export: {
-    "ankiOnly.neverImported": {
-      act: OUT_OF_SCOPE,
-      kind: "create",
-      owner: "import",
-      rationale: "Anki only: the import wizard brings it in.",
-    },
-    "ankiOnly.fileDeleted": {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "sync",
-      rationale: "File gone: Sync decides, nothing to push.",
-    },
-    "synced.clean": {
-      act: "CHECK",
-      kind: "quiet",
-      owner: "sync",
-      rationale: "Both sides match: nothing to write.",
-    },
-    "synced.ankiNewer": {
-      act: OUT_OF_SCOPE,
-      forcedAct: "FORCE_PUSH",
-      forcedOutcome: "Obsidian wins: overwrites Anki.",
-      kind: "skip",
-      owner: "sync",
-      rationale: "Newer in Anki: skipped, use Sync.",
-    },
-    "synced.vaultNewer": {
-      act: "PUSH",
-      kind: "overwrite",
-      owner: "export",
-      rationale: "Newer in Obsidian: pushes to Anki.",
-    },
-    "synced.diverged": {
-      act: OUT_OF_SCOPE,
-      forcedAct: "FORCE_PUSH",
-      forcedOutcome: "Obsidian wins: overwrites Anki.",
-      kind: "conflict",
-      owner: "sync",
-      rationale: "Edited in both: skipped, use Sync.",
-    },
-    "linked.unenrolled": {
-      act: "ENROLL",
-      kind: "quiet",
-      owner: "wizard",
-      rationale: "Has an id but no record: enrols it, writes nothing.",
-    },
-    "vaultOnly.unexported": {
-      act: "EXPORT",
-      kind: "create",
-      owner: "export",
-      rationale: "Vault only: creates the Anki note, writes the id back.",
-    },
-    "vaultOnly.unenrolled": {
-      act: "ENROLL",
-      kind: "quiet",
-      owner: "wizard",
-      rationale: "Has an id but no record: enrols it, writes nothing.",
-    },
-    "vaultOnly.ankiDeleted": {
-      act: OUT_OF_SCOPE,
-      forcedAct: "EXPORT",
-      forcedOutcome: "Obsidian wins: re-creates it in Anki.",
-      kind: "missing",
-      owner: "sync",
-      rationale: "Gone from Anki: Sync applies the deletion.",
-    },
-    orphaned: {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "purge",
-      rationale: staleRecord,
-    },
-  },
-  sync: {
-    "ankiOnly.neverImported": {
-      act: OUT_OF_SCOPE,
-      kind: "create",
-      owner: "import",
-      rationale: "Untracked Anki note: counted as needing import.",
-    },
-    "ankiOnly.fileDeleted": {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "sync",
-      rationale:
-        "No file: the purge path handles it outside this table, the tombstone rule arrives with OBSID-19.",
-    },
-    "synced.clean": {
-      act: "CHECK",
-      kind: "quiet",
-      owner: "sync",
-      rationale: "Both sides match: nothing to do.",
-    },
-    "synced.ankiNewer": {
-      act: "PULL",
-      kind: "overwrite",
-      owner: "sync",
-      rationale: "Newer in Anki: refreshes the vault file.",
-    },
-    "synced.vaultNewer": {
-      act: "PUSH",
-      kind: "overwrite",
-      owner: "sync",
-      rationale: "Newer in Obsidian: pushes to Anki.",
-    },
-    "synced.diverged": {
-      act: "RESOLVE_NEWEST",
-      kind: "conflict",
-      owner: "sync",
-      rationale: "Edited in both: the newer side wins.",
-    },
-    "linked.unenrolled": {
-      act: OUT_OF_SCOPE,
-      kind: "quiet",
-      owner: "wizard",
-      rationale: "Enrolling is the wizards' job.",
-    },
-    "vaultOnly.unexported": {
-      act: OUT_OF_SCOPE,
-      kind: "create",
-      owner: "export",
-      rationale: "Vault only: the export wizard creates it.",
-    },
-    "vaultOnly.unenrolled": {
-      act: OUT_OF_SCOPE,
-      kind: "quiet",
-      owner: "wizard",
-      rationale: "Enrolling is the wizards' job.",
-    },
-    "vaultOnly.ankiDeleted": {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "sync",
-      rationale:
-        "Gone from Anki: the purge path handles it, DELETE_FILE arrives with OBSID-20.",
-    },
-    orphaned: {
-      act: OUT_OF_SCOPE,
-      kind: "missing",
-      owner: "purge",
-      rationale: staleRecord,
-    },
-  },
+  export: deriveTable("export"),
+  import: deriveTable("import"),
+  sync: deriveTable("sync"),
 };
 
 export function isInScope(act: SyncDecisionAct): act is NoteLifecycleEvent {
@@ -300,16 +391,24 @@ export function resolveCommandDecision(
   };
 }
 
-const forceLabels: Record<SyncCommand, string> = {
-  export: "Obsidian wins",
-  import: "Anki wins",
-  sync: "no force",
-};
-
 function whyOf(row: SyncDecisionRow): string {
   return row.forcedOutcome === undefined
     ? row.rationale
     : `${row.rationale} Forced: ${row.forcedOutcome}`;
+}
+
+function forceCellOf(row: SyncDecisionRow, command: SyncCommand): string {
+  return row.forcedAct === undefined
+    ? ""
+    : `<br/>**Force:** ${row.forcedAct} (${forceLabelFor(command)})`;
+}
+
+function forcedPartOf(row: SyncDecisionRow): string {
+  return row.forcedAct === undefined ? "" : ` / \`${row.forcedAct}\` (force)`;
+}
+
+function actOf(row: SyncDecisionRow): string {
+  return row.act === OUT_OF_SCOPE ? "—" : row.act;
 }
 
 export function syncDecisionTableMarkdown(): string {
@@ -321,18 +420,11 @@ export function syncDecisionTableMarkdown(): string {
   const rows = NOTE_LIFECYCLE_STATUSES.map((status) => {
     const cells = SYNC_COMMANDS.map((command) => {
       const row = decisions[command][status];
-      const defaultStr = row.act === OUT_OF_SCOPE ? "—" : row.act;
-      const forcedStr = row.forcedAct ?? "—";
-      const kind = row.kind;
-      const owner = row.owner;
-      const forcedInfo =
-        row.forcedAct !== undefined
-          ? `<br/>**Force:** ${row.forcedAct} (${forceLabels[command]})`
-          : "";
-      const rationale = whyOf(row).replace(/\n/g, " ");
-      const defaultPart = `\`${defaultStr}\``;
-      const forcePart = forcedStr !== "—" ? ` / \`${forcedStr}\` (force)` : "";
-      return `${defaultPart}${forcePart}<br/>${kind} · ${owner}${forcedInfo}<br/>${rationale}`;
+      return [
+        `\`${actOf(row)}\`${forcedPartOf(row)}`,
+        `${row.kind} · ${row.responsibleComponent}${forceCellOf(row, command)}`,
+        whyOf(row).replace(/\n/g, " "),
+      ].join("<br/>");
     });
     return `| \`${status}\` | ${cells.join(" | ")} |`;
   });
@@ -340,18 +432,25 @@ export function syncDecisionTableMarkdown(): string {
   return [...header, ...rows].join("\n");
 }
 
+function commandRowMarkdown(
+  status: NoteLifecycleStatus,
+  row: SyncDecisionRow,
+): string {
+  const forced = row.forcedAct ?? "—";
+  return `| \`${status}\` | \`${row.kind}\` | \`${actOf(row)}\` | \`${forced}\` | \`${row.responsibleComponent}\` | ${whyOf(row)} |`;
+}
+
 export function syncDecisionTableMarkdownCommandCentric(): string {
   const sections: string[] = [];
   for (const command of SYNC_COMMANDS) {
-    const rows = Object.entries(decisions[command]).map(
-      ([status, row]) =>
-        `| \`${status}\` | \`${row.kind}\` | \`${row.act === OUT_OF_SCOPE ? "—" : row.act}\` | \`${row.forcedAct ?? "—"}\` | \`${row.owner}\` | ${whyOf(row)} |`,
+    const rows = NOTE_LIFECYCLE_STATUSES.map((status) =>
+      commandRowMarkdown(status, decisions[command][status]),
     );
     sections.push(
       [
-        `### ${command} (force: ${forceLabels[command]})`,
+        `### ${command} (force: ${forceLabelFor(command)})`,
         "",
-        "| state | kind | default | forced | owner | why |",
+        "| state | kind | default | forced | responsibleComponent | why |",
         "| --- | --- | --- | --- | --- | --- |",
         ...rows,
         "",
@@ -370,23 +469,20 @@ function cmdNode(command: string): string {
 }
 
 function escapeForMermaid(label: string): string {
-  // Escape double quotes and backslashes for Mermaid
   const escaped = label.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   return `"${escaped}"`;
 }
 
 function cellContent(row: SyncDecisionRow, command: SyncCommand): string {
   const forcedInfo =
-    row.forcedAct !== undefined
-      ? `<br/>force: ${row.forcedAct} (${forceLabels[command]})`
-      : "";
-  const rationale = whyOf(row).replace(/\n/g, " ");
+    row.forcedAct === undefined
+      ? ""
+      : `<br/>force: ${row.forcedAct} (${forceLabelFor(command)})`;
   const actSymbol = row.act === OUT_OF_SCOPE ? "\u2014" : row.act;
   const forcedPart =
-    row.forcedAct !== undefined ? ` / ${row.forcedAct} (force)` : "";
-  const base = `${actSymbol}${forcedPart}<br/>${row.kind} \u00b7 ${row.owner}`;
-  const content = `${base}${forcedInfo}<br/>${rationale}`;
-  // Return quoted string for Mermaid edge labels
+    row.forcedAct === undefined ? "" : ` / ${row.forcedAct} (force)`;
+  const base = `${actSymbol}${forcedPart}<br/>${row.kind} \u00b7 ${row.responsibleComponent}`;
+  const content = `${base}${forcedInfo}<br/>${whyOf(row).replace(/\n/g, " ")}`;
   return escapeForMermaid(content);
 }
 
@@ -410,8 +506,7 @@ function buildCommandDiagram(command: SyncCommand): string {
   const lines = ["flowchart TB"];
   lines.push("  subgraph COMMAND[Command]");
   lines.push("  direction TB");
-  const label = getCommandLabel(command);
-  lines.push(`    ${cmdNode(command)}["${label}"]`);
+  lines.push(`    ${cmdNode(command)}["${getCommandLabel(command)}"]`);
   lines.push("  end");
   lines.push("");
 
@@ -419,10 +514,12 @@ function buildCommandDiagram(command: SyncCommand): string {
   lines.push(`  ${cmdNode(command)} -->|start| START["[*]"]`);
   lines.push("");
 
-  for (const [status, row] of Object.entries(decisions[command])) {
+  for (const status of NOTE_LIFECYCLE_STATUSES) {
+    const row = decisions[command][status];
     const sid = statusId(status);
-    const content = cellContent(row, command);
-    lines.push(`  ${cmdNode(command)} -->|${content}| ${sid}`);
+    lines.push(
+      `  ${cmdNode(command)} -->|${cellContent(row, command)}| ${sid}`,
+    );
     if (row.forcedAct !== undefined) {
       const forcedLabel = escapeForMermaid(`forced: ${row.forcedAct}`);
       lines.push(`  ${sid} -.->|${forcedLabel}| ${cmdNode(command)}`);
