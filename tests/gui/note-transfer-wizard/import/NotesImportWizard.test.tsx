@@ -6,7 +6,7 @@
  * page indicator labels and footer button states.
  */
 import "obsidian-test-mocks/jest-setup";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
@@ -264,7 +264,7 @@ describe("NotesImportWizard - last page", () => {
     expect(selects.some((select) => select.value === "Extra")).toBe(true);
   });
 
-  test("given a custom model when advancing past fields then saves its pack", async () => {
+  test("given a custom model when advancing past fields then no pack is written", async () => {
     // given
     respondWithNotes([
       {
@@ -295,13 +295,13 @@ describe("NotesImportWizard - last page", () => {
 
     // then
     const vault = app.vault as unknown as ObsidianVault;
-    const packPath = ".obsidian/plugins/notepalace/packs/My-Model.json";
     const adapter = vault.adapter as unknown as {
-      read(path: string): Promise<string>;
+      exists(path: string): Promise<boolean>;
     };
-    await waitFor(async () => {
-      await expect(adapter.read(packPath)).resolves.toContain("My Model");
-    });
+    const packExists = await adapter.exists(
+      ".obsidian/plugins/notepalace/packs/My-Model.json",
+    );
+    expect(packExists).toBe(false);
   });
 
   test("given a ready import when the footer Import is clicked then shows only the summary with OK closing the window", async () => {
