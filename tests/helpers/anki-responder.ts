@@ -14,6 +14,7 @@ interface AnkiResponderState {
 }
 
 interface AnkiResponderOptions {
+  decks?: Record<string, number[]>;
   knownModels?: Record<string, string[]>;
   notes?: AnkiNoteInfo[];
   nextNoteId?: number;
@@ -141,6 +142,7 @@ export function ankiResponder(): AnkiResponder {
 
   const respondWith = (options: AnkiResponderOptions = {}): void => {
     const knownModels = options.knownModels ?? defaultModels;
+    const decks = options.decks;
     state.nextNoteId = options.nextNoteId ?? defaultNextNoteId;
     state.notes = [...(options.notes ?? [])];
     state.requests = [];
@@ -159,9 +161,23 @@ export function ankiResponder(): AnkiResponder {
           error: null,
         };
       }
-      if (request.action === "findNotes") {
+      if (request.action === "deckNames") {
         return {
-          result: state.notes.map((note) => note.noteId),
+          result: decks ? Object.keys(decks) : null,
+          error: null,
+        };
+      }
+      if (request.action === "findNotes") {
+        if (decks === undefined) {
+          return {
+            result: state.notes.map((note) => note.noteId),
+            error: null,
+          };
+        }
+        const query = (request.params as { query: string }).query;
+        const deckName = /deck:"(.+?)"/.exec(query)?.[1];
+        return {
+          result: deckName ? (decks[deckName] ?? []) : [],
           error: null,
         };
       }
