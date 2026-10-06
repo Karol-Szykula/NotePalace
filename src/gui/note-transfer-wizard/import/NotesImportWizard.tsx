@@ -50,6 +50,9 @@ interface ImportWizardPageDeps {
   >["handleNotesLoaded"];
   readonly handleNotesPreviewPageChange: (page: number) => void;
   readonly handleNotesPreviewTotalPagesChange: (totalPages: number) => void;
+  readonly mergeSessionFieldMappings: (
+    mappings: Record<string, FieldMap>,
+  ) => void;
   readonly notesPreviewPage: number;
   readonly notesPreviewTotalPages: number;
   readonly notesSelectedToImport: Record<number, boolean>;
@@ -58,7 +61,6 @@ interface ImportWizardPageDeps {
   >["previewStatuses"];
   readonly selectDeckName: (deckName: string) => void;
   readonly selectedDeckName: string;
-  readonly setFieldMappings: (mappings: Record<string, FieldMap>) => void;
   readonly setForcedNoteIds: (ids: Record<number, boolean>) => void;
   readonly setNotesSelectedToImport: (
     selected: Record<number, boolean>,
@@ -118,8 +120,11 @@ function buildImportWizardPages(
           className={commonWizardClasses.pageView}
           deckName={deps.selectedDeckName}
           key={deps.selectedDeckName}
-          onMappingsChange={deps.setFieldMappings}
-          savedMappings={deps.settings.fieldMappings}
+          onMappingsChange={deps.mergeSessionFieldMappings}
+          savedMappings={{
+            ...deps.settings.fieldMappings,
+            ...deps.fieldMappings,
+          }}
         />
       ),
       title: "Fields",
@@ -201,6 +206,10 @@ export function NotesImportWizard({
     setForcedNoteIds({});
   };
 
+  const mergeSessionFieldMappings = (next: Record<string, FieldMap>): void => {
+    setFieldMappings((previous) => ({ ...previous, ...next }));
+  };
+
   const loadVaultNoteIndex = (): (() => void) =>
     startAsyncLoad(async (isLive) => {
       const known = await collectVaultNoteIndex(vault);
@@ -210,15 +219,6 @@ export function NotesImportWizard({
     });
 
   useEffect(loadVaultNoteIndex, [vault, settings]);
-
-  const persistFieldMappings = () => {
-    settings.fieldMappings = mergeFieldMappings(
-      settings.fieldMappings,
-      fieldMappings,
-    );
-    void saveSettings();
-    void saveModelPacksFor(vault, fieldMappings);
-  };
 
   const finishImport = (report: ImportExecutionReport) => {
     for (const [id, mod] of Object.entries(report.syncedNotes)) {
@@ -237,7 +237,12 @@ export function NotesImportWizard({
         importedAt: Date.now(),
       },
     };
+    settings.fieldMappings = mergeFieldMappings(
+      settings.fieldMappings,
+      fieldMappings,
+    );
     void saveSettings();
+    void saveModelPacksFor(vault, fieldMappings);
   };
 
   const handleNotesPreviewPageChange = (page: number) => {
@@ -272,13 +277,13 @@ export function NotesImportWizard({
         handleNotesLoaded,
         handleNotesPreviewPageChange,
         handleNotesPreviewTotalPagesChange,
+        mergeSessionFieldMappings,
         notesPreviewPage,
         notesPreviewTotalPages,
         notesSelectedToImport,
         previewStatuses,
         selectDeckName,
         selectedDeckName,
-        setFieldMappings,
         setForcedNoteIds,
         setNotesSelectedToImport,
         settings,
@@ -295,13 +300,13 @@ export function NotesImportWizard({
       handleNotesLoaded,
       handleNotesPreviewPageChange,
       handleNotesPreviewTotalPagesChange,
+      mergeSessionFieldMappings,
       notesPreviewPage,
       notesPreviewTotalPages,
       notesSelectedToImport,
       previewStatuses,
       selectDeckName,
       selectedDeckName,
-      setFieldMappings,
       setForcedNoteIds,
       setNotesSelectedToImport,
       settings,
@@ -330,9 +335,6 @@ export function NotesImportWizard({
       }
       initialPage={1}
       onBeforeAdvance={(fromPage) => {
-        if (fromPage === 2) {
-          persistFieldMappings();
-        }
         if (fromPage === 3) {
           setNotesPreviewPage(0);
           setNotesPreviewTotalPages(1);
