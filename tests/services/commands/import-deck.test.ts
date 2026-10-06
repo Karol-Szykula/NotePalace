@@ -1140,7 +1140,45 @@ describe("executeImport", () => {
     expect(written).not.toContain('"front"');
   });
 
-  test("given a selected note without a pack when executed then skips it as unmapped", async () => {
+  test("given a selected note with no mapping when executed then skips it as unmapped", async () => {
+    // given
+    const { vault } = executeWith({});
+    const notes = [
+      {
+        noteId: 110,
+        mod: 90,
+        modelName: "My Model",
+        fields: {
+          Question: { value: "<p>Q</p>" },
+          Answer: { value: "<p>A</p>" },
+        },
+        tags: [] as string[],
+        cards: [7],
+      },
+    ];
+
+    // when
+    const report = await executeImport(
+      new Anki(),
+      vault,
+      {
+        deckName: "Languages",
+        notes,
+        decisions: { 110: true },
+        fieldMappings: {},
+        targetFolder: "",
+        noteLifecycle: {},
+        previewStatuses: undefined,
+      },
+      jsonEngine,
+    );
+
+    // then
+    expect(report).toMatchObject({ created: 0, skippedUnmapped: 1 });
+    expect(vault.getMarkdownFiles()).toHaveLength(0);
+  });
+
+  test("given a selected note with a mapping but no pack when executed then imports it", async () => {
     // given
     const { vault } = executeWith({});
     const notes = [
@@ -1174,8 +1212,8 @@ describe("executeImport", () => {
     );
 
     // then
-    expect(report).toMatchObject({ created: 0, skippedUnmapped: 1 });
-    expect(vault.getMarkdownFiles()).toHaveLength(0);
+    expect(report).toMatchObject({ created: 1, skippedUnmapped: 0 });
+    expect(vault.getMarkdownFiles()).toHaveLength(1);
   });
 
   test("given a note whose vault file is gone when executed then leaves it to Sync and reports it", async () => {

@@ -171,6 +171,8 @@ interface NoteTarget {
 
 type PackResolver = (note: AnkiNoteInfo) => Promise<NotePack | undefined>;
 
+type MappingAvailability = (note: AnkiNoteInfo) => Promise<boolean>;
+
 function packResolver(vault: Vault): PackResolver {
   const cache = new Map<string, NotePack | undefined>();
   return async (note) => {
@@ -182,14 +184,28 @@ function packResolver(vault: Vault): PackResolver {
   };
 }
 
+function mappingAvailability(
+  vault: Vault,
+  request: ExecuteImportRequest,
+): MappingAvailability {
+  const packFor = packResolver(vault);
+  return async (note) => {
+    const modelName = note.modelName ?? "Unknown";
+    if (request.fieldMappings[modelName] !== undefined) {
+      return true;
+    }
+    return (await packFor(note)) !== undefined;
+  };
+}
+
 async function packableNotes(
   selected: AnkiNoteInfo[],
-  packFor: PackResolver,
+  hasMapping: MappingAvailability,
 ): Promise<{ packable: AnkiNoteInfo[]; skippedUnmapped: number }> {
   const packable: AnkiNoteInfo[] = [];
   let skippedUnmapped = 0;
   for (const note of selected) {
-    if (await packFor(note)) {
+    if (await hasMapping(note)) {
       packable.push(note);
     } else {
       skippedUnmapped += 1;
@@ -472,7 +488,7 @@ export async function executeImport(
   };
   const { packable, skippedUnmapped } = await packableNotes(
     working.notes,
-    packResolver(vault),
+    mappingAvailability(vault, request),
   );
   const decision = await importDecision(packable, request, vault, yaml);
   const planned = plannedImports(decision.importable, request);
