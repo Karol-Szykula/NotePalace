@@ -1,4 +1,10 @@
-import { act, findByRole, findByText, waitFor } from "@testing-library/react";
+import {
+  act,
+  findByRole,
+  findByText,
+  queryByRole,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { App, Modal } from "obsidian";
 import { App as ObsidianApp } from "obsidian-test-mocks/obsidian";
@@ -19,7 +25,10 @@ export type NotePalaceModalConstructor = new (
 interface WizardModalElements {
   readonly backButton: Promise<HTMLElement>;
   readonly cancelButton: Promise<HTMLElement>;
+  readonly exportButton: Promise<HTMLElement>;
+  readonly importButton: Promise<HTMLElement>;
   readonly nextButton: Promise<HTMLElement>;
+  readonly okButton: Promise<HTMLElement>;
 }
 
 interface MountedModal {
@@ -43,8 +52,17 @@ export abstract class WizardModalPO {
       get cancelButton() {
         return findByRole(container, "button", { name: "Cancel" });
       },
+      get exportButton() {
+        return findByRole(container, "button", { name: "Export" });
+      },
+      get importButton() {
+        return findByRole(container, "button", { name: "Import" });
+      },
       get nextButton() {
         return findByRole(container, "button", { name: /^Next:/ });
+      },
+      get okButton() {
+        return findByRole(container, "button", { name: "OK" });
       },
     };
     this.user = userEvent.setup();
@@ -80,8 +98,20 @@ export abstract class WizardModalPO {
     return this.clickElement(this.elements.cancelButton);
   }
 
+  clickExportButton(): Promise<void> {
+    return this.clickElement(this.elements.exportButton);
+  }
+
+  clickImportButton(): Promise<void> {
+    return this.clickElement(this.elements.importButton);
+  }
+
   clickNextButton(): Promise<void> {
     return this.clickElement(this.elements.nextButton);
+  }
+
+  clickOkButton(): Promise<void> {
+    return this.clickElement(this.elements.okButton);
   }
 
   closeModal(): void {
@@ -94,8 +124,38 @@ export abstract class WizardModalPO {
     this.container.remove();
   }
 
-  async expectTextDisplayed(text: string): Promise<HTMLElement> {
+  async expectTextDisplayed(text: string | RegExp): Promise<HTMLElement> {
     return findByText(this.container, text);
+  }
+
+  async isBackButtonVisible(): Promise<boolean> {
+    return this.isButtonVisible("← Back");
+  }
+
+  async isCancelButtonVisible(): Promise<boolean> {
+    return this.isButtonVisible("Cancel");
+  }
+
+  async isImportButtonEnabled(): Promise<boolean> {
+    const importButton = await this.elements.importButton;
+    return !(importButton as HTMLButtonElement).disabled;
+  }
+
+  async isImportButtonVisible(): Promise<boolean> {
+    return this.isButtonVisible("Import");
+  }
+
+  async isModalOpen(): Promise<boolean> {
+    return this.modal.contentEl.childElementCount > 0;
+  }
+
+  async isNextButtonDisabled(): Promise<boolean> {
+    const nextButton = await this.elements.nextButton;
+    return (nextButton as HTMLButtonElement).disabled;
+  }
+
+  async isNextButtonVisible(): Promise<boolean> {
+    return this.isButtonVisible(/^Next:/);
   }
 
   async pageIndicatorTitles(): Promise<string[]> {
@@ -117,7 +177,16 @@ export abstract class WizardModalPO {
     await this.user.click(radio);
   }
 
+  protected async isRadioEnabled(name: string): Promise<boolean> {
+    const radio = await findByRole(this.container, "radio", { name });
+    return !(radio as HTMLInputElement).disabled;
+  }
+
   private async clickElement(element: Promise<HTMLElement>): Promise<void> {
     await this.user.click(await element);
+  }
+
+  private async isButtonVisible(name: string | RegExp): Promise<boolean> {
+    return queryByRole(this.container, "button", { name }) !== null;
   }
 }
