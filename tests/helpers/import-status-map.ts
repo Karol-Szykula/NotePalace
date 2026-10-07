@@ -1,3 +1,7 @@
+import {
+  createdPattern,
+  overwrittenPattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { computeContentHash } from "src/services/notes/content-hash";
 import type {
   NoteLifecycleRecord,
@@ -54,7 +58,7 @@ export const importStatusMap: Record<NoteLifecycleStatus, ImportStatusCase> = {
     buildFixture: async () => ({}),
     expectFileCreated: true,
     noteMod: 100,
-    outcome: /Created: 1/,
+    outcome: createdPattern,
   },
   "synced.ankiNewer": {
     buildFixture: async (id: number) => ({
@@ -62,14 +66,14 @@ export const importStatusMap: Record<NoteLifecycleStatus, ImportStatusCase> = {
       noteLifecycle: { [id]: await cleanRecordWithHash(100) },
     }),
     noteMod: 600,
-    outcome: /overwritten: 1/,
+    outcome: overwrittenPattern,
   },
   "linked.unenrolled": {
     buildFixture: async (id: number) => ({
       files: { "Enrolled.md": importedNoteForm(id) },
     }),
     noteMod: 600,
-    outcome: /overwritten: 1/,
+    outcome: overwrittenPattern,
   },
   "ankiOnly.fileDeleted": unreachableInImportStatus,
   "synced.clean": unreachableInImportStatus,

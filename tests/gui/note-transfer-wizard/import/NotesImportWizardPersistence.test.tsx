@@ -11,6 +11,11 @@ import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
+import {
+  cardsToImportPattern,
+  createdPattern,
+  mappedFieldsPattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { ISettings } from "src/conf/settings";
 import { createSettings } from "../../../helpers/settings";
 import { AnkiConnectMock } from "../../../mocks/anki-connect";
@@ -135,7 +140,7 @@ async function openFieldsPage(deckName: string, user: UserEvent) {
   });
   await user.click(deckRadio);
   await user.click(await screen.findByRole("button", { name: /Next: Fields/ }));
-  await screen.findByText(/Map fields for deck/);
+  await screen.findByText(mappedFieldsPattern);
 }
 
 function mappingTargets(): string[] {
@@ -163,7 +168,7 @@ test("given a mapping chosen when the wizard returns to the fields page then the
   // when
   await selectTarget(0, "Front", user);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
   await user.click(await screen.findByRole("button", { name: /Back/ }));
   const targets = mappingTargets();
 
@@ -182,7 +187,7 @@ test("given a mapping chosen when the wizard advances past the fields page then 
   // when
   await selectTarget(0, "Front", user);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
 
   // then
   expect(saveSettings).not.toHaveBeenCalled();
@@ -198,7 +203,7 @@ test("given a mapping abandoned when the wizard opens again then the default map
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
   unmount();
 
   // when
@@ -219,9 +224,9 @@ test("given an import completed when the wizard opens again then the chosen mapp
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
   await user.click(await screen.findByRole("button", { name: "Import" }));
-  await screen.findByText(/Created: 1/);
+  await screen.findByText(createdPattern);
   unmount();
 
   // when
@@ -243,11 +248,11 @@ test("given a custom model mapping when the import runs then the note is created
   await selectTarget(0, "Front", user);
   await selectTarget(1, "Back", user);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
 
   // when
   await user.click(await screen.findByRole("button", { name: "Import" }));
-  const summary = await screen.findByText(/Created: 1/);
+  const summary = await screen.findByText(createdPattern);
 
   // then
   expect(summary).toBeInTheDocument();
@@ -262,11 +267,11 @@ test("given a note that vanished from Anki when the import finishes then the pac
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
 
   // when
   await user.click(await screen.findByRole("button", { name: "Import" }));
-  const summary = await screen.findByText(/Created: 0/);
+  const summary = await screen.findByText(createdPattern);
   const packExists = await adapterOf(app).exists(customPackPath);
 
   // then
