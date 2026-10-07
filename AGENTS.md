@@ -116,3 +116,6 @@ and issues, never in source prose.
   one logical change each, one merge request per issue.
 - Commit, push and open merge requests only when you are asked to.
 - `main.js` at repo root is a build artifact, never edit by hand.
+- Never change GitLab settings (labels, assignees, milestones, issue or MR
+  state, descriptions, deletion) without explicit user consent.
+

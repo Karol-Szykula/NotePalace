@@ -20,7 +20,9 @@ export type ReachableImportStatus =
   | "synced.ankiNewer"
   | "synced.clean"
   | "synced.diverged"
-  | "synced.vaultNewer";
+  | "synced.vaultNewer"
+  | "vaultOnly.unexported"
+  | "vaultOnly.unenrolled";
 
 const importNoteFields = {
   Back: { value: "<p>4</p>" },
@@ -54,15 +56,17 @@ export function cleanAnkiNote(noteId: number, mod: number): AnkiNoteInfo {
   };
 }
 
-function importedNoteForm(noteId: number, front = "Q"): string {
-  return [
-    "```note-form",
-    `front: ${front}`,
-    "back: A",
-    `id: ${noteId}`,
-    "```",
-    "",
-  ].join("\n");
+function importedNoteForm(
+  noteId: number,
+  front = "Q",
+  includeId = true,
+): string {
+  const lines = ["```note-form", `front: ${front}`, "back: A"];
+  if (includeId) {
+    lines.push(`id: ${noteId}`);
+  }
+  lines.push("```", "");
+  return lines.join("\n");
 }
 
 async function cleanRecordWithHash(
@@ -130,6 +134,26 @@ async function divergedFixture(id: number): Promise<ImportStatusFixture> {
   };
 }
 
+async function vaultOnlyUnexportedFixture(
+  id: number,
+): Promise<ImportStatusFixture> {
+  return {
+    ankiMod: 0,
+    files: { "New.md": importedNoteForm(id, "Q", false) },
+    noteLifecycle: {},
+  };
+}
+
+async function vaultOnlyUnenrolledFixture(
+  id: number,
+): Promise<ImportStatusFixture> {
+  return {
+    ankiMod: 600,
+    files: { "Unenrolled.md": importedNoteForm(id) },
+    noteLifecycle: {},
+  };
+}
+
 export const importStatusFixtures: Record<
   ReachableImportStatus,
   ImportStatusFixtureSpec
@@ -144,4 +168,12 @@ export const importStatusFixtures: Record<
   "synced.clean": { ankiMod: 100, buildFixture: cleanFixture },
   "synced.diverged": { ankiMod: 600, buildFixture: divergedFixture },
   "synced.vaultNewer": { ankiMod: 100, buildFixture: vaultNewerFixture },
+  "vaultOnly.unexported": {
+    ankiMod: 0,
+    buildFixture: vaultOnlyUnexportedFixture,
+  },
+  "vaultOnly.unenrolled": {
+    ankiMod: 600,
+    buildFixture: vaultOnlyUnenrolledFixture,
+  },
 };
