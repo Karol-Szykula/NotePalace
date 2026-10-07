@@ -8,6 +8,10 @@
 import "obsidian-test-mocks/jest-setup";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import {
+  cardsToImportPattern,
+  mappedFieldsPattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
+import {
   NOTE_LIFECYCLE_STATUSES,
   type NoteLifecycleStatus,
 } from "src/services/notes/lifecycle";
@@ -35,8 +39,6 @@ afterEach(() => {
 const deckName = "Languages";
 const noteId = 1234567890;
 const deck = { [deckName]: [noteId] };
-const mappedFieldsPattern = /Map fields for deck/;
-const cardsToImportPattern = /Cards to import: 1\/1/;
 const noteFields = {
   Back: { value: "<p>4</p>" },
   Front: { value: "<p>What is 2+2?</p>" },
