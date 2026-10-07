@@ -7,8 +7,15 @@
  */
 import "obsidian-test-mocks/jest-setup";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
-import { computeContentHash } from "src/services/notes/content-hash";
-import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
+import {
+  NOTE_LIFECYCLE_STATUSES,
+  type NoteLifecycleStatus,
+} from "src/services/notes/lifecycle";
+import {
+  importStatusMap,
+  type ImportStatusCase,
+  unreachableInImportStatus,
+} from "../helpers/import-status-map";
 import { AnkiConnectMock } from "../mocks/anki-connect";
 import { ImportModalPO } from "./page-objects/ImportModalPO";
 
@@ -46,72 +53,12 @@ function ankiNote(mod: number): AnkiNoteInfo {
   };
 }
 
-function importedNoteForm(): string {
-  return [
-    "```note-form",
-    "front: Q",
-    "back: A",
-    `id: ${noteId}`,
-    "```",
-    "",
-  ].join("\n");
-}
-
-async function cleanRecordWithHash(
-  lastMod: number,
-): Promise<NoteLifecycleRecord> {
-  const lastHash = await computeContentHash("Q", "A", "", "Basic");
-  return {
-    lastHash,
-    lastMod,
-    status: "synced.clean",
-    updatedAt: 100,
-    v: 1,
-  };
-}
-
-interface ImportByDefaultCase {
-  readonly buildFixture: (id: number) => Promise<{
-    files?: Record<string, string>;
-    noteLifecycle?: Record<number, NoteLifecycleRecord>;
-  }>;
-  readonly expectFileCreated?: boolean;
-  readonly noteMod: number;
-  readonly outcome: RegExp;
-}
-
-const importByDefault: Array<[string, ImportByDefaultCase]> = [
-  [
-    "ankiOnly.neverImported",
-    {
-      buildFixture: async () => ({}),
-      expectFileCreated: true,
-      noteMod: 100,
-      outcome: /Created: 1/,
-    },
-  ],
-  [
-    "synced.ankiNewer",
-    {
-      buildFixture: async (id: number) => ({
-        files: { "Newer.md": importedNoteForm() },
-        noteLifecycle: { [id]: await cleanRecordWithHash(100) },
-      }),
-      noteMod: 600,
-      outcome: /overwritten: 1/,
-    },
-  ],
-  [
-    "linked.unenrolled",
-    {
-      buildFixture: async () => ({
-        files: { "Enrolled.md": importedNoteForm() },
-      }),
-      noteMod: 600,
-      outcome: /overwritten: 1/,
-    },
-  ],
-];
+const importByDefault: Array<[NoteLifecycleStatus, ImportStatusCase]> =
+  NOTE_LIFECYCLE_STATUSES.flatMap((status) =>
+    importStatusMap[status] === unreachableInImportStatus
+      ? []
+      : [[status, importStatusMap[status]]],
+  );
 
 describe("ImportSelectedByDefault", () => {
   test.each(importByDefault)(
