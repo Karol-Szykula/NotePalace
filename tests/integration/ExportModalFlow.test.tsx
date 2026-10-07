@@ -6,6 +6,7 @@
  */
 import "obsidian-test-mocks/jest-setup";
 import { createdPattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
+import { waitFor } from "@testing-library/react";
 import { AnkiConnectMock } from "../mocks/anki-connect";
 import { ExportModalPO } from "./page-objects/ExportModalPO";
 
@@ -70,7 +71,9 @@ describe("ExportModalFlow", () => {
     await page.chooseFolder(folderName);
     await page.clickNextButton();
     await page.expectTextDisplayed("What is 2+2?");
-    await page.clickExportButton();
+    await waitFor(() => expect(page).toBeDefined());
+    await waitFor(() => page!.isNotePreselected());
+    await page.goToSavePage();
     const report = await page.expectTextDisplayed(createdPattern);
     // then
     expect(report).toBeInTheDocument();
