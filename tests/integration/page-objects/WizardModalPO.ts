@@ -6,14 +6,16 @@ import {
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { App, Modal } from "obsidian";
+import type { App, Modal, Vault } from "obsidian";
 import { App as ObsidianApp } from "obsidian-test-mocks/obsidian";
 import { pageIndicatorClasses } from "@shared/classes/common";
 import type { ISettings } from "src/conf/settings";
+import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 import { createSettings } from "../../helpers/settings";
 
 export interface WizardModalFixture {
-  readonly files?: Record<string, string>;
+  readonly files?: Record<string, string> | undefined;
+  readonly noteLifecycle?: Record<number, NoteLifecycleRecord> | undefined;
 }
 
 export type NotePalaceModalConstructor = new (
@@ -35,6 +37,7 @@ interface MountedModal {
   readonly container: HTMLElement;
   readonly modal: Modal;
   readonly saveSettingsSpy: jest.Mock;
+  readonly vault: Vault;
 }
 
 export abstract class WizardModalPO {
@@ -44,6 +47,7 @@ export abstract class WizardModalPO {
   protected constructor(
     protected readonly modal: Modal,
     protected readonly container: HTMLElement,
+    protected readonly vault: Vault,
   ) {
     this.elements = {
       get backButton() {
@@ -78,16 +82,25 @@ export abstract class WizardModalPO {
     const saveSettingsSpy = jest.fn(async (): Promise<void> => {
       return undefined;
     });
+    const settingsOverrides: Partial<ISettings> = {};
+    if (fixture.noteLifecycle !== undefined) {
+      settingsOverrides.noteLifecycle = fixture.noteLifecycle;
+    }
     const modal = new ModalClass(
       app as unknown as App,
-      createSettings(),
+      createSettings(settingsOverrides),
       saveSettingsSpy,
     );
     document.body.appendChild(modal.containerEl);
     act(() => {
       modal.onOpen();
     });
-    return { container: modal.containerEl, modal, saveSettingsSpy };
+    return {
+      container: modal.containerEl,
+      modal,
+      saveSettingsSpy,
+      vault: app.vault as unknown as Vault,
+    };
   }
 
   clickBackButton(): Promise<void> {

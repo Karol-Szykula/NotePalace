@@ -1,5 +1,9 @@
 # Agent conventions
 
+The repository documents itself: names, the decision table and the tests say
+what the code does - comments do not. Intent lives in code, commit messages
+and issues, never in source prose.
+
 ## Tests
 
 - Structure every test as `// given`, `// when`, `// then` sections.
@@ -10,6 +14,8 @@
 - One behavior per test, named as user-visible outcome.
 - Name every test `given <context> when <action> then <outcome>`,
   mirroring the given/when/then sections in its body.
+- A suite starts with a header docblock stating its contract (one or two
+  sentences). Nothing else in tests carries comments.
 - Mock AnkiConnect with `AnkiConnectMock` (`tests/mocks/anki-connect.ts`).
   Suite-local responder helpers stay local (rule of three: extract to
   `tests/helpers/` only on third reuse of the same contract).
@@ -30,11 +36,37 @@
 - `null` values in test fixtures need explicit type annotations
   (`unknown[]`, `Record<string, unknown>`) - the project has no
   `strict` mode, so bare `null` widens to `any` (TS7005/TS7018).
+- Decision-table integration suites (Stryker targets, `type:testing` `#8`)
+  assert the user-visible outcome (preselection, `Created:` report counts,
+  file content, written ids), never intermediate state; their `test.each`
+  rows are named after the lifecycle status they drive and keep a single
+  note per fixture so mutation runs stay cheap.
 
 ## Code
 
-- No comments. Names must explain themselves (variables, functions,
-  CSS tokens, test data).
+- No comments. Names, small functions and structure express intent; prose
+  does not. Two exceptions and only two:
+  - A short JSDoc on an exported service contract when the signature alone
+    cannot express a cross-module constraint
+    (e.g. `src/services/vault/paths.ts`).
+  - A why-comment for externally imposed behavior only, pointing at its
+    source (the AnkiConnect quirk and the pinned batch size in
+    `src/services/anki/read.ts`); never a what-comment, and never a section
+    banner (`// Update deck` stays a violation).
+- Domain vocabulary is fixed; code, tests and commits speak one language:
+  - `note` - one Anki note (front, back, tags, model).
+  - `block` - the note-form fence in a vault file carrying its `id`.
+  - `record` - the ledger entry in `settings.noteLifecycle`
+    (`lastHash`/`lastMod`).
+  - `lifecycle status` - one of `NOTE_LIFECYCLE_STATUSES`, computed by
+    `classifyNoteLifecycle`.
+  - `deck` - an Anki deck; its `Parent::Child` chain maps to nested vault
+    folders.
+  - `pack` - JSON mapping an Anki model's fields to note-form fields.
+  - `force` - "Anki wins" (import) or "Obsidian wins" (export) overriding
+    OUT_OF_SCOPE.
+  - `enroll` - joining the ledger without a write.
+  - `orphaned` - a record left behind with neither an Anki note nor a block.
 - A new service goes into the folder of its domain under `src/services/`
   (`anki/`, `notes/`, `vault/`, `commands/`), never loose in `services/` and
   never in `commands/` unless it is one of the three user commands. A helper
@@ -51,6 +83,11 @@
   Boolean variables/props use `is` / `has` / `should` / `can` prefix (never `show` / `enable` / `display`).
 - Small single-purpose functions; orchestration reads as a list of calls.
 - Effects (`useEffect`) reference named loader functions, never inline lambdas.
+- Errors surface to the user: no silent `catch`, UI reports through component
+  state (`Error: could not load notes.`), services rethrow or log through the
+  plugin logger - never `console.*` in `src`.
+- No magic numbers or literals: pinned values have names
+  (`previewPageSize`, `noteLifecycleRecordVersion`).
 - English only, everywhere (code, tests, commit messages).
 - Props in JSX and interface members are alphabetical
   (enforced by `perfectionist/sort-jsx-props`, `sort-interfaces`).
@@ -73,4 +110,9 @@
   and diff to confirm.
 - Test vault (`docs/test-vault`) is fixture data: revert unintended
   modifications instead of committing them.
+- Generated docs (`docs/state-machine.md` and its diagrams) refresh in the
+  same change that touches the decision table or the lifecycle machine.
+- Commits are `[#NN]: <english summary>` (a body when the change needs room),
+  one logical change each, one merge request per issue.
+- Commit, push and open merge requests only when you are asked to.
 - `main.js` at repo root is a build artifact, never edit by hand.
