@@ -6,17 +6,13 @@
  * untouched, and forcing either overwrites the newer Obsidian edits.
  */
 import "obsidian-test-mocks/jest-setup";
-import type { AnkiNoteInfo } from "src/entities/anki-note";
-import {
-  cardsToImportPattern,
-  mappedFieldsPattern,
-} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
-import { computeContentHash } from "src/services/notes/content-hash";
-import type {
-  NoteLifecycleRecord,
-  NoteLifecycleStatus,
-} from "src/services/notes/lifecycle";
+import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
 import { AnkiConnectMock } from "../mocks/anki-connect";
+import {
+  basicAnkiNote,
+  importStatusFixtures,
+  type ImportStatusFixtureSpec,
+} from "../helpers/status-fixtures";
 import { ImportModalPO } from "./page-objects/ImportModalPO";
 
 AnkiConnectMock.install();
@@ -35,73 +31,21 @@ afterEach(() => {
 const deckName = "Languages";
 const noteId = 1234567890;
 const deck = { [deckName]: [noteId] };
-const noteFields = {
-  Back: { value: "<p>4</p>" },
-  Front: { value: "<p>What is 2+2?</p>" },
-};
 
-function ankiNote(mod: number): AnkiNoteInfo {
-  return {
-    cards: [11],
-    fields: noteFields,
-    mod,
-    modelName: "Basic",
-    noteId,
-    tags: [],
-  };
-}
-
-function importedNoteForm(front: string): string {
-  return [
-    "```note-form",
-    `front: ${front}`,
-    "back: A",
-    `id: ${noteId}`,
-    "```",
-    "",
-  ].join("\n");
-}
-
-async function cleanRecordWithHash(
-  lastMod: number,
-): Promise<NoteLifecycleRecord> {
-  const lastHash = await computeContentHash("Q", "A", "", "Basic");
-  return {
-    lastHash,
-    lastMod,
-    status: "synced.clean",
-    updatedAt: 100,
-    v: 1,
-  };
-}
-
-interface ForcedOverwriteCase {
-  readonly buildFixture: (id: number) => Promise<{
-    files: Record<string, string>;
-    noteLifecycle: Record<number, NoteLifecycleRecord>;
-  }>;
+interface ForcedOverwriteCase extends ImportStatusFixtureSpec {
   readonly notice: RegExp;
-  readonly noteMod: number;
   readonly status: NoteLifecycleStatus;
 }
 
 const forcedOverwriteCases: ForcedOverwriteCase[] = [
   {
-    buildFixture: async (id) => ({
-      files: { "VaultNewer.md": importedNoteForm("Q edited") },
-      noteLifecycle: { [id]: await cleanRecordWithHash(100) },
-    }),
+    ...importStatusFixtures["synced.vaultNewer"],
     notice: /newer Obsidian edits/,
-    noteMod: 100,
     status: "synced.vaultNewer",
   },
   {
-    buildFixture: async (id) => ({
-      files: { "Diverged.md": importedNoteForm("Q edited") },
-      noteLifecycle: { [id]: await cleanRecordWithHash(100) },
-    }),
+    ...importStatusFixtures["synced.diverged"],
     notice: /edited in both places/,
-    noteMod: 600,
     status: "synced.diverged",
   },
 ];
@@ -110,20 +54,12 @@ const overwrittenSummary = /overwritten: 1/;
 const forcedSummary = /forced: 1/;
 const skippedSummary = /skipped: 0/;
 
-async function pagesUntilCards(page: ImportModalPO): Promise<void> {
-  await page.chooseDeck(deckName);
-  await page.clickNextButton();
-  await page.expectTextDisplayed(mappedFieldsPattern);
-  await page.clickNextButton();
-  await page.expectTextDisplayed(cardsToImportPattern);
-}
-
 describe("ImportForcedOverwrite", () => {
   test.each(forcedOverwriteCases)(
     "given a %s note when the cards page loads then it is not preselected and Import stays disabled",
-    async ({ buildFixture, notice, noteMod }) => {
+    async ({ ankiMod, buildFixture, notice }) => {
       // given
-      const note = ankiNote(noteMod);
+      const note = basicAnkiNote(noteId, ankiMod);
       const fixture = await buildFixture(noteId);
       page = ImportModalPO.render({
         decks: deck,
@@ -132,7 +68,7 @@ describe("ImportForcedOverwrite", () => {
         notes: [note],
       });
       // when
-      await pagesUntilCards(page);
+      await page.goToCardsPage(deckName);
       const preselected = await page.isNotePreselected();
       const noticeText = await page.expectTextDisplayed(notice);
       const importEnabled = await page.isImportButtonEnabled();
@@ -145,9 +81,9 @@ describe("ImportForcedOverwrite", () => {
 
   test.each(forcedOverwriteCases)(
     "given a %s note when Anki wins is toggled then the run overwrites the file",
-    async ({ buildFixture, noteMod }) => {
+    async ({ ankiMod, buildFixture }) => {
       // given
-      const note = ankiNote(noteMod);
+      const note = basicAnkiNote(noteId, ankiMod);
       const fixture = await buildFixture(noteId);
       page = ImportModalPO.render({
         decks: deck,
@@ -156,7 +92,7 @@ describe("ImportForcedOverwrite", () => {
         notes: [note],
       });
       // when
-      await pagesUntilCards(page);
+      await page.goToCardsPage(deckName);
       await page.toggleAnkiWins();
       await page.clickImportButton();
       const overwritten = await page.expectTextDisplayed(overwrittenSummary);
@@ -175,9 +111,9 @@ describe("ImportForcedOverwrite", () => {
 
   test.each(forcedOverwriteCases)(
     "given a %s note when the bulk action is used then it is selected and Import becomes enabled",
-    async ({ buildFixture, noteMod }) => {
+    async ({ ankiMod, buildFixture }) => {
       // given
-      const note = ankiNote(noteMod);
+      const note = basicAnkiNote(noteId, ankiMod);
       const fixture = await buildFixture(noteId);
       page = ImportModalPO.render({
         decks: deck,
@@ -186,7 +122,7 @@ describe("ImportForcedOverwrite", () => {
         notes: [note],
       });
       // when
-      await pagesUntilCards(page);
+      await page.goToCardsPage(deckName);
       await page.clickBulkAnkiWins();
       const preselected = await page.isNotePreselected();
       const importEnabled = await page.isImportButtonEnabled();

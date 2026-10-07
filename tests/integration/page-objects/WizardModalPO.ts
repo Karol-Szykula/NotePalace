@@ -3,6 +3,7 @@ import {
   findByRole,
   findByText,
   queryByRole,
+  queryByText,
   waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -143,6 +144,10 @@ export abstract class WizardModalPO {
 
   async isBackButtonVisible(): Promise<boolean> {
     return this.isButtonVisible("← Back");
+  }
+
+  queryTextDisplayed(text: string | RegExp): HTMLElement | null {
+    return queryByText(this.container, text);
   }
 
   async isCancelButtonVisible(): Promise<boolean> {
