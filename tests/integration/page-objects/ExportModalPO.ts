@@ -1,4 +1,4 @@
-import type { Modal } from "obsidian";
+import type { Modal, Vault } from "obsidian";
 import { splitDeckHierarchy } from "@shared/utils/decks";
 import { NotesExportModal } from "src/gui/note-transfer-wizard/export/notes-export-modal";
 import { ankiResponder } from "../../helpers/anki-responder";
@@ -6,14 +6,14 @@ import type { WizardModalFixture } from "./WizardModalPO";
 import { WizardModalPO } from "./WizardModalPO";
 
 export class ExportModalPO extends WizardModalPO {
-  protected constructor(modal: Modal, container: HTMLElement) {
-    super(modal, container);
+  protected constructor(modal: Modal, container: HTMLElement, vault: Vault) {
+    super(modal, container, vault);
   }
 
   static render(fixture: WizardModalFixture = {}): ExportModalPO {
     ankiResponder().respondWith();
     const mounted = WizardModalPO.mountModal(NotesExportModal, fixture);
-    return new ExportModalPO(mounted.modal, mounted.container);
+    return new ExportModalPO(mounted.modal, mounted.container, mounted.vault);
   }
 
   async chooseFolder(folderName: string): Promise<void> {

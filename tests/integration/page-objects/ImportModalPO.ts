@@ -1,4 +1,5 @@
-import type { Modal } from "obsidian";
+import type { Modal, Vault } from "obsidian";
+import { findByRole } from "@testing-library/react";
 import { splitDeckHierarchy } from "@shared/utils/decks";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { NotesImportModal } from "src/gui/note-transfer-wizard/import/notes-import-modal";
@@ -12,8 +13,8 @@ export interface ImportModalFixture extends WizardModalFixture {
 }
 
 export class ImportModalPO extends WizardModalPO {
-  protected constructor(modal: Modal, container: HTMLElement) {
-    super(modal, container);
+  protected constructor(modal: Modal, container: HTMLElement, vault: Vault) {
+    super(modal, container, vault);
   }
 
   static render(fixture: ImportModalFixture = {}): ImportModalPO {
@@ -28,7 +29,7 @@ export class ImportModalPO extends WizardModalPO {
       });
     }
     const mounted = WizardModalPO.mountModal(NotesImportModal, fixture);
-    return new ImportModalPO(mounted.modal, mounted.container);
+    return new ImportModalPO(mounted.modal, mounted.container, mounted.vault);
   }
 
   async chooseDeck(deckName: string): Promise<void> {
@@ -39,5 +40,21 @@ export class ImportModalPO extends WizardModalPO {
   async isDeckRadioEnabled(deckName: string): Promise<boolean> {
     const { shortName } = splitDeckHierarchy(deckName);
     return this.isRadioEnabled(shortName);
+  }
+
+  async isNotePreselected(): Promise<boolean> {
+    const checkbox = await findByRole(this.container, "checkbox");
+    return (checkbox as HTMLInputElement).checked;
+  }
+
+  async noteFileContent(noteId: number): Promise<string | undefined> {
+    const files = this.vault.getMarkdownFiles();
+    for (const file of files) {
+      const source = await this.vault.read(file);
+      if (source.includes(`id: ${noteId}`)) {
+        return source;
+      }
+    }
+    return undefined;
   }
 }
