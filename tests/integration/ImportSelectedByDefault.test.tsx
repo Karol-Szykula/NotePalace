@@ -6,11 +6,6 @@
  * overwrites its file, an id-bearing unenrolled note rewrites the same file.
  */
 import "obsidian-test-mocks/jest-setup";
-import type { AnkiNoteInfo } from "src/entities/anki-note";
-import {
-  cardsToImportPattern,
-  mappedFieldsPattern,
-} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import {
   NOTE_LIFECYCLE_STATUSES,
   type NoteLifecycleStatus,
@@ -20,6 +15,7 @@ import {
   type ImportStatusCase,
   unreachableInImportStatus,
 } from "../helpers/import-status-map";
+import { basicAnkiNote } from "../helpers/status-fixtures";
 import { AnkiConnectMock } from "../mocks/anki-connect";
 import { ImportModalPO } from "./page-objects/ImportModalPO";
 
@@ -39,21 +35,6 @@ afterEach(() => {
 const deckName = "Languages";
 const noteId = 1234567890;
 const deck = { [deckName]: [noteId] };
-const noteFields = {
-  Back: { value: "<p>4</p>" },
-  Front: { value: "<p>What is 2+2?</p>" },
-};
-
-function ankiNote(mod: number): AnkiNoteInfo {
-  return {
-    cards: [11],
-    fields: noteFields,
-    mod,
-    modelName: "Basic",
-    noteId,
-    tags: [],
-  };
-}
 
 const importByDefault: Array<[NoteLifecycleStatus, ImportStatusCase]> =
   NOTE_LIFECYCLE_STATUSES.flatMap((status) =>
@@ -67,7 +48,7 @@ describe("ImportSelectedByDefault", () => {
     "given a note in %s when the cards page opens then it is preselected",
     async (_status, entry) => {
       // given
-      const note = ankiNote(entry.noteMod);
+      const note = basicAnkiNote(noteId, entry.ankiMod);
       const fixture = await entry.buildFixture(noteId);
       page = ImportModalPO.render({
         decks: deck,
@@ -76,11 +57,7 @@ describe("ImportSelectedByDefault", () => {
         notes: [note],
       });
       // when
-      await page.chooseDeck(deckName);
-      await page.clickNextButton();
-      await page.expectTextDisplayed(mappedFieldsPattern);
-      await page.clickNextButton();
-      await page.expectTextDisplayed(cardsToImportPattern);
+      await page.goToCardsPage(deckName);
       const preselected = await page.isNotePreselected();
       // then
       expect(preselected).toBe(true);
@@ -91,7 +68,7 @@ describe("ImportSelectedByDefault", () => {
     "given a note in %s when Import runs then the summary counts the note",
     async (_status, entry) => {
       // given
-      const note = ankiNote(entry.noteMod);
+      const note = basicAnkiNote(noteId, entry.ankiMod);
       const fixture = await entry.buildFixture(noteId);
       page = ImportModalPO.render({
         decks: deck,
@@ -100,11 +77,7 @@ describe("ImportSelectedByDefault", () => {
         notes: [note],
       });
       // when
-      await page.chooseDeck(deckName);
-      await page.clickNextButton();
-      await page.expectTextDisplayed(mappedFieldsPattern);
-      await page.clickNextButton();
-      await page.expectTextDisplayed(cardsToImportPattern);
+      await page.goToCardsPage(deckName);
       await page.clickImportButton();
       const summary = await page.expectTextDisplayed(entry.outcome);
       const fileContents = entry.expectFileCreated

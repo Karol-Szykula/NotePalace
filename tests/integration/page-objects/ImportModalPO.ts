@@ -4,6 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { splitDeckHierarchy } from "@shared/utils/decks";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { NotesImportModal } from "src/gui/note-transfer-wizard/import/notes-import-modal";
+import {
+  cardsToImportPattern,
+  mappedFieldsPattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../helpers/anki-responder";
 import type { WizardModalFixture } from "./WizardModalPO";
 import { WizardModalPO } from "./WizardModalPO";
@@ -43,6 +47,14 @@ export class ImportModalPO extends WizardModalPO {
     return this.isRadioEnabled(shortName);
   }
 
+  async goToCardsPage(deckName: string): Promise<void> {
+    await this.chooseDeck(deckName);
+    await this.clickNextButton();
+    await this.expectTextDisplayed(mappedFieldsPattern);
+    await this.clickNextButton();
+    await this.expectTextDisplayed(cardsToImportPattern);
+  }
+
   async isNotePreselected(): Promise<boolean> {
     const checkbox = await findByRole(this.container, "checkbox", {
       name: "",
@@ -52,7 +64,7 @@ export class ImportModalPO extends WizardModalPO {
 
   async toggleAnkiWins(): Promise<void> {
     const checkbox = await findByRole(this.container, "checkbox", {
-      name: /Anki wins: overwrite/i,
+      name: /^Anki wins:/i,
     });
     await userEvent.setup().click(checkbox);
   }
