@@ -1,5 +1,6 @@
 import type { Modal, Vault } from "obsidian";
 import { findByRole } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { splitDeckHierarchy } from "@shared/utils/decks";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { NotesImportModal } from "src/gui/note-transfer-wizard/import/notes-import-modal";
@@ -43,8 +44,24 @@ export class ImportModalPO extends WizardModalPO {
   }
 
   async isNotePreselected(): Promise<boolean> {
-    const checkbox = await findByRole(this.container, "checkbox");
+    const checkbox = await findByRole(this.container, "checkbox", {
+      name: "",
+    });
     return (checkbox as HTMLInputElement).checked;
+  }
+
+  async toggleAnkiWins(): Promise<void> {
+    const checkbox = await findByRole(this.container, "checkbox", {
+      name: /Anki wins: overwrite/i,
+    });
+    await userEvent.setup().click(checkbox);
+  }
+
+  async clickBulkAnkiWins(): Promise<void> {
+    const button = await findByRole(this.container, "button", {
+      name: /Use Anki's version for all/,
+    });
+    await userEvent.setup().click(button);
   }
 
   async noteFileContent(noteId: number): Promise<string | undefined> {
