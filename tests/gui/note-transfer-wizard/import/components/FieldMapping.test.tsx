@@ -14,6 +14,10 @@ import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { Anki } from "src/services/anki/anki";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
 import { FieldMapping } from "src/gui/note-transfer-wizard/import/components/FieldMapping";
+import {
+  cardsToImportPattern,
+  mappedFieldsPattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../../../helpers/anki-responder";
 import { createSettings } from "../../../../helpers/settings";
 import { AnkiConnectMock } from "../../../../mocks/anki-connect";
@@ -69,7 +73,7 @@ test("given a cloze deck when the fields page loads then preselects the pack map
     />,
   );
   // when
-  await screen.findByText(/Map fields for deck/);
+  await screen.findByText(mappedFieldsPattern);
   const selects = screen.getAllByRole("combobox") as HTMLSelectElement[];
   // then
   expect(selects.some((select) => select.value === "Extra")).toBe(true);
@@ -96,9 +100,9 @@ test("given a custom model when advancing past fields then no pack is written", 
   // when
   await user.click(await screen.findByRole("radio", { name: /Languages/ }));
   await user.click(await screen.findByRole("button", { name: /Next: Fields/ }));
-  await screen.findByText(/Map fields for deck/);
+  await screen.findByText(mappedFieldsPattern);
   await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
-  await screen.findByText(/Cards to import: 1\/1/);
+  await screen.findByText(cardsToImportPattern);
   // then
   const vault = app.vault as unknown as ObsidianVault;
   const adapter = vault.adapter as unknown as {

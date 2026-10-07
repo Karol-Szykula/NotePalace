@@ -6,6 +6,11 @@
  */
 import "obsidian-test-mocks/jest-setup";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
+import {
+  cardsToImportPattern,
+  createdPattern,
+  mappedFieldsPattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { AnkiConnectMock } from "../mocks/anki-connect";
 import { ImportModalPO } from "./page-objects/ImportModalPO";
 
@@ -25,9 +30,6 @@ afterEach(() => {
 const deckName = "Languages";
 const importedNoteId = 1111111111111;
 const secondImportedNoteId = 2222222222222;
-const createdSummaryPattern = /Created: 1/;
-const mappedFieldsPattern = /Map fields for deck/;
-const cardsToImportPattern = /Cards to import: 1\/1/;
 
 function importedNoteForm(noteId: number): string {
   return [
@@ -164,7 +166,7 @@ describe("ImportModalFlow", () => {
     await page.clickNextButton();
     await page.expectTextDisplayed(cardsToImportPattern);
     await page.clickImportButton();
-    const summary = await page.expectTextDisplayed(createdSummaryPattern);
+    const summary = await page.expectTextDisplayed(createdPattern);
     const importVisible = await page.isImportButtonVisible();
     const nextVisible = await page.isNextButtonVisible();
     const backVisible = await page.isBackButtonVisible();

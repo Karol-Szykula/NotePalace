@@ -10,6 +10,7 @@ import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import { ExportExecution } from "src/gui/note-transfer-wizard/export/components/ExportExecution";
+import { createdPattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { ExportReport } from "src/services/commands/export-deck";
 import { createSettings } from "../../../../helpers/settings";
 import { ankiResponder } from "../../../../helpers/anki-responder";
@@ -55,7 +56,7 @@ describe("ExportExecution", () => {
     });
 
     // when
-    const report = await screen.findByText(/Created: 1/);
+    const report = await screen.findByText(createdPattern);
 
     // then
     expect(report).toBeInTheDocument();

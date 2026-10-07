@@ -5,6 +5,7 @@
  * choice, step navigation and the executed export report.
  */
 import "obsidian-test-mocks/jest-setup";
+import { createdPattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { AnkiConnectMock } from "../mocks/anki-connect";
 import { ExportModalPO } from "./page-objects/ExportModalPO";
 
@@ -22,7 +23,6 @@ afterEach(() => {
 });
 
 const folderName = "Languages";
-const createdExportPattern = /Created: 1/;
 
 function noteForm(front: string): string {
   return [
@@ -71,7 +71,7 @@ describe("ExportModalFlow", () => {
     await page.clickNextButton();
     await page.expectTextDisplayed("What is 2+2?");
     await page.clickExportButton();
-    const report = await page.expectTextDisplayed(createdExportPattern);
+    const report = await page.expectTextDisplayed(createdPattern);
     // then
     expect(report).toBeInTheDocument();
   });
