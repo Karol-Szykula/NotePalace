@@ -103,8 +103,7 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     sync: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale:
-        "No file: the purge path handles it outside this table, the tombstone rule arrives with OBSID-19.",
+      rationale: "No file: the purge path handles it outside this table.",
     },
   },
   "synced.clean": {
@@ -267,8 +266,7 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     sync: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale:
-        "Gone from Anki: the purge path handles it, DELETE_FILE arrives with OBSID-20.",
+      rationale: "Gone from Anki: the purge path handles it.",
     },
   },
   orphaned: {
