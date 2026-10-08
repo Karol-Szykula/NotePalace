@@ -204,7 +204,7 @@ describe("the decision table is total", () => {
       const row = syncDecisionFor("sync", status);
       expect(row.act).toBe(OUT_OF_SCOPE);
       expect(row.responsibleComponent).toBe("bidirectional-sync");
-      expect(row.rationale).toMatch(/OBSID-(19|20)/);
+      expect(row.rationale).toMatch(/purge path/);
     }
   });
 });
@@ -303,20 +303,20 @@ describe("syncDecisionTableMarkdown", () => {
 });
 
 describe("syncDecisionTableMermaid", () => {
-  test("given the state machine doc when generated then it contains the export decision table img", () => {
+  test("given the state machine doc when generated then it contains the export decision table mermaid", () => {
     // given
     const doc = readFileSync("docs/state-machine.md", "utf8");
 
     // when
     syncDecisionTableMermaid("export");
 
-    // then - check that the markdown contains an img tag for the export diagram
+    // then - check that the markdown contains a mermaid code block for the export diagram
     expect(doc).toContain(
-      "![2. Export Wizard (force: Obsidian wins)](./diagrams/decision-table-export.svg)",
+      "```mermaid\nflowchart TB\n  subgraph COMMAND[Command]",
     );
   });
 
-  test("given the state machine doc when generated then it contains the import decision table img", () => {
+  test("given the state machine doc when generated then it contains the import decision table mermaid", () => {
     // given
     const doc = readFileSync("docs/state-machine.md", "utf8");
 
@@ -325,11 +325,11 @@ describe("syncDecisionTableMermaid", () => {
 
     // then
     expect(doc).toContain(
-      "![3. Import Wizard (force: Anki wins)](./diagrams/decision-table-import.svg)",
+      "```mermaid\nflowchart TB\n  subgraph COMMAND[Command]",
     );
   });
 
-  test("given the state machine doc when generated then it contains the sync decision table img", () => {
+  test("given the state machine doc when generated then it contains the sync decision table mermaid", () => {
     // given
     const doc = readFileSync("docs/state-machine.md", "utf8");
 
@@ -338,7 +338,7 @@ describe("syncDecisionTableMermaid", () => {
 
     // then
     expect(doc).toContain(
-      "![4. Sync Command (no force)](./diagrams/decision-table-sync.svg)",
+      "```mermaid\nflowchart TB\n  subgraph COMMAND[Command]",
     );
   });
 });

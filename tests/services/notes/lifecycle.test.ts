@@ -257,10 +257,8 @@ describe("noteLifecycleMermaid", () => {
     // when
     noteLifecycleMermaid();
 
-    // then - check that the markdown contains an img tag for the state machine diagram
-    expect(doc).toContain(
-      "![1. State Machine Topology](./diagrams/state-machine-topology.svg)",
-    );
+    // then - check that the markdown contains a mermaid stateDiagram for the state machine
+    expect(doc).toContain("```mermaid\nstateDiagram-v2\n  direction TB");
   });
 });
 
