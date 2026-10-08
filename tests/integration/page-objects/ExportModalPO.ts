@@ -19,16 +19,13 @@ export class ExportModalPO extends WizardModalPO {
   }
 
   static render(fixture: ExportModalFixture = {}): ExportModalPO {
-    if (fixture.decks !== undefined || fixture.notes !== undefined) {
-      const decks =
-        fixture.decks === undefined ? undefined : { ...fixture.decks };
-      const notes =
-        fixture.notes === undefined ? undefined : [...fixture.notes];
-      ankiResponder().respondWith({
-        ...(decks && { decks }),
-        ...(notes && { notes }),
-      });
-    }
+    const decks =
+      fixture.decks === undefined ? undefined : { ...fixture.decks };
+    const notes = fixture.notes === undefined ? undefined : [...fixture.notes];
+    ankiResponder().respondWith({
+      ...(decks && { decks }),
+      ...(notes && { notes }),
+    });
     const mounted = WizardModalPO.mountModal(NotesExportModal, fixture);
     return new ExportModalPO(mounted.modal, mounted.container, mounted.vault);
   }
@@ -45,11 +42,8 @@ export class ExportModalPO extends WizardModalPO {
   }
 
   async goToSavePage(): Promise<void> {
-    const exportButton = await findByRole(this.container, "button", {
-      name: "Export",
-    });
-    await userEvent.setup().click(exportButton);
-    await this.expectTextDisplayed(/Notes to export:/);
+    await this.clickExportButton();
+    await this.elements.okButton;
   }
 
   async isNotePreselected(): Promise<boolean> {
@@ -72,5 +66,19 @@ export class ExportModalPO extends WizardModalPO {
       }
     }
     return undefined;
+  }
+
+  async toggleObsidianWins(): Promise<void> {
+    const checkbox = await findByRole(this.container, "checkbox", {
+      name: /^Obsidian wins:/i,
+    });
+    await userEvent.setup().click(checkbox);
+  }
+
+  async clickBulkObsidianWins(): Promise<void> {
+    const button = await findByRole(this.container, "button", {
+      name: /Use Obsidian's version for all/,
+    });
+    await userEvent.setup().click(button);
   }
 }
