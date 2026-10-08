@@ -17,12 +17,20 @@ import { computeContentHash } from "src/services/notes/content-hash";
 import { syncedCleanRecord } from "src/services/notes/lifecycle";
 import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 import { AnkiConnectMock } from "../../../../mocks/anki-connect";
+import { messagePattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
+import { t } from "src/i18n";
 
 AnkiConnectMock.install();
 
 beforeEach(() => {
   AnkiConnectMock.reset();
 });
+
+const obsidianWinsDiverged = t("force.outcome", {
+  force: t("force.obsidianWins"),
+  outcome: t("decision.synced.diverged.export.forcedOutcome"),
+});
+const bulkObsidianTwo = t("preview.bulkObsidian").replace("X", "2");
 
 function previewNote(noteId: number, mod: number, front: string) {
   return {
@@ -176,7 +184,9 @@ describe("NotesPreview", () => {
 
     // then
     expect(
-      within(row).getByText(/Both sides match: nothing to write/),
+      within(row).getByText(
+        messagePattern("decision.synced.clean.export.rationale"),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -190,7 +200,9 @@ describe("NotesPreview", () => {
 
     // then
     expect(
-      within(row).getByText(/Newer in Obsidian: pushes to Anki/),
+      within(row).getByText(
+        messagePattern("decision.synced.vaultNewer.export.rationale"),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -203,7 +215,7 @@ describe("NotesPreview", () => {
     // when
     await userEvent.setup().click(
       within(previewRow("Both changed card")).getByRole("checkbox", {
-        name: /Obsidian wins: overwrites Anki/,
+        name: obsidianWinsDiverged,
       }),
     );
 
@@ -219,7 +231,7 @@ describe("NotesPreview", () => {
     const { onForcedNoteIdsChange, onNotesSelectedToExportChange } =
       await renderPreview();
     const useObsidianForAll = await screen.findByRole("button", {
-      name: /use obsidian's version for all \(2\)/i,
+      name: bulkObsidianTwo,
     });
 
     // when
