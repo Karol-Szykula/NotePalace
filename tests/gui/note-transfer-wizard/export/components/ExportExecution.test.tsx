@@ -15,6 +15,11 @@ import type { ExportReport } from "src/services/commands/export-deck";
 import { createSettings } from "../../../../helpers/settings";
 import { ankiResponder } from "../../../../helpers/anki-responder";
 import { AnkiConnectMock } from "../../../../mocks/anki-connect";
+import {
+  basicAnkiNote,
+  importStatusFixtures,
+} from "../../../../helpers/status-fixtures";
+import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 
 AnkiConnectMock.install();
 
@@ -23,6 +28,7 @@ beforeEach(() => {
 });
 
 const responder = ankiResponder();
+const noteId = 1234567890;
 
 function noteBlock(front: string): string {
   return ["```note-form", `front: ${front}`, "back: B", 'tags: ""', "```"].join(
@@ -30,7 +36,20 @@ function noteBlock(front: string): string {
   );
 }
 
-function renderExecution(files: Record<string, string> = {}) {
+function withLanguagesPrefix(
+  files: Record<string, string>,
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [path, content] of Object.entries(files)) {
+    result[`Languages/${path}`] = content;
+  }
+  return result;
+}
+
+function renderExecution(
+  files: Record<string, string> = {},
+  noteLifecycle: Record<number, NoteLifecycleRecord> = {},
+) {
   const app = App.createConfigured__({ files });
   const onFinish = jest.fn();
   render(
@@ -40,7 +59,7 @@ function renderExecution(files: Record<string, string> = {}) {
       ignoredDirectories=""
       notesSelectedToExport={{}}
       onFinish={onFinish}
-      settings={createSettings()}
+      settings={createSettings({ noteLifecycle })}
       vault={app.vault as unknown as ObsidianVault}
     />,
   );
@@ -85,4 +104,31 @@ describe("ExportExecution", () => {
     expect(message).toBeInTheDocument();
     expect(onFinish).not.toHaveBeenCalled();
   });
+
+  test.each([
+    ["synced.ankiNewer", importStatusFixtures["synced.ankiNewer"]],
+    ["synced.diverged", importStatusFixtures["synced.diverged"]],
+  ])(
+    "given a %s note left unforced when execution runs then report names left to Sync",
+    async (_status, { ankiMod, buildFixture }) => {
+      // given
+      responder.respondWith({
+        notes: [basicAnkiNote(noteId, ankiMod)],
+      });
+      const fixture = await buildFixture(noteId);
+      const { onFinish } = renderExecution(
+        withLanguagesPrefix(fixture.files),
+        fixture.noteLifecycle,
+      );
+
+      // when
+      const report = await screen.findByText(/left to Sync: 1/);
+
+      // then
+      expect(report).toBeInTheDocument();
+      expect(onFinish).toHaveBeenCalledTimes(1);
+      const finished: ExportReport = onFinish.mock.calls[0][0];
+      expect(finished.skippedForSync).toBe(1);
+    },
+  );
 });

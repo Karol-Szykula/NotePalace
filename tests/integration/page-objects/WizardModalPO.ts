@@ -42,7 +42,7 @@ interface MountedModal {
 }
 
 export abstract class WizardModalPO {
-  private readonly elements: WizardModalElements;
+  protected readonly elements: WizardModalElements;
   private readonly user: ReturnType<typeof userEvent.setup>;
 
   protected constructor(
@@ -157,6 +157,11 @@ export abstract class WizardModalPO {
   async isImportButtonEnabled(): Promise<boolean> {
     const importButton = await this.elements.importButton;
     return !(importButton as HTMLButtonElement).disabled;
+  }
+
+  async isExportButtonEnabled(): Promise<boolean> {
+    const exportButton = await this.elements.exportButton;
+    return !(exportButton as HTMLButtonElement).disabled;
   }
 
   async isImportButtonVisible(): Promise<boolean> {
