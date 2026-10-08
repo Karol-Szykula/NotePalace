@@ -1,6 +1,7 @@
 import type { Modal, Vault } from "obsidian";
 import { findByRole } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { messagePattern } from "@shared/utils/summary-patterns";
 import { splitDeckHierarchy } from "@shared/utils/decks";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { NotesExportModal } from "src/gui/note-transfer-wizard/export/notes-export-modal";
@@ -38,7 +39,7 @@ export class ExportModalPO extends WizardModalPO {
   async goToNotesPage(folderName: string): Promise<void> {
     await this.chooseFolder(folderName);
     await this.clickNextButton();
-    await this.expectTextDisplayed(/Notes to export:/);
+    await this.expectTextDisplayed(messagePattern("preview.notesToExport"));
   }
 
   async goToSavePage(): Promise<void> {

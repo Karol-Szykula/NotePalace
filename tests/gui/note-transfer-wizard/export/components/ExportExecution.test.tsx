@@ -10,7 +10,10 @@ import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import { ExportExecution } from "src/gui/note-transfer-wizard/export/components/ExportExecution";
-import { createdPattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
+import {
+  createdPattern,
+  messagePattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { ExportReport } from "src/services/commands/export-deck";
 import { createSettings } from "../../../../helpers/settings";
 import { ankiResponder } from "../../../../helpers/anki-responder";
@@ -99,7 +102,9 @@ describe("ExportExecution", () => {
     jest.spyOn(app.vault, "modify").mockRejectedValueOnce(failure);
 
     // when
-    const message = await screen.findByText(/Export failed: ENOENT/);
+    const message = await screen.findByText(
+      messagePattern("notice.exportFailed", "ENOENT"),
+    );
 
     // then
     expect(message).toBeInTheDocument();
@@ -123,7 +128,9 @@ describe("ExportExecution", () => {
       );
 
       // when
-      const report = await screen.findByText(/left to Sync: 1/);
+      const report = await screen.findByText(
+        messagePattern("report.leftToSync", "1"),
+      );
 
       // then
       expect(report).toBeInTheDocument();
