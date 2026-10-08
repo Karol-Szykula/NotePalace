@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t, type MessageKey } from "src/i18n";
 import type { Anki } from "src/services/anki/anki";
 import { startAsyncLoad } from "../../shared/hooks/useAsyncLoad";
 import type { DeckModel } from "src/services/notes/fields";
@@ -22,6 +23,14 @@ export interface FieldMappingProps {
   readonly onMappingsChange: (mappings: Record<string, FieldMap>) => void;
   readonly savedMappings: Record<string, Record<string, string>>;
 }
+
+const fieldTargetLabels: Record<FieldTarget, MessageKey> = {
+  Back: "fieldMapping.targets.back",
+  Extra: "fieldMapping.targets.extra",
+  Front: "fieldMapping.targets.front",
+  Skip: "fieldMapping.targets.skip",
+  Text: "fieldMapping.targets.text",
+};
 
 export function FieldMapping({
   anki,
@@ -57,7 +66,7 @@ export function FieldMapping({
         onMappingsChange(initial);
       } catch {
         if (isLive()) {
-          setLoadError("Error: Anki must be open with AnkiConnect installed.");
+          setLoadError(t("errors.ankiNotConnected"));
         }
       }
     });
@@ -74,20 +83,20 @@ export function FieldMapping({
   if (models === null) {
     return (
       <div className={rootClassName}>
-        <p>Loading note types…</p>
+        <p>{t("fieldMapping.loading")}</p>
       </div>
     );
   }
   if (!models.length) {
     return (
       <div className={rootClassName}>
-        <p>No notes found in this deck.</p>
+        <p>{t("fieldMapping.noNotes")}</p>
       </div>
     );
   }
   return (
     <div className={rootClassName}>
-      <p>Map fields for deck &quot;{deckName}&quot;:</p>
+      <p>{t("fieldMapping.title", { deckName })}</p>
       {models.map((model) => (
         <div
           className={transferFieldMappingClasses.modelSection}
@@ -98,12 +107,16 @@ export function FieldMapping({
             {isKnownModel(model.modelName) && (
               <span className={transferFieldMappingClasses.modelRecognized}>
                 {" "}
-                Recognized
+                {t("fieldMapping.recognized")}
               </span>
             )}
           </h4>
           <List
-            columns={["Field", "Sample", "Target"]}
+            columns={[
+              t("fieldMapping.columns.field"),
+              t("fieldMapping.columns.sample"),
+              t("fieldMapping.columns.target"),
+            ]}
             columnWidths="auto 1fr auto"
           >
             {model.fields.map((field) => (
@@ -137,7 +150,7 @@ export function FieldMapping({
                   >
                     {fieldTargets.map((target) => (
                       <option key={target} value={target}>
-                        {target}
+                        {t(fieldTargetLabels[target])}
                       </option>
                     ))}
                   </select>,

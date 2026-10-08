@@ -26,3 +26,4 @@ export function plural(
 }
 
 export { resolveMessage, resolvePlural } from "./messages";
+export type { MessageKey } from "./messages";

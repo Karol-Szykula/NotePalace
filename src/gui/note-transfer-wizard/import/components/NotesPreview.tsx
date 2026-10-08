@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { useForceToggle } from "@shared/hooks/useForceToggle";
 import { ankiWinsStrategy } from "@shared/types/AnkiWinsStrategy";
@@ -104,8 +105,8 @@ function previewBadgeOutcome(item: ClassifiedNote): string {
   const row = importRow(item);
   if (item.previewStatus === "noFile") {
     return item.isInVaultIndex
-      ? "No file: no readable note-form block for this id, Sync decides."
-      : "No file: this id is nowhere in the vault, Sync decides.";
+      ? t("preview.noReadableBlock")
+      : t("preview.idNowhereInVault");
   }
   if (item.previewStatus === "upToDate") {
     return `${row.rationale} (${item.vaultPath ?? "?"})`;
@@ -125,27 +126,32 @@ function classifiedDefaultSelected(item: ClassifiedNote): boolean {
   return isImportSelectedByDefault(item.status);
 }
 
-const previewReasonText: Record<NotePreviewStatus, string> = {
-  diverged: "edited in both places",
-  new: "not imported yet",
-  newerInAnki: "with a newer version in Anki",
-  newerInVault: "with newer Obsidian edits",
-  noFile: "with no file in Obsidian",
-  upToDate: "already up to date",
-};
+function previewReasonText(status: NotePreviewStatus): string {
+  switch (status) {
+    case "diverged":
+      return t("preview.editedInBoth");
+    case "new":
+      return t("preview.notImportedYet");
+    case "newerInAnki":
+      return t("preview.newerInAnkiShort");
+    case "newerInVault":
+      return t("preview.newerInVaultShort");
+    case "noFile":
+      return t("preview.noFileShort");
+    case "upToDate":
+      return t("preview.alreadyUpToDateShort");
+  }
+}
 
 function selectionNotice(notes: ClassifiedNote[]): string {
   const reasons: string[] = [];
   for (const status of previewStatusOrder) {
     const count = notes.filter((item) => item.previewStatus === status).length;
     if (count > 0) {
-      reasons.push(`${countNotes(count)} ${previewReasonText[status]}`);
+      reasons.push(`${countNotes(count)} ${previewReasonText(status)}`);
     }
   }
-  return selectionNoticeText(
-    reasons,
-    "The button above takes Anki's version of every remaining note.",
-  );
+  return selectionNoticeText(reasons, t("preview.actionAllAnki"));
 }
 
 function resurrectionWarning(count: number): string {
@@ -157,12 +163,12 @@ function buildCardColumns(
 ): ColumnDef<ClassifiedNote>[] {
   return [
     {
-      header: "Select",
+      header: t("preview.selectColumn"),
       render: () => <></>,
       width: "auto",
     },
     {
-      header: "Card",
+      header: t("preview.cardColumn"),
       render: (item: ClassifiedNote) => (
         <label>
           <span>{noteSummary(item.note)}</span>
@@ -214,7 +220,9 @@ export function NotesPreview({
       try {
         const notes = await fetchDeckNotes(anki, deckName, (fetched, total) => {
           if (isLive()) {
-            setProgress(`Loading notes… ${fetched}/${total}`);
+            setProgress(
+              t("preview.loadingProgress", { current: fetched, total }),
+            );
           }
         });
         if (isLive()) {
@@ -222,7 +230,7 @@ export function NotesPreview({
         }
       } catch {
         if (isLive()) {
-          setLoadError("Error: could not load notes.");
+          setLoadError(t("errors.couldNotLoadNotes"));
         }
       }
     });
@@ -368,7 +376,7 @@ export function NotesPreview({
   if (!classified) {
     return (
       <div className={rootClassName}>
-        <p>{progress || "Loading notes…"}</p>
+        <p>{progress || t("preview.loading")}</p>
       </div>
     );
   }
@@ -377,7 +385,7 @@ export function NotesPreview({
     <div className={rootClassName}>
       <NotesTable
         bulkActionHandler={useAnkiForEveryNote}
-        bulkActionLabel="Use Anki's version for all (X)"
+        bulkActionLabel={t("preview.bulkAnki")}
         columns={columns}
         currentPage={currentPage}
         forcedNoteIds={forceState.forcedNoteIds}

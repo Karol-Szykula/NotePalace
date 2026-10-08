@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
 import { useForceToggle } from "@shared/hooks/useForceToggle";
@@ -115,27 +116,32 @@ function previewBadgeText(item: ExportableBlock, isForced: boolean): string {
   return resolveBadgeText(exportRow(item), isForced, previewBadgeOutcome(item));
 }
 
-const previewReasonText: Record<NotePreviewStatus, string> = {
-  diverged: "edited in both places",
-  new: "not exported yet",
-  newerInAnki: "with a newer version in Anki",
-  newerInVault: "with newer Obsidian edits",
-  noFile: "with no file in Obsidian",
-  upToDate: "already up to date",
-};
+function previewReasonText(status: NotePreviewStatus): string {
+  switch (status) {
+    case "diverged":
+      return t("preview.editedInBoth");
+    case "new":
+      return t("preview.notExportedYet");
+    case "newerInAnki":
+      return t("preview.newerInAnkiShort");
+    case "newerInVault":
+      return t("preview.newerInVaultShort");
+    case "noFile":
+      return t("preview.noFileShort");
+    case "upToDate":
+      return t("preview.alreadyUpToDateShort");
+  }
+}
 
 function selectionNotice(items: ExportableBlock[]): string {
   const reasons: string[] = [];
   for (const status of previewStatusOrder) {
     const count = items.filter((item) => item.previewStatus === status).length;
     if (count > 0) {
-      reasons.push(`${countNotes(count)} ${previewReasonText[status]}`);
+      reasons.push(`${countNotes(count)} ${previewReasonText(status)}`);
     }
   }
-  return selectionNoticeText(
-    reasons,
-    "The button above takes Obsidian's version of every remaining note.",
-  );
+  return selectionNoticeText(reasons, t("preview.actionAll"));
 }
 
 function buildCardColumns(
@@ -143,12 +149,12 @@ function buildCardColumns(
 ): ColumnDef<ExportableBlock>[] {
   return [
     {
-      header: "Select",
+      header: t("preview.selectColumn"),
       render: () => <></>,
       width: "auto",
     },
     {
-      header: "Note",
+      header: t("preview.noteColumn"),
       render: (item: ExportableBlock) => (
         <label>
           <span>{blockSummary(item.block)}</span>
@@ -210,7 +216,9 @@ export function NotesPreview({
           (location) => location.deckName === deckName,
         );
         if (isLive()) {
-          setProgress(`Loading notes… 0/${inDeck.length}`);
+          setProgress(
+            t("preview.loadingProgress", { current: 0, total: inDeck.length }),
+          );
         }
         const ids = [
           ...new Set(
@@ -237,7 +245,12 @@ export function NotesPreview({
             status,
           });
           if (isLive()) {
-            setProgress(`Loading notes… ${index + 1}/${inDeck.length}`);
+            setProgress(
+              t("preview.loadingProgress", {
+                current: index + 1,
+                total: inDeck.length,
+              }),
+            );
           }
         }
         if (isLive()) {
@@ -253,7 +266,7 @@ export function NotesPreview({
         }
       } catch {
         if (isLive()) {
-          setLoadError("Error: could not load notes.");
+          setLoadError(t("errors.couldNotLoadNotes"));
         }
       }
     });
@@ -340,7 +353,7 @@ export function NotesPreview({
   if (!classified) {
     return (
       <div className={rootClassName}>
-        <p>{progress || "Loading notes…"}</p>
+        <p>{progress || t("preview.loading")}</p>
       </div>
     );
   }
@@ -349,10 +362,10 @@ export function NotesPreview({
     <div className={rootClassName}>
       <NotesTable
         bulkActionHandler={useObsidianForEveryNote}
-        bulkActionLabel="Use Obsidian's version for all (X)"
+        bulkActionLabel={t("preview.bulkObsidian")}
         columns={columns}
         countText={(selectedCount, total) =>
-          `Notes to export: ${selectedCount}/${total}.`
+          t("preview.notesToExport", { selected: selectedCount, total })
         }
         currentPage={currentPage}
         forcedNoteIds={forceState.forcedNoteIds}

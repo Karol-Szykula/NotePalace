@@ -1,5 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import type { Vault } from "obsidian";
 import { scanVaultBlocks } from "src/services/commands/export-deck";
@@ -81,7 +82,7 @@ export function DeckSelection({
         }
       } catch {
         if (isLive()) {
-          setLoadError("Error: could not read vault notes.");
+          setLoadError(t("errors.couldNotReadVault"));
         }
       }
     });
@@ -100,21 +101,21 @@ export function DeckSelection({
   if (folders === null) {
     return (
       <div className={rootClassName}>
-        <p>Reading vault…</p>
+        <p>{t("deck.readingVault")}</p>
       </div>
     );
   }
   if (!folders.length) {
     return (
       <div className={rootClassName}>
-        <p>No exportable notes found in the vault.</p>
+        <p>{t("deck.noExportableNotes")}</p>
       </div>
     );
   }
   return (
     <div className={rootClassName}>
       <DeckList
-        alreadySyncedTooltip="Already in Anki"
+        alreadySyncedTooltip={t("deck.alreadyInAnki")}
         getRowClassName={(_item, isDisabled) =>
           mergeClasses(
             exportScopeClasses.scopeRow,
@@ -126,7 +127,7 @@ export function DeckSelection({
         items={folders.map(toDeckItem)}
         labelClassName={exportScopeClasses.scopeLabelText}
         onSelect={onSelectDeckName}
-        prompt="Select a folder to export:"
+        prompt={t("deck.selectExportPrompt")}
         selectedName={selectedDeckName}
       />
     </div>
