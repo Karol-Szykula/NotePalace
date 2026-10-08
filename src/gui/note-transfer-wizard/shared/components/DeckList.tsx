@@ -1,4 +1,5 @@
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { listClasses } from "../classes/common";
 import type { JSX } from "react";
 import { List } from "./List";
@@ -37,21 +38,21 @@ export function DeckList({
   selectedName,
   onSelect,
   className,
-  prompt = "Select a deck:",
-  alreadySyncedTooltip = "Already in target",
-  emptyTooltip = "Empty deck",
+  prompt = t("deck.selectPrompt"),
+  alreadySyncedTooltip = t("deck.alreadyInTarget"),
+  emptyTooltip = t("deck.emptyDeck"),
   inputName = "deck-selection",
   inputClassName,
   labelClassName,
   getRowClassName,
 }: DeckListProps): JSX.Element {
   const rootClassName = mergeClasses(listClasses.list, className);
-  const listColumns = ["Deck", "Imported"];
+  const listColumns = [t("deck.columns.deck"), t("deck.columns.imported")];
 
   if (!items.length) {
     return (
       <div className={rootClassName}>
-        <p>No decks found.</p>
+        <p>{t("deck.noDecks")}</p>
       </div>
     );
   }

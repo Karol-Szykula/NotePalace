@@ -7,6 +7,8 @@ const en = {
     back: "\u2190 Back",
     ok: "OK",
     finish: "Finish",
+    prevPage: "\u2190 Prev",
+    nextPage: "Next \u2192",
   },
   report: {
     created: "Created: {count}",
@@ -55,8 +57,8 @@ const en = {
       one: "This re-creates 1 note you deleted in {location}.",
       other: "This re-creates {count} notes you deleted in {location}.",
     },
-    cardsToImport: "Cards to import: {selected}/{total}",
-    notesToExport: "Notes to export: {selected}/{total}",
+    cardsToImport: "Cards to import: {selected}/{total}.",
+    notesToExport: "Notes to export: {selected}/{total}.",
     selectionNotice: "Nothing is selected yet: {reasons}. {action}",
     actionAll:
       "The button above takes Obsidian's version of every remaining note.",
