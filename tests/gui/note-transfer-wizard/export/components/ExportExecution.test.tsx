@@ -19,6 +19,7 @@ import {
   basicAnkiNote,
   importStatusFixtures,
 } from "../../../../helpers/status-fixtures";
+import { deletedPattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 
 AnkiConnectMock.install();
@@ -131,4 +132,24 @@ describe("ExportExecution", () => {
       expect(finished.skippedForSync).toBe(1);
     },
   );
+
+  test("given a vaultOnly.ankiDeleted note left unforced when execution runs then report names skipped as deleted", async () => {
+    // given
+    responder.respondWith({ notes: [] });
+    const fixture =
+      await importStatusFixtures["vaultOnly.ankiDeleted"].buildFixture(noteId);
+    const { onFinish } = renderExecution(
+      withLanguagesPrefix(fixture.files),
+      fixture.noteLifecycle,
+    );
+
+    // when
+    const report = await screen.findByText(deletedPattern);
+
+    // then
+    expect(report).toBeInTheDocument();
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    const finished: ExportReport = onFinish.mock.calls[0][0];
+    expect(finished.skippedDeleted).toBe(1);
+  });
 });
