@@ -1,5 +1,6 @@
 import { useMemo, useState, type JSX } from "react";
 import type { Vault } from "obsidian";
+import { t } from "src/i18n";
 import { Anki } from "src/services/anki/anki";
 import type { ISettings } from "src/conf/settings";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
@@ -64,7 +65,7 @@ function buildExportWizardPages(
           vault={deps.vault}
         />
       ),
-      title: "Deck",
+      title: t("deck.title"),
     },
     {
       canAdvance: (context) => context.notesSelectedToExportCount > 0,
@@ -88,7 +89,7 @@ function buildExportWizardPages(
           vault={deps.vault}
         />
       ),
-      title: "Notes",
+      title: t("deck.notesTitle"),
     },
     {
       render: () => (
@@ -105,7 +106,7 @@ function buildExportWizardPages(
           vault={deps.vault}
         />
       ),
-      title: "Save",
+      title: t("deck.saveTitle"),
     },
   ];
 }
@@ -205,7 +206,7 @@ export function ExportTransferWizard({
         notesSelectedToExportCount,
         selectedDeckName,
       })}
-      getNextLabel={(page) => (page === 2 ? "Export" : undefined)}
+      getNextLabel={(page) => (page === 2 ? t("wizard.export") : undefined)}
       getPagination={(page) =>
         page === 2
           ? {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import type { Vault } from "obsidian";
 import type { Anki } from "src/services/anki/anki";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
@@ -32,6 +33,51 @@ export interface ImportExecutionProps {
 }
 
 type ExecutionPhase = "running" | "done" | "failed";
+
+function formatImportReport(report: ImportExecutionReport): string {
+  const parts = [
+    t("report.created", { count: report.created }),
+    t("report.overwritten", { count: report.overwritten }),
+    t("report.skipped", { count: report.skipped }),
+    t("report.mediaFiles", { count: report.mediaFiles }),
+  ];
+  if (report.skippedUnmapped > 0) {
+    parts.push(t("report.skippedUnmapped", { count: report.skippedUnmapped }));
+  }
+  if (report.mediaNotImported > 0) {
+    parts.push(
+      t("report.mediaNotImported", { count: report.mediaNotImported }),
+    );
+  }
+  if (report.changedSincePreview > 0) {
+    parts.push(
+      t("report.changedSincePreview", { count: report.changedSincePreview }),
+    );
+  }
+  if (report.vanishedFromDeck > 0) {
+    parts.push(
+      t("report.vanishedFromDeck", { count: report.vanishedFromDeck }),
+    );
+  }
+  if (report.folders > 1) {
+    parts.push(t("report.folders", { count: report.folders }));
+  }
+  if (report.forced > 0) {
+    parts.push(t("report.forced", { count: report.forced }));
+  }
+  if (report.skippedNewerInVault > 0) {
+    parts.push(
+      t("report.skippedNewerInVault", { count: report.skippedNewerInVault }),
+    );
+  }
+  if (report.skippedLeftToSync > 0) {
+    parts.push(
+      t("report.skippedLeftToSync", { count: report.skippedLeftToSync }),
+    );
+  }
+  const cancelled = report.cancelled ? t("report.cancelled") : "";
+  return `${parts.join(", ")}${cancelled}.`;
+}
 
 export function ImportExecution({
   anki,
@@ -75,7 +121,7 @@ export function ImportExecution({
         noteLifecycle,
         notes,
         onProgress: (processed, total) => {
-          setProgress(`Importing… ${processed}/${total}`);
+          setProgress(t("report.importingProgress", { processed, total }));
         },
         targetFolder: "",
         vaultNoteIndex,
@@ -103,35 +149,11 @@ export function ImportExecution({
 
   return (
     <div className={mergeClasses(commonWizardClasses.pageView, className)}>
-      {phase === "running" && <p>{progress || "Importing…"}</p>}
-      {phase === "failed" && <p>Import failed: {failure}</p>}
-      {phase === "done" && report && (
-        <p>
-          Created: {report.created}, overwritten: {report.overwritten}, skipped:{" "}
-          {report.skipped}, media files: {report.mediaFiles}
-          {report.skippedUnmapped > 0
-            ? `, skipped without pack: ${report.skippedUnmapped}`
-            : ""}
-          {report.mediaNotImported > 0
-            ? `, media not imported: ${report.mediaNotImported}`
-            : ""}
-          {report.changedSincePreview > 0
-            ? `, ${report.changedSincePreview} changed since the preview`
-            : ""}
-          {report.vanishedFromDeck > 0
-            ? `, ${report.vanishedFromDeck} no longer in the deck`
-            : ""}
-          {report.folders > 1 ? `, folders: ${report.folders}` : ""}
-          {report.forced > 0 ? `, forced: ${report.forced}` : ""}
-          {report.skippedNewerInVault > 0
-            ? `, skipped (newer in Obsidian): ${report.skippedNewerInVault}`
-            : ""}
-          {report.skippedLeftToSync > 0
-            ? `, left to Sync (no file): ${report.skippedLeftToSync}`
-            : ""}
-          {report.cancelled ? " (cancelled)" : ""}.
-        </p>
+      {phase === "running" && <p>{progress || t("report.importing")}</p>}
+      {phase === "failed" && (
+        <p>{t("notice.importFailed", { error: failure })}</p>
       )}
+      {phase === "done" && report && <p>{formatImportReport(report)}</p>}
     </div>
   );
 }
