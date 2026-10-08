@@ -1,8 +1,23 @@
-export const createdPattern = /Created: \d+/;
-export const overwrittenPattern = /overwritten: \d+/;
-export const updatedPattern = /updated: \d+/;
-export const forcedPattern = /forced: 1/;
-export const unchangedPattern = /unchanged: \d+/;
-export const deletedPattern = /skipped as deleted: \d+/;
-export const cardsToImportPattern = /Cards to import: \d+\/\d+/;
-export const mappedFieldsPattern = /Map fields for deck/;
+import { resolveMessage, type MessageKey } from "src/i18n/messages";
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function messagePattern(key: MessageKey, paramPattern = "\\d+"): RegExp {
+  const template = resolveMessage("en", key);
+  const escaped = escapeRegex(template);
+  return new RegExp(escaped.replace(/\\\{[a-zA-Z]+\\\}/g, paramPattern));
+}
+
+export const createdPattern = messagePattern("report.created");
+export const overwrittenPattern = messagePattern("report.overwritten");
+export const updatedPattern = messagePattern("report.updated");
+export const forcedPattern = messagePattern("report.forced");
+export const unchangedPattern = messagePattern("report.unchanged");
+export const deletedPattern = messagePattern("report.skippedDeleted");
+export const cardsToImportPattern = messagePattern("preview.cardsToImport");
+export const mappedFieldsPattern = messagePattern(
+  "fieldMapping.title",
+  '[^"]+',
+);
