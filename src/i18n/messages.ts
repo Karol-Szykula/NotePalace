@@ -285,6 +285,12 @@ const en = {
   status: {
     anki: "Anki",
   },
+  sync: {
+    deckLine:
+      "{deck}: {refreshed} refreshed, {pushed} pushed, {upToDate} up to date, {missing} missing, {skippedUnmapped} skipped without pack",
+    summary:
+      "Sync: {refreshed} refreshed, {pushed} pushed, {upToDate} up to date, {missing} missing, {deleted} deleted, {purgedRecords} records forgotten, {enrolled} enrolled, {skippedUnmapped} skipped without pack",
+  },
   commands: {
     sync: "Sync",
     importDeck: "Import deck from Anki",

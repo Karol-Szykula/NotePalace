@@ -6,6 +6,7 @@
 import "obsidian-test-mocks/jest-setup";
 import { App } from "obsidian-test-mocks/obsidian";
 import type { TFile as ObsidianTFile, Vault as ObsidianVault } from "obsidian";
+import { t } from "src/i18n";
 import {
   forgetRecordsWithoutFiles,
   formatPurgeLedgerReport,
@@ -181,7 +182,12 @@ describe("formatPurgeLedgerReport", () => {
 
     // then
     expect(text).toBe(
-      "Ledger: forgot 12 records (the import wizard will offer the ones Anki still has as new), kept 28, 3 in ignored folders, 1 unreadable.",
+      t("report.purgeLedger", {
+        forgotten: 12,
+        kept: 28,
+        outOfScope: t("report.purgeOutOfScope", { count: 3 }),
+        unreadable: t("report.purgeUnreadable", { count: 1 }),
+      }),
     );
   });
 });
