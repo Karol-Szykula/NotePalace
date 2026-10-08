@@ -85,6 +85,7 @@ export function ExportExecution({
         <p>
           Created: {report.created}, updated: {report.updated}, skipped:{" "}
           {report.skipped}, media files: {report.mediaFiles}
+          {report.unchanged > 0 ? `, unchanged: ${report.unchanged}` : ""}
           {report.skippedUnmapped > 0
             ? `, skipped without pack: ${report.skippedUnmapped}`
             : ""}
