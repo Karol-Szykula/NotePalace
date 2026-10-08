@@ -45,7 +45,7 @@ and issues, never in source prose.
 ## Code
 
 - No comments. Names, small functions and structure express intent; prose
-  does not. Two exceptions and only two:
+  does not. Three exceptions and only three:
   - A short JSDoc on an exported service contract when the signature alone
     cannot express a cross-module constraint
     (e.g. `src/services/vault/paths.ts`).
@@ -53,6 +53,7 @@ and issues, never in source prose.
     source (the AnkiConnect quirk and the pinned batch size in
     `src/services/anki/read.ts`); never a what-comment, and never a section
     banner (`// Update deck` stays a violation).
+  - A tool directive with its reason: `// eslint-disable-next-line <rule> -- <reason>`, `// @ts-expect-error -- <reason>`.
 - Domain vocabulary is fixed; code, tests and commits speak one language:
   - `note` - one Anki note (front, back, tags, model).
   - `block` - the note-form fence in a vault file carrying its `id`.
@@ -78,6 +79,7 @@ and issues, never in source prose.
   clean tree. `.editorconfig` mirrors it for editors that do not run Prettier.
 - No `any`. Use `unknown` with narrowing, literal unions and shared
   domain types (`AnkiCardPayload`, `AnkiNoteInfo`, `VaultNoteIndex`).
+- New code uses ES2016+ syntax. Legacy ES5 constructs never appear: `var`, `arguments`, `.apply()`/`.call()` spreads, string concatenation for interpolation, `Object.assign` copies. ESLint enforces this in #68.
 - Booleans read as questions: `isDisabled`, `isEmptyDeck`, `isPaginationVisible`.
   Functions answering them name the subject: `isDeckEmpty`.
   Boolean variables/props use `is` / `has` / `should` / `can` prefix (never `show` / `enable` / `display`).
