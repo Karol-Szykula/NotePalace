@@ -10,6 +10,7 @@ import type { AnkiNoteInfo } from "src/entities/anki-note";
 import {
   createdPattern,
   forcedPattern,
+  messagePattern,
   unchangedPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
@@ -51,13 +52,16 @@ const leftToSyncCases: LeftToSyncCase[] = [
   {
     ...cleanSpec,
     buildNote: cleanAnkiNote,
-    loadTexts: [/already up to date/],
+    loadTexts: [messagePattern("preview.alreadyUpToDateShort")],
     status: "synced.clean",
   },
   {
     ...ankiDeletedSpec,
     buildNote: () => undefined,
-    loadTexts: [/Gone from Anki/, /This re-creates 1 note you deleted in Anki/],
+    loadTexts: [
+      messagePattern("decision.vaultOnly.ankiDeleted.export.rationale"),
+      messagePattern("preview.recreatedWarning.one", "Anki"),
+    ],
     status: "vaultOnly.ankiDeleted",
   },
 ];

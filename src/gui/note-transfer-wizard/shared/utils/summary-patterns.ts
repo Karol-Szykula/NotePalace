@@ -4,7 +4,7 @@ function escapeRegex(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function messagePattern(key: MessageKey, paramPattern = "\\d+"): RegExp {
+export function messagePattern(key: MessageKey, paramPattern = "\\d+"): RegExp {
   const template = resolveMessage("en", key);
   const escaped = escapeRegex(template);
   return new RegExp(escaped.replace(/\\\{[a-zA-Z]+\\\}/g, paramPattern));

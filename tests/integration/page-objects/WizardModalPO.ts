@@ -10,6 +10,8 @@ import userEvent from "@testing-library/user-event";
 import type { App, Modal, Vault } from "obsidian";
 import { App as ObsidianApp } from "obsidian-test-mocks/obsidian";
 import { pageIndicatorClasses } from "@shared/classes/common";
+import { messagePattern } from "@shared/utils/summary-patterns";
+import { t } from "src/i18n";
 import type { ISettings } from "src/conf/settings";
 import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 import { createSettings } from "../../helpers/settings";
@@ -52,22 +54,24 @@ export abstract class WizardModalPO {
   ) {
     this.elements = {
       get backButton() {
-        return findByRole(container, "button", { name: "← Back" });
+        return findByRole(container, "button", { name: t("wizard.back") });
       },
       get cancelButton() {
-        return findByRole(container, "button", { name: "Cancel" });
+        return findByRole(container, "button", { name: t("wizard.cancel") });
       },
       get exportButton() {
-        return findByRole(container, "button", { name: "Export" });
+        return findByRole(container, "button", { name: t("wizard.export") });
       },
       get importButton() {
-        return findByRole(container, "button", { name: "Import" });
+        return findByRole(container, "button", { name: t("wizard.import") });
       },
       get nextButton() {
-        return findByRole(container, "button", { name: /^Next:/ });
+        return findByRole(container, "button", {
+          name: messagePattern("wizard.next", ".+"),
+        });
       },
       get okButton() {
-        return findByRole(container, "button", { name: "OK" });
+        return findByRole(container, "button", { name: t("wizard.ok") });
       },
     };
     this.user = userEvent.setup();
@@ -178,7 +182,7 @@ export abstract class WizardModalPO {
   }
 
   async isNextButtonVisible(): Promise<boolean> {
-    return this.isButtonVisible(/^Next:/);
+    return this.isButtonVisible(messagePattern("wizard.next", ".+"));
   }
 
   async pageIndicatorTitles(): Promise<string[]> {
