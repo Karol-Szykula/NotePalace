@@ -109,13 +109,17 @@ function previewBadgeOutcome(item: ClassifiedNote): string {
       : t("preview.idNowhereInVault");
   }
   if (item.previewStatus === "upToDate") {
-    return `${row.rationale} (${item.vaultPath ?? "?"})`;
+    return `${t(row.rationaleKey)} (${item.vaultPath ?? "?"})`;
   }
-  return row.rationale;
+  return t(row.rationaleKey);
 }
 
 function previewBadgeText(item: ClassifiedNote, isForced: boolean): string {
-  return resolveBadgeText(importRow(item), isForced, previewBadgeOutcome(item));
+  return resolveBadgeText(
+    isForced,
+    ankiWinsStrategy.getForcedOutcome(importRow(item)),
+    previewBadgeOutcome(item),
+  );
 }
 
 function classifiedNoteId(item: ClassifiedNote): number {

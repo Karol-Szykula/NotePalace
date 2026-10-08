@@ -1,7 +1,4 @@
-import type {
-  OutcomeKind,
-  SyncDecisionRow,
-} from "src/services/notes/decision-table";
+import type { OutcomeKind } from "src/services/notes/decision-table";
 import type { NotePreviewStatus } from "src/services/notes/lifecycle";
 import { plural, t } from "src/i18n";
 
@@ -32,14 +29,11 @@ export function previewBadgeClass(
 }
 
 export function resolveBadgeText(
-  row: SyncDecisionRow,
   isForced: boolean,
+  forcedOutcome: string | undefined,
   fallback: string,
 ): string {
-  if (isForced && row.forcedOutcome !== undefined) {
-    return row.forcedOutcome;
-  }
-  return fallback;
+  return isForced && forcedOutcome !== undefined ? forcedOutcome : fallback;
 }
 
 export function countNotes(count: number): string {
