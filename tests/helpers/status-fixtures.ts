@@ -22,7 +22,8 @@ export type ReachableImportStatus =
   | "synced.diverged"
   | "synced.vaultNewer"
   | "vaultOnly.unexported"
-  | "vaultOnly.unenrolled";
+  | "vaultOnly.unenrolled"
+  | "vaultOnly.ankiDeleted";
 
 const importNoteFields = {
   Back: { value: "<p>4</p>" },
@@ -154,6 +155,14 @@ async function vaultOnlyUnenrolledFixture(
   };
 }
 
+async function ankiDeletedFixture(id: number): Promise<ImportStatusFixture> {
+  return {
+    ankiMod: 0,
+    files: { "AnkiDeleted.md": importedNoteForm(id) },
+    noteLifecycle: { [id]: await cleanRecordWithHash(100) },
+  };
+}
+
 export const importStatusFixtures: Record<
   ReachableImportStatus,
   ImportStatusFixtureSpec
@@ -175,5 +184,9 @@ export const importStatusFixtures: Record<
   "vaultOnly.unenrolled": {
     ankiMod: 600,
     buildFixture: vaultOnlyUnenrolledFixture,
+  },
+  "vaultOnly.ankiDeleted": {
+    ankiMod: 0,
+    buildFixture: ankiDeletedFixture,
   },
 };
