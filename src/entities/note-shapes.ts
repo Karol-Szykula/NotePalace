@@ -1,3 +1,4 @@
+import type { MessageKey } from "src/i18n/messages";
 import {
   basicModelName,
   basicOptionalReversedModelName,
@@ -12,27 +13,27 @@ export interface NoteShape {
   layout: NoteFormLayout;
   model: string;
   primaryKey: string;
-  primaryLabel: string;
+  primaryLabelKey: MessageKey;
   secondaryKey: string;
-  secondaryLabel: string;
+  secondaryLabelKey: MessageKey;
 }
 
 const basicShape: NoteShape = {
   layout: "basic",
   model: basicModelName,
   primaryKey: "front",
-  primaryLabel: "Front",
+  primaryLabelKey: "noteForm.front",
   secondaryKey: "back",
-  secondaryLabel: "Back",
+  secondaryLabelKey: "noteForm.back",
 };
 
 const clozeShape: NoteShape = {
   layout: "cloze",
   model: clozeModelName,
   primaryKey: "text",
-  primaryLabel: "Text",
+  primaryLabelKey: "noteForm.text",
   secondaryKey: "back_extra",
-  secondaryLabel: "Back Extra",
+  secondaryLabelKey: "noteForm.backExtra",
 };
 
 const basicShapedModels = [

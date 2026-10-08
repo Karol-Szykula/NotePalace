@@ -1,5 +1,6 @@
 import { TFile } from "obsidian";
 import type { Vault } from "obsidian";
+import { t } from "src/i18n";
 import type { Anki } from "src/services/anki/anki";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import type { DeckImportSnapshot, ISettings } from "src/conf/settings";
@@ -401,7 +402,7 @@ export async function executeSync(
   const snapshots = settings.deckImportSnapshots;
   const deckNames = Object.keys(snapshots);
   if (deckNames.length === 0) {
-    throw new Error("No wizard import yet. Run Import deck from Anki first.");
+    throw new Error(t("notice.noImportYet"));
   }
   await fillMissingBlockIds(vault, settings, yaml);
   const index = await collectVaultNoteIndex(vault);

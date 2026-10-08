@@ -32,6 +32,10 @@ const en = {
     exportingProgress: "Exporting\u2026 {processed}/{total}",
     importing: "Importing\u2026",
     importingProgress: "Importing\u2026 {processed}/{total}",
+    purgeLedger:
+      "Ledger: forgot {forgotten} records (the import wizard will offer the ones Anki still has as new), kept {kept}{outOfScope}{unreadable}.",
+    purgeOutOfScope: ", {count} in ignored folders",
+    purgeUnreadable: ", {count} unreadable",
   },
   notice: {
     noImportYet: "No wizard import yet. Run Import deck from Anki first.",
@@ -45,6 +49,7 @@ const en = {
     resetFailed: "Reset failed: {error}",
     exportFailed: "Export failed: {error}",
     importFailed: "Import failed: {error}",
+    purgeFailed: "Purge ledger failed: {error}",
   },
   errors: {
     ankiNotConnected: "Error: Anki must be open with AnkiConnect installed.",
@@ -217,6 +222,10 @@ const en = {
     text: "Text",
     backExtra: "Back Extra",
     tags: "Tags",
+    invalidBlock: "Invalid note-form block",
+  },
+  status: {
+    anki: "Anki",
   },
   commands: {
     sync: "Sync",
@@ -234,9 +243,7 @@ const en = {
     cancel: "Cancel",
     resetButton: "Reset everything",
     resetReport:
-      "Reset: forgot {forgotten} records (the import wizard will offer the ones Anki still has as new), kept {kept}{outOfScope}{unreadable}.",
-    outOfScope: ", {count} in ignored folders",
-    unreadable: ", {count} unreadable",
+      "Plugin data reset: {records} note records, {snapshots} deck snapshots, {mappings} field mappings, {packs} note packs. Anki and your notes in the vault are untouched.",
   },
 } as const;
 

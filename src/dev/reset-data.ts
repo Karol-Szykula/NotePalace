@@ -1,5 +1,6 @@
 import type { Vault } from "obsidian";
 import { defaultSettings } from "src/conf/defaults";
+import { t } from "src/i18n";
 import type { ISettings } from "src/conf/settings";
 import { deleteAllPacks } from "src/services/notes/packs";
 
@@ -25,5 +26,10 @@ export async function resetPluginData(
 }
 
 export function formatResetReport(report: ResetPluginDataReport): string {
-  return `Plugin data reset: ${report.noteLifecycle} note records, ${report.deckImportSnapshots} deck snapshots, ${report.fieldMappings} field mappings, ${report.packs} note packs. Anki and your notes in the vault are untouched.`;
+  return t("dev.resetReport", {
+    records: report.noteLifecycle,
+    snapshots: report.deckImportSnapshots,
+    mappings: report.fieldMappings,
+    packs: report.packs,
+  });
 }

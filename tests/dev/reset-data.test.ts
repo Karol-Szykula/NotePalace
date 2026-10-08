@@ -36,9 +36,9 @@ function customPack(): NotePack {
       layout: "basic",
       model: "My Model",
       primaryKey: "front",
-      primaryLabel: "Front",
+      primaryLabelKey: "noteForm.front",
       secondaryKey: "back",
-      secondaryLabel: "Back",
+      secondaryLabelKey: "noteForm.back",
     },
   };
 }

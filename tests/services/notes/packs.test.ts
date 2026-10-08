@@ -79,9 +79,9 @@ describe("savePack and loadPack", () => {
         layout: "basic",
         model: "My Model",
         primaryKey: "front",
-        primaryLabel: "Front",
+        primaryLabelKey: "noteForm.front",
         secondaryKey: "back",
-        secondaryLabel: "Back",
+        secondaryLabelKey: "noteForm.back",
       },
     };
 
@@ -109,9 +109,9 @@ describe("savePack and loadPack", () => {
         layout: "basic",
         model: "My Model",
         primaryKey: "front",
-        primaryLabel: "Front",
+        primaryLabelKey: "noteForm.front",
         secondaryKey: "back",
-        secondaryLabel: "Back",
+        secondaryLabelKey: "noteForm.back",
       },
     };
 
@@ -169,9 +169,9 @@ describe("packForModel", () => {
         layout: "basic",
         model: "My Model",
         primaryKey: "front",
-        primaryLabel: "Front",
+        primaryLabelKey: "noteForm.front",
         secondaryKey: "back",
-        secondaryLabel: "Back",
+        secondaryLabelKey: "noteForm.back",
       },
     });
 
