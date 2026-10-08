@@ -117,7 +117,7 @@ function NoteRow<T>({
                 }
                 type="checkbox"
               />
-              {forceStrategy.label}
+              {t(forceStrategy.labelKey)}
             </label>
           )}
         </span>,

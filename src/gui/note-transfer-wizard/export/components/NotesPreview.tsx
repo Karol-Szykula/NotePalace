@@ -107,13 +107,17 @@ const exportBadgeClasses: PreviewBadgeClasses = {
 function previewBadgeOutcome(item: ExportableBlock): string {
   const row = exportRow(item);
   if (item.previewStatus === "upToDate") {
-    return `${row.rationale} (${item.filePath})`;
+    return `${t(row.rationaleKey)} (${item.filePath})`;
   }
-  return row.rationale;
+  return t(row.rationaleKey);
 }
 
 function previewBadgeText(item: ExportableBlock, isForced: boolean): string {
-  return resolveBadgeText(exportRow(item), isForced, previewBadgeOutcome(item));
+  return resolveBadgeText(
+    isForced,
+    obsidianWinsStrategy.getForcedOutcome(exportRow(item)),
+    previewBadgeOutcome(item),
+  );
 }
 
 function previewReasonText(status: NotePreviewStatus): string {

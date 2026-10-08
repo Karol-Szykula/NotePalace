@@ -161,55 +161,113 @@ const en = {
   decision: {
     ankiOnly: {
       neverImported: {
-        rationale: "Anki only: the import wizard brings it in.",
+        export: { rationale: "Anki only: the import wizard brings it in." },
+        import: { rationale: "Anki only: creates the file." },
+        sync: { rationale: "Untracked Anki note: counted as needing import." },
       },
       fileDeleted: {
-        rationale: "File gone: Sync decides, nothing to push.",
-        forcedOutcome: "re-creates the file you deleted.",
+        export: { rationale: "File gone: Sync decides, nothing to push." },
+        import: {
+          rationale: "File gone: Sync decides, Anki wins re-creates it.",
+          forcedOutcome: "re-creates the file you deleted.",
+        },
+        sync: {
+          rationale: "No file: the purge path handles it outside this table.",
+        },
       },
     },
     linked: {
       unenrolled: {
-        rationale: "Has an id but no record: enrols it, writes nothing.",
+        export: {
+          rationale: "Has an id but no record: enrols it, writes nothing.",
+        },
+        import: {
+          rationale:
+            "Has an id but no record: enrols it, rewrites the same file.",
+        },
+        sync: { rationale: "Enrolling is the wizards' job." },
       },
     },
     synced: {
       clean: {
-        rationale: "Both sides match: nothing to write.",
-        forcedOutcome: "rewrites the same content.",
+        export: { rationale: "Both sides match: nothing to write." },
+        import: {
+          rationale: "Both sides match: rewrites nothing.",
+          forcedOutcome: "rewrites the same content.",
+        },
+        sync: { rationale: "Both sides match: nothing to do." },
       },
       ankiNewer: {
-        rationale: "Newer in Anki: skipped, use Sync.",
-        forcedOutcome: "overwrites Anki.",
+        export: {
+          rationale: "Newer in Anki: skipped, use Sync.",
+          forcedOutcome: "overwrites Anki.",
+        },
+        import: { rationale: "Newer in Anki: overwrites your file." },
+        sync: { rationale: "Newer in Anki: refreshes the vault file." },
       },
       vaultNewer: {
-        rationale: "Newer in Obsidian: pushes to Anki.",
-        forcedOutcome: "overwrites your newer edits.",
+        export: { rationale: "Newer in Obsidian: pushes to Anki." },
+        import: {
+          rationale: "Newer in Obsidian: skipped, use Sync.",
+          forcedOutcome: "overwrites your newer edits.",
+        },
+        sync: { rationale: "Newer in Obsidian: pushes to Anki." },
       },
       diverged: {
-        rationale: "Edited in both: skipped, use Sync.",
-        forcedOutcome: "overwrites Anki.",
+        export: {
+          rationale: "Edited in both: skipped, use Sync.",
+          forcedOutcome: "overwrites Anki.",
+        },
+        import: {
+          rationale: "Edited in both: newest wins on Sync.",
+          forcedOutcome: "overwrites your newer edits.",
+        },
+        sync: { rationale: "Edited in both: the newer side wins." },
       },
     },
     vaultOnly: {
       unexported: {
-        rationale: "Vault only: creates the Anki note, writes the id back.",
+        export: {
+          rationale: "Vault only: creates the Anki note, writes the id back.",
+        },
+        import: { rationale: "Vault only: the export wizard creates it." },
+        sync: { rationale: "Vault only: the export wizard creates it." },
       },
       unenrolled: {
-        rationale: "Has an id but no record: enrols it, writes nothing.",
+        export: {
+          rationale: "Has an id but no record: enrols it, writes nothing.",
+        },
+        import: {
+          rationale:
+            "Has an id but no record: enrols it, rewrites the same file.",
+        },
+        sync: { rationale: "Enrolling is the wizards' job." },
       },
       ankiDeleted: {
-        rationale: "Gone from Anki: Sync applies the deletion.",
-        forcedOutcome: "re-creates it in Anki.",
+        export: {
+          rationale: "Gone from Anki: Sync applies the deletion.",
+          forcedOutcome: "re-creates it in Anki.",
+        },
+        import: { rationale: "Gone from Anki: Sync deletes the file." },
+        sync: { rationale: "Gone from Anki: the purge path handles it." },
       },
     },
     orphaned: {
-      rationale: "Only a stale record left: Purge ledger forgets it.",
+      export: {
+        rationale: "Only a stale record left: Purge ledger forgets it.",
+      },
+      import: {
+        rationale: "Only a stale record left: Purge ledger forgets it.",
+      },
+      sync: {
+        rationale: "Only a stale record left: Purge ledger forgets it.",
+      },
     },
   },
   force: {
     ankiWins: "Anki wins",
     obsidianWins: "Obsidian wins",
+    none: "no force",
     ankiWinsFallback:
       "Anki wins: overwrite what is in Obsidian with Anki's version",
     obsidianWinsFallback:
