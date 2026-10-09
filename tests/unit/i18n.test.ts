@@ -4,14 +4,14 @@ describe("i18n core", () => {
   describe("resolveMessage", () => {
     test("given a key with a param when resolved then the param is interpolated", () => {
       // given
-      const key = "wizard.next";
-      const params = { title: "Notes" };
+      const key = "notice.syncFailed";
+      const params = { error: "boom" };
 
       // when
       const message = resolveMessage("en", key, params);
 
       // then
-      expect(message).toBe("Next: Notes \u2192");
+      expect(message).toBe("Sync failed: boom");
     });
 
     test("given an unknown key when resolved then the key is returned", () => {
@@ -27,13 +27,13 @@ describe("i18n core", () => {
 
     test("given a missing param when resolved then it renders empty", () => {
       // given
-      const key = "wizard.next";
+      const key = "notice.syncFailed";
 
       // when
       const message = resolveMessage("en", key, {});
 
       // then
-      expect(message).toBe("Next:  \u2192");
+      expect(message).toBe("Sync failed: ");
     });
   });
 

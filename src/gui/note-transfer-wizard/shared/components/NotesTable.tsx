@@ -1,5 +1,6 @@
 import { useMemo, type JSX, type ReactNode } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { Button } from "src/gui/components/Button";
 import { t } from "src/i18n";
 import { listClasses } from "../classes/common";
 import type { SyncDecisionRow } from "src/services/notes/decision-table";
@@ -191,9 +192,9 @@ export function NotesTable<T>({
         <p className={mergeClasses(listClasses.listRow)}>{selectionNotice}</p>
       )}
       {notesLeftToDecide.length > 0 && (
-        <button onClick={bulkActionHandler} type="button">
+        <Button onClick={bulkActionHandler}>
           {bulkActionLabel.replace("X", String(notesLeftToDecide.length))}
-        </button>
+        </Button>
       )}
       {resurrectionWarning &&
         notesLeftToDecide.some((item) => isResurrectable(item)) && (
