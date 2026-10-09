@@ -1,5 +1,5 @@
 import type { Modal, Vault } from "obsidian";
-import { findByRole } from "@testing-library/react";
+import { findByRole, findAllByRole } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { messagePattern } from "@shared/utils/summary-patterns";
 import { splitDeckHierarchy } from "@shared/utils/decks";
@@ -48,10 +48,17 @@ export class ExportModalPO extends WizardModalPO {
   }
 
   async isNotePreselected(): Promise<boolean> {
-    const checkbox = await findByRole(this.container, "checkbox", {
-      name: "",
+    const checkboxes = await findAllByRole(this.container, "checkbox", {
+      name: /^Select /,
     });
-    return (checkbox as HTMLInputElement).checked;
+    const firstRowBox = checkboxes.find(
+      (box) =>
+        box.getAttribute("aria-label") !== "Select all notes on this page",
+    );
+    if (firstRowBox === undefined) {
+      throw new Error("No note row found");
+    }
+    return (firstRowBox as HTMLInputElement).checked;
   }
 
   async noteFileContent(noteId?: number): Promise<string | undefined> {
@@ -69,17 +76,10 @@ export class ExportModalPO extends WizardModalPO {
     return undefined;
   }
 
-  async toggleObsidianWins(): Promise<void> {
-    const checkbox = await findByRole(this.container, "checkbox", {
-      name: /^Obsidian wins:/i,
+  async toggleForce(): Promise<void> {
+    const toggle = await findByRole(this.container, "switch", {
+      name: /^Forced/,
     });
-    await userEvent.setup().click(checkbox);
-  }
-
-  async clickBulkObsidianWins(): Promise<void> {
-    const button = await findByRole(this.container, "button", {
-      name: /Use Obsidian's version for all/,
-    });
-    await userEvent.setup().click(button);
+    await userEvent.setup().click(toggle);
   }
 }

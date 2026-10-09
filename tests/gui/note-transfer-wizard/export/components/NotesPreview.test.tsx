@@ -3,8 +3,8 @@
  *
  * User-perspective tests for the export wizard notes page: every row states
  * what will happen, only notes that will really be written are selected,
- * and every row offers "Obsidian wins" - a per-note force that takes
- * Obsidian's version no matter the state, in bulk or for one note.
+ * and every forceable row offers a "Forced" switch that takes Obsidian's
+ * version no matter the state, in bulk or for one note.
  */
 import "obsidian-test-mocks/jest-setup";
 import { render, screen, within } from "@testing-library/react";
@@ -26,11 +26,10 @@ beforeEach(() => {
   AnkiConnectMock.reset();
 });
 
-const obsidianWinsDiverged = t("force.outcome", {
-  force: t("force.obsidianWins"),
+const forcedDiverged = t("force.outcome", {
+  force: t("force.label"),
   outcome: t("decision.synced.diverged.export.forcedOutcome"),
 });
-const bulkObsidianTwo = t("preview.bulkObsidian").replace("X", "2");
 
 function previewNote(noteId: number, mod: number, front: string) {
   return {
@@ -167,7 +166,7 @@ describe("NotesPreview", () => {
 
     // when
     const row = previewRow("Fresh note");
-    const box = within(row).getByRole("checkbox", { name: "" });
+    const box = within(row).getByRole("checkbox", { name: /^Select / });
 
     // then
     expect(box).toBeChecked();
@@ -206,7 +205,7 @@ describe("NotesPreview", () => {
     ).toBeInTheDocument();
   });
 
-  test("given a diverged block when Obsidian wins is clicked then it is forced and selected", async () => {
+  test("given a diverged block when force is clicked on then it is forced and selected", async () => {
     // given
     const { onForcedNoteIdsChange, onNotesSelectedToExportChange } =
       await renderPreview();
@@ -214,8 +213,8 @@ describe("NotesPreview", () => {
 
     // when
     await userEvent.setup().click(
-      within(previewRow("Both changed card")).getByRole("checkbox", {
-        name: obsidianWinsDiverged,
+      within(previewRow("Both changed card")).getByRole("switch", {
+        name: forcedDiverged,
       }),
     );
 
@@ -226,24 +225,21 @@ describe("NotesPreview", () => {
     );
   });
 
-  test("given notes left undecided when the bulk force is used then every one is forced", async () => {
+  test("given notes left undecided when the page is forced then every forceable one is forced", async () => {
     // given
     const { onForcedNoteIdsChange, onNotesSelectedToExportChange } =
       await renderPreview();
-    const useObsidianForAll = await screen.findByRole("button", {
-      name: bulkObsidianTwo,
+    const forceAll = await screen.findByRole("switch", {
+      name: "Force all notes on this page",
     });
 
     // when
-    await userEvent.setup().click(useObsidianForAll);
+    await userEvent.setup().click(forceAll);
 
     // then
-    expect(onForcedNoteIdsChange).toHaveBeenCalledWith({
-      101: true,
-      105: true,
-    });
+    expect(onForcedNoteIdsChange).toHaveBeenCalledWith({ 105: true });
     expect(onNotesSelectedToExportChange).toHaveBeenCalledWith(
-      expect.objectContaining({ 101: true, 105: true }),
+      expect.objectContaining({ 105: true }),
     );
   });
 

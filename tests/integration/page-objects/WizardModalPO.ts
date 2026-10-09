@@ -119,6 +119,10 @@ export abstract class WizardModalPO {
     return this.clickElement(this.elements.exportButton);
   }
 
+  clickForceAllOnPage(): Promise<void> {
+    return this.clickElement(this.forceAllSwitch());
+  }
+
   clickImportButton(): Promise<void> {
     return this.clickElement(this.elements.importButton);
   }
@@ -143,6 +147,12 @@ export abstract class WizardModalPO {
 
   async expectTextDisplayed(text: string | RegExp): Promise<HTMLElement> {
     return findByText(this.container, text);
+  }
+
+  forceAllSwitch(): Promise<HTMLElement> {
+    return findByRole(this.container, "switch", {
+      name: "Force all notes on this page",
+    });
   }
 
   async isBackButtonVisible(): Promise<boolean> {

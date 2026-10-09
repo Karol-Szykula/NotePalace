@@ -6,6 +6,7 @@
 import "obsidian-test-mocks/jest-setup";
 import { render, screen } from "@testing-library/react";
 import { List, ListRow } from "@shared/components";
+import { listClasses } from "@shared/classes/common";
 
 describe("List", () => {
   test("given a list with header when rendered then header has sticky CSS class", () => {
@@ -42,5 +43,24 @@ describe("List", () => {
 
     // then
     expect(header).not.toBeInTheDocument();
+  });
+
+  test("given a list with header controls when rendered then they sit in a second header row", () => {
+    // given
+    const controls = [<button key="force-all">Force all</button>];
+    render(
+      <List columns={["Col1", "Col2"]} headerControls={controls}>
+        <ListRow cells={["a", "b"]} key="1" />
+      </List>,
+    );
+
+    // when
+    const control = screen.getByRole("button", { name: "Force all" });
+
+    // then
+    expect(control.closest(`.${listClasses.listHeaderControl}`)).not.toBeNull();
+    expect(
+      control.closest(`.${listClasses.listHeaderRow}`)?.previousElementSibling,
+    ).toHaveClass(listClasses.listHeaderRow);
   });
 });

@@ -11,7 +11,6 @@ import {
   createdPattern,
   forcedPattern,
   messagePattern,
-  unchangedPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
 import {
@@ -109,7 +108,7 @@ describe("ExportLeftToSync", () => {
     },
   );
 
-  test("given a synced.clean note when the bulk action forces the run then the note stays unchanged without counting a forced note", async () => {
+  test("given a synced.clean note when the notes page loads then the force-all switch is disabled", async () => {
     // given
     const note = cleanAnkiNote(noteId, cleanSpec.ankiMod);
     const fixture = await cleanSpec.buildFixture(noteId);
@@ -121,16 +120,12 @@ describe("ExportLeftToSync", () => {
     });
     // when
     await page.goToNotesPage(folderName);
-    await page.clickBulkObsidianWins();
-    await page.clickExportButton();
-    const unchanged = await page.expectTextDisplayed(unchangedPattern);
-    const forced = page.queryTextDisplayed(/forced: \d+/);
+    const forceAll = await page.forceAllSwitch();
     // then
-    expect(unchanged).toBeInTheDocument();
-    expect(forced).toBeNull();
+    expect(forceAll).toBeDisabled();
   });
 
-  test("given a vaultOnly.ankiDeleted note when Obsidian wins is toggled then the run re-creates the Anki note", async () => {
+  test("given a vaultOnly.ankiDeleted note when force is clicked on then the run re-creates the Anki note", async () => {
     // given
     const fixture = await ankiDeletedSpec.buildFixture(noteId);
     page = ExportModalPO.render({
@@ -141,7 +136,7 @@ describe("ExportLeftToSync", () => {
     });
     // when
     await page.goToNotesPage(folderName);
-    await page.toggleObsidianWins();
+    await page.toggleForce();
     await page.clickExportButton();
     const created = await page.expectTextDisplayed(createdPattern);
     const forced = await page.expectTextDisplayed(forcedPattern);

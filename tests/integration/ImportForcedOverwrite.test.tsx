@@ -81,7 +81,7 @@ describe("ImportForcedOverwrite", () => {
   );
 
   test.each(forcedOverwriteCases)(
-    "given a %s note when Anki wins is toggled then the run overwrites the file",
+    "given a %s note when force is clicked on then the run overwrites the file",
     async ({ ankiMod, buildFixture }) => {
       // given
       const note = basicAnkiNote(noteId, ankiMod);
@@ -94,7 +94,7 @@ describe("ImportForcedOverwrite", () => {
       });
       // when
       await page.goToCardsPage(deckName);
-      await page.toggleAnkiWins();
+      await page.toggleForce();
       await page.clickImportButton();
       const overwritten = await page.expectTextDisplayed(overwrittenSummary);
       const forced = await page.expectTextDisplayed(forcedSummary);
@@ -111,7 +111,7 @@ describe("ImportForcedOverwrite", () => {
   );
 
   test.each(forcedOverwriteCases)(
-    "given a %s note when the bulk action is used then it is selected and Import becomes enabled",
+    "given a %s note when the page is forced then it is selected and Import becomes enabled",
     async ({ ankiMod, buildFixture }) => {
       // given
       const note = basicAnkiNote(noteId, ankiMod);
@@ -124,7 +124,7 @@ describe("ImportForcedOverwrite", () => {
       });
       // when
       await page.goToCardsPage(deckName);
-      await page.clickBulkAnkiWins();
+      await page.clickForceAllOnPage();
       const preselected = await page.isNotePreselected();
       const importEnabled = await page.isImportButtonEnabled();
       // then

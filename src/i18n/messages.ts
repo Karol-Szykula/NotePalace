@@ -79,13 +79,13 @@ const en = {
       one: "This re-creates 1 note you deleted in {location}.",
       other: "This re-creates {count} notes you deleted in {location}.",
     },
-    cardsToImport: "Cards to import: {selected}/{total}.",
+    notesToImport: "Notes to import: {selected}/{total}.",
     notesToExport: "Notes to export: {selected}/{total}.",
     selectionNotice: "Nothing is selected yet: {reasons}. {action}",
     actionAll:
-      "The button above takes Obsidian's version of every remaining note.",
+      "The force-all switch below takes Obsidian's version of every remaining note.",
     actionAllAnki:
-      "The button above takes Anki's version of every remaining note.",
+      "The force-all switch below takes Anki's version of every remaining note.",
     noNotes: "No notes to display.",
     noDecks: "No decks found.",
     loading: "Loading notes\u2026",
@@ -105,10 +105,12 @@ const en = {
     idNowhereInVault: "No file: this id is nowhere in the vault, Sync decides.",
     notImportedYet: "not imported yet",
     selectColumn: "Select",
+    forceColumn: "Force",
+    selectAllOnPage: "Select all notes on this page",
+    forceAllOnPage: "Force all notes on this page",
+    selectRow: "Select {summary}",
     cardColumn: "Card",
     noteColumn: "Note",
-    bulkAnki: "Use Anki's version for all (X)",
-    bulkObsidian: "Use Obsidian's version for all (X)",
   },
   deck: {
     title: "Deck",
@@ -167,7 +169,7 @@ const en = {
       fileDeleted: {
         export: { rationale: "File gone: Sync decides, nothing to push." },
         import: {
-          rationale: "File gone: Sync decides, Anki wins re-creates it.",
+          rationale: "File gone: Sync decides, forcing re-creates it.",
           forcedOutcome: "re-creates the file you deleted.",
         },
         sync: {
@@ -264,13 +266,8 @@ const en = {
     },
   },
   force: {
-    ankiWins: "Anki wins",
-    obsidianWins: "Obsidian wins",
+    label: "Forced",
     none: "no force",
-    ankiWinsFallback:
-      "Anki wins: overwrite what is in Obsidian with Anki's version",
-    obsidianWinsFallback:
-      "Obsidian wins: overwrite what is in Anki with Obsidian's version",
     outcome: "{force}: {outcome}",
   },
   noteForm: {

@@ -10,6 +10,7 @@ export interface ListProps {
   readonly columns?: string[];
   readonly columnWidths?: string;
   readonly dividers?: ListDividers;
+  readonly headerControls?: ReactNode[];
   readonly striped?: boolean;
 }
 
@@ -26,6 +27,7 @@ function dividersClass(dividers: ListDividers): string | undefined {
 export function List({
   columns,
   columnWidths,
+  headerControls,
   dividers = "bottom",
   striped = false,
   className,
@@ -43,9 +45,20 @@ export function List({
     >
       {columns && columns.length > 0 && (
         <div className={listClasses.listHeader}>
-          {columns.map((column) => (
-            <span key={column}>{column}</span>
-          ))}
+          <div className={listClasses.listHeaderRow}>
+            {columns.map((column) => (
+              <span key={column}>{column}</span>
+            ))}
+          </div>
+          {headerControls && headerControls.length > 0 && (
+            <div className={listClasses.listHeaderRow}>
+              {headerControls.map((control, index) => (
+                <span className={listClasses.listHeaderControl} key={index}>
+                  {control}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
       {children}

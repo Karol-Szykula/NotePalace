@@ -1,11 +1,24 @@
 import { useMemo, type JSX, type ReactNode } from "react";
 import { mergeClasses } from "src/gui/classes";
-import { Button } from "src/gui/components/Button";
+import { Switch } from "src/gui/components/Switch";
 import { t } from "src/i18n";
-import { listClasses } from "../classes/common";
 import type { SyncDecisionRow } from "src/services/notes/decision-table";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
-import type { ForceStrategy } from "../types/forceStrategy";
+import { listClasses } from "../classes/common";
+import { forcedOutcomeText, type ForceStrategy } from "../types/forceStrategy";
+import {
+  clearForceAllOnPage,
+  forceAllOnPage,
+  isRowSelectable,
+  leftToDecide,
+  pageSelection,
+  selectedCount,
+  selectionCheckState,
+  setNoteForced,
+  setNoteSelected,
+  setSelectableOnPage,
+} from "../utils/note-selection";
+import { Checkbox } from "./Checkbox";
 import { List } from "./List";
 import { ListRow } from "./ListRow";
 
@@ -18,27 +31,84 @@ export interface ColumnDef<T> {
 interface NoteRowProps<T> {
   readonly columns: ColumnDef<T>[];
   readonly forcedNoteIds: Record<number, boolean>;
-  readonly forceStrategy: ForceStrategy;
   readonly getDefaultSelected: (item: T) => boolean;
   readonly getNoteId: (item: T) => number;
   readonly getRow: (item: T) => SyncDecisionRow;
+  readonly getRowAriaLabel: (item: T) => string;
   readonly getRowClassName: (item: T) => string | undefined;
-  readonly getStatus: (item: T) => NoteLifecycleStatus;
   readonly index: number;
-  readonly isSelectionLocked: (item: T) => boolean | undefined;
+  readonly isForced: boolean;
+  readonly isSelectable: boolean;
+  readonly isSelected: boolean;
   readonly item: T;
   readonly notesSelectedToImport: Record<number, boolean>;
-  readonly onForcedChange: (noteId: number, isForced: boolean) => void;
-  readonly onSelectedChange: (
+  readonly onForcedChange: (
+    forced: Record<number, boolean>,
     selected: Record<number, boolean>,
-    noteId: number,
-    isSelected: boolean,
   ) => void;
+  readonly onSelectedChange: (selected: Record<number, boolean>) => void;
+}
+
+function NoteRow<T>({
+  item,
+  index,
+  columns,
+  forcedNoteIds,
+  isForced,
+  isSelected,
+  isSelectable,
+  onForcedChange,
+  onSelectedChange,
+  getNoteId,
+  getRow,
+  getRowAriaLabel,
+  getRowClassName,
+  getDefaultSelected,
+  notesSelectedToImport,
+}: NoteRowProps<T>): JSX.Element {
+  const noteId = getNoteId(item);
+  return (
+    <ListRow
+      cells={[
+        <Checkbox
+          ariaLabel={getRowAriaLabel(item)}
+          checked={isSelected}
+          disabled={!isSelectable}
+          key="select"
+          onChange={(isNowSelected) =>
+            onSelectedChange(
+              setNoteSelected(notesSelectedToImport, noteId, isNowSelected),
+            )
+          }
+        />,
+        <Switch
+          ariaLabel={
+            forcedOutcomeText(getRow(item)) ?? t("preview.forceColumn")
+          }
+          checked={isForced}
+          key="force"
+          onChange={(isNowForced) => {
+            const next = setNoteForced(
+              forcedNoteIds,
+              notesSelectedToImport,
+              noteId,
+              isNowForced,
+              getDefaultSelected(item),
+            );
+            onForcedChange(next.forced, next.selected);
+          }}
+        />,
+        ...columns.map((col, colIndex) => (
+          <div key={colIndex}>{col.render(item, index)}</div>
+        )),
+      ]}
+      className={mergeClasses(listClasses.listRow, getRowClassName(item))}
+      key={noteId}
+    />
+  );
 }
 
 export interface NotesTableProps<T> {
-  readonly bulkActionHandler: () => void;
-  readonly bulkActionLabel: string;
   readonly columns: ColumnDef<T>[];
   readonly countText?: (selectedCount: number, total: number) => string;
   readonly currentPage: number;
@@ -47,90 +117,21 @@ export interface NotesTableProps<T> {
   readonly getDefaultSelected: (item: T) => boolean;
   readonly getNoteId: (item: T) => number;
   readonly getRow: (item: T) => SyncDecisionRow;
+  readonly getRowAriaLabel: (item: T) => string;
   readonly getRowClassName?: (item: T) => string | undefined;
   readonly getStatus: (item: T) => NoteLifecycleStatus;
   readonly isResurrectable: (item: T) => boolean;
   readonly isSelectionLocked?: (item: T) => boolean | undefined;
   readonly items: T[];
   readonly notesSelectedToImport: Record<number, boolean>;
-  readonly onForcedChange: (noteId: number, isForced: boolean) => void;
-  readonly onSelectedChange: (
+  readonly onForceChange: (
+    forced: Record<number, boolean>,
     selected: Record<number, boolean>,
-    noteId: number,
-    isSelected: boolean,
   ) => void;
+  readonly onSelectionChange: (selected: Record<number, boolean>) => void;
   readonly pageSize: number;
   readonly resurrectionWarning?: string | undefined;
   readonly selectionNotice?: string | undefined;
-}
-
-function NoteRow<T>({
-  item,
-  index,
-  columns,
-  forcedNoteIds,
-  notesSelectedToImport,
-  onForcedChange,
-  onSelectedChange,
-  getDefaultSelected,
-  getNoteId,
-  getRow,
-  getRowClassName,
-  getStatus,
-  isSelectionLocked,
-  forceStrategy,
-}: NoteRowProps<T>): JSX.Element {
-  const noteId = getNoteId(item);
-  const isLocked = isSelectionLocked(item) ?? false;
-  const isSelected = isLocked
-    ? true
-    : (notesSelectedToImport[noteId] ?? getDefaultSelected(item));
-  const isForced = forcedNoteIds[noteId] ?? false;
-  const row = getRow(item);
-  const showForceToggle = forceStrategy.appliesToStatus(getStatus(item));
-
-  return (
-    <ListRow
-      cells={[
-        <span key="select">
-          <input
-            checked={isSelected}
-            disabled={isLocked || !getDefaultSelected(item)}
-            key="select"
-            onChange={(event) =>
-              onSelectedChange(
-                notesSelectedToImport,
-                noteId,
-                event.target.checked,
-              )
-            }
-            type="checkbox"
-          />
-          {showForceToggle && (
-            <label>
-              <input
-                aria-label={forceStrategy.getAriaLabel(row)}
-                checked={isForced}
-                key="force"
-                onChange={(event) =>
-                  onForcedChange(noteId, event.target.checked)
-                }
-                type="checkbox"
-              />
-              {t(forceStrategy.labelKey)}
-            </label>
-          )}
-        </span>,
-        ...columns
-          .slice(1)
-          .map((col, colIndex) => (
-            <div key={colIndex}>{col.render(item, index)}</div>
-          )),
-      ]}
-      className={mergeClasses(listClasses.listRow, getRowClassName(item))}
-      key={noteId}
-    />
-  );
 }
 
 export function NotesTable<T>({
@@ -139,42 +140,72 @@ export function NotesTable<T>({
   pageSize,
   columns,
   countText = (selectedCount: number, total: number) =>
-    t("preview.cardsToImport", { selected: selectedCount, total }),
+    t("preview.notesToImport", { selected: selectedCount, total }),
   getDefaultSelected,
   getNoteId,
   getRow,
+  getRowAriaLabel,
   getRowClassName,
   getStatus,
   isResurrectable,
   isSelectionLocked,
   forceStrategy,
-  bulkActionLabel,
-  bulkActionHandler,
   selectionNotice,
   resurrectionWarning,
   forcedNoteIds,
-  onForcedChange,
-  onSelectedChange,
+  onForceChange,
+  onSelectionChange,
   notesSelectedToImport,
 }: NotesTableProps<T>): JSX.Element {
-  const notesSelectedToImportCount =
-    Object.values(notesSelectedToImport).filter(Boolean).length +
-    items.filter(
-      (item) =>
-        (isSelectionLocked?.(item) ?? false) &&
-        !(getNoteId(item) in notesSelectedToImport),
-    ).length;
+  const projection = useMemo(
+    () => ({
+      getNoteId,
+      getDefaultSelected,
+      getStatus,
+      forceStrategy,
+      isSelectionLocked,
+    }),
+    [
+      getNoteId,
+      getDefaultSelected,
+      getStatus,
+      forceStrategy,
+      isSelectionLocked,
+    ],
+  );
+  const allRows = useMemo(
+    () =>
+      pageSelection(items, notesSelectedToImport, forcedNoteIds, projection),
+    [items, notesSelectedToImport, forcedNoteIds, projection],
+  );
   const pageNotes = useMemo(
     () =>
       items.slice(currentPage * pageSize, currentPage * pageSize + pageSize),
     [items, currentPage, pageSize],
   );
-  const notesLeftToDecide = useMemo(
+  const pageRows = useMemo(
     () =>
-      items.filter(
-        (item) => !getDefaultSelected(item) && !forcedNoteIds[getNoteId(item)],
+      pageSelection(
+        pageNotes,
+        notesSelectedToImport,
+        forcedNoteIds,
+        projection,
       ),
-    [items, getDefaultSelected, getNoteId, forcedNoteIds],
+    [pageNotes, notesSelectedToImport, forcedNoteIds, projection],
+  );
+  const selectableRows = pageRows.filter(isRowSelectable);
+  const selectAllState = selectionCheckState(
+    selectableRows.filter((row) => row.isSelected).length,
+    selectableRows.length,
+  );
+  const forceableRows = pageRows.filter((row) => row.isForceable);
+  const forcedRows = forceableRows.filter((row) => row.isForced);
+  const notesLeftToDecide = leftToDecide(allRows);
+  const resurrectableLeft = items.some(
+    (item) =>
+      !getDefaultSelected(item) &&
+      !forcedNoteIds[getNoteId(item)] &&
+      isResurrectable(item),
   );
 
   if (items.length === 0) {
@@ -187,44 +218,95 @@ export function NotesTable<T>({
 
   return (
     <div>
-      <p>{countText(notesSelectedToImportCount, items.length)}</p>
-      {notesSelectedToImportCount === 0 && selectionNotice && (
-        <p className={mergeClasses(listClasses.listRow)}>{selectionNotice}</p>
-      )}
-      {notesLeftToDecide.length > 0 && (
-        <Button onClick={bulkActionHandler}>
-          {bulkActionLabel.replace("X", String(notesLeftToDecide.length))}
-        </Button>
-      )}
-      {resurrectionWarning &&
-        notesLeftToDecide.some((item) => isResurrectable(item)) && (
-          <p className={mergeClasses(listClasses.listRow)}>
-            {resurrectionWarning}
-          </p>
+      <div className={listClasses.listToolbar}>
+        <p className={listClasses.listToolbarCount}>
+          {countText(selectedCount(allRows), items.length)}
+        </p>
+        {selectionNotice && notesLeftToDecide.length > 0 && (
+          <p className={listClasses.listToolbarBanner}>{selectionNotice}</p>
         )}
+      </div>
+      {resurrectionWarning && resurrectableLeft && (
+        <p className={listClasses.listToolbarBanner}>{resurrectionWarning}</p>
+      )}
       <List
-        columns={columns.map((c) => c.header)}
-        columnWidths={columns.map((c) => c.width).join(" ")}
+        columns={[
+          t("preview.selectColumn"),
+          t("preview.forceColumn"),
+          ...columns.map((column) => column.header),
+        ]}
+        columnWidths={[
+          "auto",
+          "auto",
+          ...columns.map((column) => column.width),
+        ].join(" ")}
+        headerControls={[
+          <Checkbox
+            ariaLabel={t("preview.selectAllOnPage")}
+            checked={selectAllState.checked}
+            disabled={selectAllState.disabled}
+            indeterminate={selectAllState.indeterminate}
+            key="select-all"
+            onChange={(isNowChecked) =>
+              onSelectionChange(
+                setSelectableOnPage(
+                  pageRows,
+                  notesSelectedToImport,
+                  isNowChecked,
+                ),
+              )
+            }
+          />,
+          <Switch
+            ariaLabel={t("preview.forceAllOnPage")}
+            checked={
+              forceableRows.length > 0 &&
+              forcedRows.length === forceableRows.length
+            }
+            disabled={forceableRows.length === 0}
+            indeterminate={
+              forcedRows.length > 0 && forcedRows.length < forceableRows.length
+            }
+            key="force-all"
+            onChange={(isNowForced) => {
+              const next = isNowForced
+                ? forceAllOnPage(pageRows, forcedNoteIds, notesSelectedToImport)
+                : clearForceAllOnPage(
+                    pageRows,
+                    forcedNoteIds,
+                    notesSelectedToImport,
+                  );
+              onForceChange(next.forced, next.selected);
+            }}
+          />,
+        ]}
       >
-        {pageNotes.map((item, index) => (
-          <NoteRow
-            columns={columns}
-            forcedNoteIds={forcedNoteIds}
-            forceStrategy={forceStrategy}
-            getDefaultSelected={getDefaultSelected}
-            getNoteId={getNoteId}
-            getRow={getRow}
-            getRowClassName={getRowClassName ?? (() => undefined)}
-            getStatus={getStatus}
-            index={index}
-            isSelectionLocked={isSelectionLocked ?? (() => undefined)}
-            item={item}
-            key={getNoteId(item)}
-            notesSelectedToImport={notesSelectedToImport}
-            onForcedChange={onForcedChange}
-            onSelectedChange={onSelectedChange}
-          />
-        ))}
+        {pageRows.map((row, index) => {
+          const item = pageNotes[index];
+          if (item === undefined) {
+            return null;
+          }
+          return (
+            <NoteRow
+              columns={columns}
+              forcedNoteIds={forcedNoteIds}
+              getDefaultSelected={getDefaultSelected}
+              getNoteId={getNoteId}
+              getRow={getRow}
+              getRowAriaLabel={getRowAriaLabel}
+              getRowClassName={getRowClassName ?? (() => undefined)}
+              index={index}
+              isForced={row.isForced}
+              isSelectable={isRowSelectable(row)}
+              isSelected={row.isSelected}
+              item={item}
+              key={row.id}
+              notesSelectedToImport={notesSelectedToImport}
+              onForcedChange={onForceChange}
+              onSelectedChange={onSelectionChange}
+            />
+          );
+        })}
       </List>
     </div>
   );

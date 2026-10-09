@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
 import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
-import { useForceToggle } from "@shared/hooks/useForceToggle";
 import { ankiWinsStrategy } from "@shared/types/AnkiWinsStrategy";
 import type { Anki } from "src/services/anki/anki";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
@@ -167,11 +166,6 @@ function buildCardColumns(
 ): ColumnDef<ClassifiedNote>[] {
   return [
     {
-      header: t("preview.selectColumn"),
-      render: () => <></>,
-      width: "auto",
-    },
-    {
       header: t("preview.cardColumn"),
       render: (item: ClassifiedNote) => (
         <label>
@@ -195,7 +189,7 @@ export function NotesPreview({
   anki,
   currentPage,
   deckName,
-  forcedNoteIds: initialForcedNoteIds,
+  forcedNoteIds,
   noteLifecycle,
   onPageChange,
   onTotalPagesChange,
@@ -212,10 +206,6 @@ export function NotesPreview({
   const [classified, setClassified] = useState<ClassifiedNote[] | null>(null);
   const [progress, setProgress] = useState("");
   const [loadError, setLoadError] = useState("");
-  const [forceState, forceActions] = useForceToggle(
-    initialForcedNoteIds,
-    ankiWinsStrategy,
-  );
 
   const loadPreviewNotes = (): (() => void) => {
     setRawNotes(null);
@@ -326,48 +316,29 @@ export function NotesPreview({
       classified?.filter(
         (item) =>
           !isImportSelectedByDefault(item.status) &&
-          !forceState.forcedNoteIds[item.note.noteId],
+          !forcedNoteIds[item.note.noteId],
       ) ?? [],
-    [classified, forceState.forcedNoteIds],
+    [classified, forcedNoteIds],
   );
   const notesToResurrect = notesLeftToDecide.filter(
     (item) => item.previewStatus === "noFile",
   ).length;
 
-  const selectNote = (
+  const onSelectionChange = (selected: Record<number, boolean>): void => {
+    onNotesSelectedToImportChange(selected);
+  };
+
+  const onForceChange = (
+    forced: Record<number, boolean>,
     selected: Record<number, boolean>,
-    noteId: number,
-    isSelected: boolean,
   ): void => {
-    onNotesSelectedToImportChange({ ...selected, [noteId]: isSelected });
-  };
-
-  const toggleForced = (noteId: number, isForced: boolean): void => {
-    forceActions.toggleForced(noteId, isForced);
-    onForcedNoteIdsChange({ ...forceState.forcedNoteIds, [noteId]: isForced });
-    onNotesSelectedToImportChange({
-      ...notesSelectedToImport,
-      [noteId]: isForced,
-    });
-  };
-
-  const useAnkiForEveryNote = (): void => {
-    const forced = { ...forceState.forcedNoteIds };
-    const selected = { ...notesSelectedToImport };
-    for (const item of notesLeftToDecide) {
-      forced[item.note.noteId] = true;
-      selected[item.note.noteId] = true;
-    }
     onForcedNoteIdsChange(forced);
     onNotesSelectedToImportChange(selected);
-    for (const item of notesLeftToDecide) {
-      forceActions.setForced(item.note.noteId, true);
-    }
   };
 
   const columns = useMemo(
-    () => buildCardColumns(forceState.forcedNoteIds),
-    [forceState.forcedNoteIds],
+    () => buildCardColumns(forcedNoteIds),
+    [forcedNoteIds],
   );
 
   if (loadError) {
@@ -388,15 +359,16 @@ export function NotesPreview({
   return (
     <div className={rootClassName}>
       <NotesTable
-        bulkActionHandler={useAnkiForEveryNote}
-        bulkActionLabel={t("preview.bulkAnki")}
         columns={columns}
         currentPage={currentPage}
-        forcedNoteIds={forceState.forcedNoteIds}
+        forcedNoteIds={forcedNoteIds}
         forceStrategy={ankiWinsStrategy}
         getDefaultSelected={(item) => isImportSelectedByDefault(item.status)}
         getNoteId={(item) => item.note.noteId}
         getRow={(item) => syncDecisionFor("import", item.status)}
+        getRowAriaLabel={(item) =>
+          t("preview.selectRow", { summary: noteSummary(item.note) })
+        }
         getRowClassName={(item) =>
           mergeClasses(
             transferNotesPreviewClasses.previewRow,
@@ -409,8 +381,8 @@ export function NotesPreview({
         isResurrectable={(item) => item.previewStatus === "noFile"}
         items={classified}
         notesSelectedToImport={notesSelectedToImport}
-        onForcedChange={toggleForced}
-        onSelectedChange={selectNote}
+        onForceChange={onForceChange}
+        onSelectionChange={onSelectionChange}
         pageSize={previewPageSize}
         resurrectionWarning={resurrectionWarning(notesToResurrect)}
         selectionNotice={selectionNotice(classified)}
