@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
-import { t } from "src/i18n";
+import { t, type MessageKey } from "src/i18n";
 import type { Vault } from "obsidian";
 import type { Anki } from "src/services/anki/anki";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
@@ -34,47 +34,38 @@ export interface ImportExecutionProps {
 
 type ExecutionPhase = "running" | "done" | "failed";
 
-function formatImportReport(report: ImportExecutionReport): string {
-  const parts = [
+function baseReportParts(report: ImportExecutionReport): string[] {
+  return [
     t("report.created", { count: report.created }),
     t("report.overwritten", { count: report.overwritten }),
     t("report.skipped", { count: report.skipped }),
     t("report.mediaFiles", { count: report.mediaFiles }),
   ];
-  if (report.skippedUnmapped > 0) {
-    parts.push(t("report.skippedUnmapped", { count: report.skippedUnmapped }));
-  }
-  if (report.mediaNotImported > 0) {
-    parts.push(
-      t("report.mediaNotImported", { count: report.mediaNotImported }),
-    );
-  }
-  if (report.changedSincePreview > 0) {
-    parts.push(
-      t("report.changedSincePreview", { count: report.changedSincePreview }),
-    );
-  }
-  if (report.vanishedFromDeck > 0) {
-    parts.push(
-      t("report.vanishedFromDeck", { count: report.vanishedFromDeck }),
-    );
-  }
-  if (report.folders > 1) {
-    parts.push(t("report.folders", { count: report.folders }));
-  }
-  if (report.forced > 0) {
-    parts.push(t("report.forced", { count: report.forced }));
-  }
-  if (report.skippedNewerInVault > 0) {
-    parts.push(
-      t("report.skippedNewerInVault", { count: report.skippedNewerInVault }),
-    );
-  }
-  if (report.skippedLeftToSync > 0) {
-    parts.push(
-      t("report.skippedLeftToSync", { count: report.skippedLeftToSync }),
-    );
-  }
+}
+
+function countPart(count: number, key: MessageKey): string | undefined {
+  return count > 0 ? t(key, { count }) : undefined;
+}
+
+function foldersPart(count: number): string | undefined {
+  return count > 1 ? t("report.folders", { count }) : undefined;
+}
+
+function optionalReportParts(report: ImportExecutionReport): string[] {
+  return [
+    countPart(report.skippedUnmapped, "report.skippedUnmapped"),
+    countPart(report.mediaNotImported, "report.mediaNotImported"),
+    countPart(report.changedSincePreview, "report.changedSincePreview"),
+    countPart(report.vanishedFromDeck, "report.vanishedFromDeck"),
+    foldersPart(report.folders),
+    countPart(report.forced, "report.forced"),
+    countPart(report.skippedNewerInVault, "report.skippedNewerInVault"),
+    countPart(report.skippedLeftToSync, "report.skippedLeftToSync"),
+  ].filter((part): part is string => part !== undefined);
+}
+
+function formatImportReport(report: ImportExecutionReport): string {
+  const parts = [...baseReportParts(report), ...optionalReportParts(report)];
   const cancelled = report.cancelled ? t("report.cancelled") : "";
   return `${parts.join(", ")}${cancelled}.`;
 }
