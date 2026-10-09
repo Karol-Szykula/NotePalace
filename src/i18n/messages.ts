@@ -1,6 +1,6 @@
 const en = {
   wizard: {
-    next: "Next: {title} \u2192",
+    next: "Next \u2192",
     export: "Export",
     import: "Import",
     cancel: "Cancel",

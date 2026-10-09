@@ -28,7 +28,6 @@ export interface WizardShellProps<Context> {
   readonly initialPage: number;
   readonly onBeforeAdvance?: (fromPage: number, context: Context) => void;
   readonly onCancel: () => void;
-  readonly onFinish: (context: Context) => void;
   readonly pages: WizardPage<Context>[];
 }
 
@@ -39,21 +38,13 @@ export function WizardShell<Context>({
   getNextLabel,
   getPagination,
   onBeforeAdvance,
-  onFinish,
   onCancel,
   className,
 }: WizardShellProps<Context>): JSX.Element {
   const context = getContext();
   const pageTitles = useMemo(() => pages.map((p) => p.title), [pages]);
 
-  const navigation = useWizardNavigation(
-    pageTitles,
-    initialPage,
-    true,
-    onCancel,
-    () => onFinish(context),
-  );
-  const { currentPage, setCurrentPage } = navigation;
+  const { currentPage, setCurrentPage } = useWizardNavigation(initialPage);
   const activePage = pages[currentPage - 1];
   const canAdvance = activePage
     ? (activePage.canAdvance?.(context) ?? currentPage < pages.length)
@@ -74,10 +65,9 @@ export function WizardShell<Context>({
   };
 
   const customNextLabel = getNextLabel?.(currentPage, context);
-  const followingPage = pages[currentPage];
   let defaultNextLabel: string | undefined;
-  if (currentPage < pages.length - 1 && followingPage) {
-    defaultNextLabel = t("wizard.next", { title: followingPage.title });
+  if (currentPage < pages.length - 1) {
+    defaultNextLabel = t("wizard.next");
   } else if (currentPage === pages.length - 1) {
     defaultNextLabel = t("wizard.finish");
   }
