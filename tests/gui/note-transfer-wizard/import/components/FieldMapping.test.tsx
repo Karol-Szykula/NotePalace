@@ -108,7 +108,7 @@ test("given a custom model when advancing past fields then no pack is written", 
   await screen.findByText(mappedFieldsPattern);
   await user.click(
     await screen.findByRole("button", {
-      name: messagePattern("wizard.next", "Cards"),
+      name: messagePattern("wizard.next", "Notes"),
     }),
   );
   await screen.findByText(cardsToImportPattern);
