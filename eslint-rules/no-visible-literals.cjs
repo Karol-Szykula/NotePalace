@@ -14,7 +14,7 @@ const visibleSetters = new Set([
   "setTitle",
 ]);
 
-function hasLetters(text) {
+function containsLetters(text) {
   return /\p{L}/u.test(text);
 }
 
@@ -26,6 +26,51 @@ function staticStringOf(node) {
     return node.quasis.map((quasi) => quasi.value.cooked ?? "").join("");
   }
   return undefined;
+}
+
+function isVisibleAttribute(node) {
+  return (
+    node.name.type === "JSXIdentifier" && visibleAttributes.has(node.name.name)
+  );
+}
+
+function attributeStringOf(node) {
+  const value = node.value;
+  if (value === null) {
+    return undefined;
+  }
+  if (value.type === "Literal") {
+    return value.value;
+  }
+  if (value.type === "JSXExpressionContainer") {
+    return staticStringOf(value.expression);
+  }
+  return undefined;
+}
+
+function isNoticeConstruction(node) {
+  return (
+    node.type === "NewExpression" &&
+    node.callee.type === "Identifier" &&
+    node.callee.name === "Notice"
+  );
+}
+
+function isVisibleSetterCall(node) {
+  const { callee } = node;
+  return (
+    callee.type === "MemberExpression" &&
+    callee.property.type === "Identifier" &&
+    visibleSetters.has(callee.property.name)
+  );
+}
+
+function isVisibleStringCall(node) {
+  return isNoticeConstruction(node) || isVisibleSetterCall(node);
+}
+
+function firstArgumentOf(node) {
+  return node.arguments[0];
 }
 
 const noVisibleLiterals = {
@@ -41,61 +86,25 @@ const noVisibleLiterals = {
     schema: [],
   },
   create(context) {
-    function report(node) {
-      context.report({ node, messageId: "literal" });
-    }
-
     function reportIfVisible(node, text) {
-      if (text !== undefined && hasLetters(text)) {
-        report(node);
+      if (text !== undefined && containsLetters(text)) {
+        context.report({ node, messageId: "literal" });
       }
     }
 
     return {
       JSXText(node) {
-        if (hasLetters(node.value)) {
-          report(node);
-        }
+        reportIfVisible(node, node.value);
       },
       JSXAttribute(node) {
-        if (node.name.type !== "JSXIdentifier") {
-          return;
-        }
-        if (!visibleAttributes.has(node.name.name)) {
-          return;
-        }
-        const value = node.value;
-        if (value === null) {
-          return;
-        }
-        if (value.type === "Literal") {
-          reportIfVisible(value, value.value);
-          return;
-        }
-        if (value.type === "JSXExpressionContainer") {
-          reportIfVisible(value.expression, staticStringOf(value.expression));
+        if (isVisibleAttribute(node)) {
+          reportIfVisible(node, attributeStringOf(node));
         }
       },
       "NewExpression, CallExpression"(node) {
-        const firstArgument = node.arguments[0];
-        if (firstArgument === undefined) {
-          return;
-        }
-        const text = staticStringOf(firstArgument);
-        if (text === undefined) {
-          return;
-        }
-        const { callee } = node;
-        const isNotice =
-          node.type === "NewExpression" &&
-          callee.type === "Identifier" &&
-          callee.name === "Notice";
-        const isSetter =
-          callee.type === "MemberExpression" &&
-          callee.property.type === "Identifier" &&
-          visibleSetters.has(callee.property.name);
-        if (isNotice || isSetter) {
-          reportIfVisible(firstArgument, text);
+        const argument = firstArgumentOf(node);
+        if (isVisibleStringCall(node) && argument !== undefined) {
+          reportIfVisible(argument, staticStringOf(argument));
         }
       },
     };
