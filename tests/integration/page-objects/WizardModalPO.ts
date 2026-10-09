@@ -10,7 +10,6 @@ import userEvent from "@testing-library/user-event";
 import type { App, Modal, Vault } from "obsidian";
 import { App as ObsidianApp } from "obsidian-test-mocks/obsidian";
 import { pageIndicatorClasses } from "@shared/classes/common";
-import { messagePattern } from "@shared/utils/summary-patterns";
 import { t } from "src/i18n";
 import type { ISettings } from "src/conf/settings";
 import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
@@ -67,7 +66,7 @@ export abstract class WizardModalPO {
       },
       get nextButton() {
         return findByRole(container, "button", {
-          name: messagePattern("wizard.next", ".+"),
+          name: t("wizard.next"),
         });
       },
       get okButton() {
@@ -182,7 +181,7 @@ export abstract class WizardModalPO {
   }
 
   async isNextButtonVisible(): Promise<boolean> {
-    return this.isButtonVisible(messagePattern("wizard.next", ".+"));
+    return this.isButtonVisible(t("wizard.next"));
   }
 
   async pageIndicatorTitles(): Promise<string[]> {

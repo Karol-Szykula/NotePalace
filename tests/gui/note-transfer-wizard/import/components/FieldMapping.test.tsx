@@ -14,10 +14,10 @@ import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { Anki } from "src/services/anki/anki";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
 import { FieldMapping } from "src/gui/note-transfer-wizard/import/components/FieldMapping";
+import { t } from "src/i18n";
 import {
   cardsToImportPattern,
   mappedFieldsPattern,
-  messagePattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../../../helpers/anki-responder";
 import { createSettings } from "../../../../helpers/settings";
@@ -102,13 +102,13 @@ test("given a custom model when advancing past fields then no pack is written", 
   await user.click(await screen.findByRole("radio", { name: /Languages/ }));
   await user.click(
     await screen.findByRole("button", {
-      name: messagePattern("wizard.next", "Fields"),
+      name: t("wizard.next"),
     }),
   );
   await screen.findByText(mappedFieldsPattern);
   await user.click(
     await screen.findByRole("button", {
-      name: messagePattern("wizard.next", "Notes"),
+      name: t("wizard.next"),
     }),
   );
   await screen.findByText(cardsToImportPattern);
