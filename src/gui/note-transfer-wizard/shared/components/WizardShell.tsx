@@ -1,9 +1,8 @@
-import { useMemo, type JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
 import { t } from "src/i18n";
 import { PageIndicator } from "./PageIndicator";
 import { Footer } from "./Footer";
-import { useWizardNavigation } from "../hooks/useWizardNavigation";
 
 export interface WizardPage<Context = unknown> {
   readonly canAdvance?: (context: Context) => boolean;
@@ -44,7 +43,7 @@ export function WizardShell<Context>({
   const context = getContext();
   const pageTitles = useMemo(() => pages.map((p) => p.title), [pages]);
 
-  const { currentPage, setCurrentPage } = useWizardNavigation(initialPage);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const activePage = pages[currentPage - 1];
   const canAdvance = activePage
     ? (activePage.canAdvance?.(context) ?? currentPage < pages.length)
