@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { Button } from "src/gui/components/Button";
 import { t } from "src/i18n";
 
 const devResetClasses = {
@@ -24,10 +25,10 @@ export function ResetPrompt({
     <div className={mergeClasses(devResetClasses.prompt, className)}>
       <p className={devResetClasses.warning}>{t("dev.resetConfirm")}</p>
       <div className={devResetClasses.actions}>
-        <button onClick={onCancel}>{t("dev.cancel")}</button>
-        <button className={devResetClasses.confirmButton} onClick={onConfirm}>
+        <Button onClick={onCancel}>{t("dev.cancel")}</Button>
+        <Button className={devResetClasses.confirmButton} onClick={onConfirm}>
           {t("dev.resetButton")}
-        </button>
+        </Button>
       </div>
     </div>
   );
