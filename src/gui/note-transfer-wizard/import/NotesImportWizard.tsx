@@ -152,7 +152,7 @@ function buildImportWizardPages(
           vaultNoteIndex={deps.vaultNoteIndex}
         />
       ),
-      title: t("deck.cardsTitle"),
+      title: t("deck.notesTitle"),
     },
     {
       render: () => (

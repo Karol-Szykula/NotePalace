@@ -29,6 +29,6 @@ describe("ImportModalPO", () => {
     page = ImportModalPO.render(fixture);
     const titles = await page.pageIndicatorTitles();
     // then
-    expect(titles).toEqual(["Deck", "Fields", "Cards", "Save"]);
+    expect(titles).toEqual(["Deck", "Fields", "Notes", "Save"]);
   });
 });

@@ -115,7 +115,6 @@ const en = {
     notesTitle: "Notes",
     saveTitle: "Save",
     fieldsTitle: "Fields",
-    cardsTitle: "Cards",
     selectPrompt: "Select a deck:",
     connecting: "Connecting to Anki\u2026",
     readingVault: "Reading vault\u2026",

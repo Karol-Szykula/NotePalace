@@ -53,7 +53,6 @@ export interface NotesTableProps<T> {
   readonly items: T[];
   readonly notesSelectedToImport: Record<number, boolean>;
   readonly onForcedChange: (noteId: number, isForced: boolean) => void;
-  readonly onPageChange: (page: number) => void;
   readonly onSelectedChange: (
     selected: Record<number, boolean>,
     noteId: number,
@@ -136,7 +135,6 @@ function NoteRow<T>({
 export function NotesTable<T>({
   items,
   currentPage,
-  onPageChange,
   pageSize,
   columns,
   countText = (selectedCount: number, total: number) =>
@@ -177,8 +175,6 @@ export function NotesTable<T>({
       ),
     [items, getDefaultSelected, getNoteId, forcedNoteIds],
   );
-
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
 
   if (items.length === 0) {
     return (
@@ -229,25 +225,6 @@ export function NotesTable<T>({
           />
         ))}
       </List>
-      {totalPages > 1 && (
-        <div className={mergeClasses(listClasses.listRow)}>
-          <button
-            disabled={currentPage === 0}
-            onClick={() => onPageChange(currentPage - 1)}
-          >
-            {t("wizard.prevPage")}
-          </button>
-          <span>
-            {currentPage + 1} / {totalPages}
-          </span>
-          <button
-            disabled={currentPage >= totalPages - 1}
-            onClick={() => onPageChange(currentPage + 1)}
-          >
-            {t("wizard.nextPage")}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
