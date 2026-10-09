@@ -85,7 +85,7 @@ describe("ImportModalFlow", () => {
     // when
     const titles = await page.pageIndicatorTitles();
     // then
-    expect(titles).toEqual(["Deck", "Fields", "Cards", "Save"]);
+    expect(titles).toEqual(["Deck", "Fields", "Notes", "Save"]);
   });
 
   test("given one of two notes already imported when the deck list renders then shows the 1/2 counter", async () => {

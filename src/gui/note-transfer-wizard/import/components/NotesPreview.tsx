@@ -410,7 +410,6 @@ export function NotesPreview({
         items={classified}
         notesSelectedToImport={notesSelectedToImport}
         onForcedChange={toggleForced}
-        onPageChange={onPageChange}
         onSelectedChange={selectNote}
         pageSize={previewPageSize}
         resurrectionWarning={resurrectionWarning(notesToResurrect)}

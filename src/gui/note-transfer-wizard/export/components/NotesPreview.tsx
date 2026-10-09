@@ -393,7 +393,6 @@ export function NotesPreview({
         items={classified}
         notesSelectedToImport={notesSelectedToExport}
         onForcedChange={toggleForced}
-        onPageChange={onPageChange}
         onSelectedChange={selectNote}
         pageSize={previewPageSize}
         resurrectionWarning={recreateWarning(notesToRecreate, "Anki")}
