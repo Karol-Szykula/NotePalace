@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
+import { t } from "src/i18n";
 import type { Vault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import { logger } from "src/services/logger";
@@ -111,7 +112,7 @@ function buildImportWizardPages(
           vaultNoteIndex={deps.vaultNoteIndex}
         />
       ),
-      title: "Deck",
+      title: t("deck.title"),
     },
     {
       render: () => (
@@ -127,7 +128,7 @@ function buildImportWizardPages(
           }}
         />
       ),
-      title: "Fields",
+      title: t("deck.fieldsTitle"),
     },
     {
       canAdvance: (context) => context.notesSelectedToImportCount > 0,
@@ -151,7 +152,7 @@ function buildImportWizardPages(
           vaultNoteIndex={deps.vaultNoteIndex}
         />
       ),
-      title: "Cards",
+      title: t("deck.cardsTitle"),
     },
     {
       render: () => (
@@ -171,7 +172,7 @@ function buildImportWizardPages(
           vaultNoteIndex={deps.vaultNoteIndex}
         />
       ),
-      title: "Save",
+      title: t("deck.saveTitle"),
     },
   ];
 }
@@ -323,7 +324,7 @@ export function NotesImportWizard({
         notesSelectedToImportCount,
         selectedDeckName,
       })}
-      getNextLabel={(page) => (page === 3 ? "Import" : undefined)}
+      getNextLabel={(page) => (page === 3 ? t("wizard.import") : undefined)}
       getPagination={(page) =>
         page === 3
           ? {

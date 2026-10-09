@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { footerClasses } from "../classes/common";
 
 export interface FooterButton {
@@ -64,7 +65,7 @@ export function Footer({
             disabled={pagination.currentPage === 0}
             onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
           >
-            ← Prev
+            {t("wizard.prevPage")}
           </button>
           <span className={footerClasses.pageIndicator}>
             {pagination.currentPage + 1} / {pagination.totalPages}
@@ -73,7 +74,7 @@ export function Footer({
             disabled={pagination.currentPage >= pagination.totalPages - 1}
             onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
           >
-            Next →
+            {t("wizard.nextPage")}
           </button>
         </div>
       )}

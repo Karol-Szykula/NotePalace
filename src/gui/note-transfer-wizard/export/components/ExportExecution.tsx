@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t, type MessageKey } from "src/i18n";
 import type { Vault } from "obsidian";
 import type { Anki } from "src/services/anki/anki";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
@@ -23,6 +24,35 @@ export interface ExportExecutionProps {
 }
 
 type ExecutionPhase = "running" | "done" | "failed";
+
+function baseReportParts(report: ExportReport): string[] {
+  return [
+    t("report.created", { count: report.created }),
+    t("report.updated", { count: report.updated }),
+    t("report.skipped", { count: report.skipped }),
+    t("report.mediaFiles", { count: report.mediaFiles }),
+  ];
+}
+
+function countPart(count: number, key: MessageKey): string | undefined {
+  return count > 0 ? t(key, { count }) : undefined;
+}
+
+function optionalReportParts(report: ExportReport): string[] {
+  return [
+    countPart(report.unchanged, "report.unchanged"),
+    countPart(report.skippedUnmapped, "report.skippedUnmapped"),
+    countPart(report.changedSincePreview, "report.changedSincePreview"),
+    countPart(report.skippedForSync, "report.leftToSync"),
+    countPart(report.skippedDeleted, "report.skippedDeleted"),
+    countPart(report.forced, "report.forced"),
+  ].filter((part): part is string => part !== undefined);
+}
+
+function formatExportReport(report: ExportReport): string {
+  const parts = [...baseReportParts(report), ...optionalReportParts(report)];
+  return `${parts.join(", ")}.`;
+}
 
 export function ExportExecution({
   anki,
@@ -52,7 +82,7 @@ export function ExportExecution({
           .map(([noteId]) => Number(noteId)),
         ignoredDirectories,
         onProgress: (processed, total) => {
-          setProgress(`Exporting… ${processed}/${total}`);
+          setProgress(t("report.exportingProgress", { processed, total }));
         },
         previewStatuses,
       });
@@ -79,28 +109,11 @@ export function ExportExecution({
 
   return (
     <div className={mergeClasses(commonWizardClasses.pageView, className)}>
-      {phase === "running" && <p>{progress || "Exporting…"}</p>}
-      {phase === "failed" && <p>Export failed: {failure}</p>}
-      {phase === "done" && report && (
-        <p>
-          Created: {report.created}, updated: {report.updated}, skipped:{" "}
-          {report.skipped}, media files: {report.mediaFiles}
-          {report.unchanged > 0 ? `, unchanged: ${report.unchanged}` : ""}
-          {report.skippedUnmapped > 0
-            ? `, skipped without pack: ${report.skippedUnmapped}`
-            : ""}
-          {report.changedSincePreview > 0
-            ? `, ${report.changedSincePreview} changed since the preview`
-            : ""}
-          {report.skippedForSync > 0
-            ? `, left to Sync: ${report.skippedForSync}`
-            : ""}
-          {report.skippedDeleted > 0
-            ? `, skipped as deleted: ${report.skippedDeleted}`
-            : ""}
-          {report.forced > 0 ? `, forced: ${report.forced}` : ""}.
-        </p>
+      {phase === "running" && <p>{progress || t("report.exporting")}</p>}
+      {phase === "failed" && (
+        <p>{t("notice.exportFailed", { error: failure })}</p>
       )}
+      {phase === "done" && report && <p>{formatExportReport(report)}</p>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 
 const devResetClasses = {
   actions: "notepalace-dev-reset__actions",
@@ -21,16 +22,11 @@ export function ResetPrompt({
 }: ResetPromptProps): JSX.Element {
   return (
     <div className={mergeClasses(devResetClasses.prompt, className)}>
-      <p className={devResetClasses.warning}>
-        The plugin forgets every link to Anki: note records, deck snapshots,
-        field mappings and saved note packs. Your notes in the vault and Anki
-        itself stay untouched, but the next import will offer your existing
-        notes as new and re-exporting will create duplicates in Anki.
-      </p>
+      <p className={devResetClasses.warning}>{t("dev.resetConfirm")}</p>
       <div className={devResetClasses.actions}>
-        <button onClick={onCancel}>Cancel</button>
+        <button onClick={onCancel}>{t("dev.cancel")}</button>
         <button className={devResetClasses.confirmButton} onClick={onConfirm}>
-          Reset everything
+          {t("dev.resetButton")}
         </button>
       </div>
     </div>

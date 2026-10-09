@@ -6,6 +6,7 @@
  * untouched, and forcing either overwrites the newer Obsidian edits.
  */
 import "obsidian-test-mocks/jest-setup";
+import { messagePattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
 import { AnkiConnectMock } from "../mocks/anki-connect";
 import {
@@ -40,12 +41,12 @@ interface ForcedOverwriteCase extends ImportStatusFixtureSpec {
 const forcedOverwriteCases: ForcedOverwriteCase[] = [
   {
     ...importStatusFixtures["synced.vaultNewer"],
-    notice: /newer Obsidian edits/,
+    notice: messagePattern("preview.newerInVaultShort"),
     status: "synced.vaultNewer",
   },
   {
     ...importStatusFixtures["synced.diverged"],
-    notice: /edited in both places/,
+    notice: messagePattern("preview.editedInBoth"),
     status: "synced.diverged",
   },
 ];

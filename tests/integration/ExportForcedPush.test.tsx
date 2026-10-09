@@ -10,6 +10,7 @@ import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
 import { basicAnkiNote } from "../helpers/status-fixtures";
 import {
   forcedPattern,
+  messagePattern,
   updatedPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { AnkiConnectMock } from "../mocks/anki-connect";
@@ -47,12 +48,12 @@ interface ForcedPushCase {
 const forcedPushCases: ForcedPushCase[] = [
   {
     ...importStatusFixtures["synced.ankiNewer"],
-    notice: /with a newer version in Anki/,
+    notice: messagePattern("preview.newerInAnkiShort"),
     status: "synced.ankiNewer",
   },
   {
     ...importStatusFixtures["synced.diverged"],
-    notice: /edited in both places/,
+    notice: messagePattern("preview.editedInBoth"),
     status: "synced.diverged",
   },
 ];

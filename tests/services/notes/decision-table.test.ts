@@ -1,4 +1,5 @@
 import { readFileSync } from "fs";
+import { resolveMessage } from "src/i18n/messages";
 import {
   NOTE_LIFECYCLE_EVENTS,
   NOTE_LIFECYCLE_STATUSES,
@@ -127,7 +128,7 @@ describe("the decision table is total", () => {
         const row = syncDecisionFor(command, status);
         expect(row.act).toBeDefined();
         expect(row.responsibleComponent).toBeDefined();
-        expect(row.rationale.length).toBeGreaterThan(0);
+        expect(row.rationaleKey.length).toBeGreaterThan(0);
       }
     }
   });
@@ -204,7 +205,7 @@ describe("the decision table is total", () => {
       const row = syncDecisionFor("sync", status);
       expect(row.act).toBe(OUT_OF_SCOPE);
       expect(row.responsibleComponent).toBe("bidirectional-sync");
-      expect(row.rationale).toMatch(/purge path/);
+      expect(resolveMessage("en", row.rationaleKey)).toMatch(/purge path/);
     }
   });
 });
@@ -255,7 +256,7 @@ describe("the forced outcomes", () => {
       for (const status of NOTE_LIFECYCLE_STATUSES) {
         const row = syncDecisionFor(command, status);
         if (row.forcedAct !== undefined) {
-          expect(row.forcedOutcome).toBeDefined();
+          expect(row.forcedOutcomeKey).toBeDefined();
         }
       }
     }
@@ -267,13 +268,13 @@ describe("the forced outcomes", () => {
 
     // then
     expect(row.forcedAct).toBeUndefined();
-    expect(row.forcedOutcome).toBeDefined();
+    expect(row.forcedOutcomeKey).toBeDefined();
   });
 
   test("given a row without a forced act when read then it claims no forced sentence", () => {
     const forcedSentences = SYNC_COMMANDS.flatMap((command) =>
       NOTE_LIFECYCLE_STATUSES.map((status) => syncDecisionFor(command, status)),
-    ).filter((row) => row.forcedOutcome !== undefined);
+    ).filter((row) => row.forcedOutcomeKey !== undefined);
     const inertLabels = forcedSentences.filter(
       (row) => row.forcedAct === undefined,
     );

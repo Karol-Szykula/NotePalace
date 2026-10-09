@@ -1,4 +1,5 @@
-import type { ForceStrategy } from "./forceStrategy";
+import { t, type MessageKey } from "src/i18n";
+import { forcedOutcomeText, type ForceStrategy } from "./forceStrategy";
 import type { SyncDecisionRow } from "src/services/notes/decision-table";
 import type {
   NoteLifecycleStatus,
@@ -6,18 +7,17 @@ import type {
 } from "src/services/notes/lifecycle";
 import { decisionActFor } from "src/services/notes/decision-table";
 
+const labelKey: MessageKey = "force.ankiWins";
+
 export const ankiWinsStrategy: ForceStrategy = {
-  label: "Anki wins",
+  labelKey,
 
   getForcedOutcome(row: SyncDecisionRow): string | undefined {
-    return row.forcedOutcome;
+    return forcedOutcomeText(labelKey, row);
   },
 
   getAriaLabel(row: SyncDecisionRow): string {
-    return (
-      row.forcedOutcome ??
-      "Anki wins: overwrite what is in Obsidian with Anki's version"
-    );
+    return forcedOutcomeText(labelKey, row) ?? t("force.ankiWinsFallback");
   },
 
   appliesToStatus(status: NoteLifecycleStatus): boolean {

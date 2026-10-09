@@ -3,6 +3,13 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import perfectionist from "eslint-plugin-perfectionist";
 import sonarjs from "eslint-plugin-sonarjs";
 import globals from "globals";
+import noVisibleLiterals from "./eslint-rules/no-visible-literals.cjs";
+
+const notepalace = {
+  rules: {
+    "no-visible-literals": noVisibleLiterals,
+  },
+};
 
 const productionFiles = [
   "src/**/*.ts",
@@ -56,9 +63,11 @@ export default [
     plugins: {
       perfectionist,
       sonarjs,
+      notepalace,
     },
     rules: {
       ...sonarjs.configs.recommended.rules,
+      "notepalace/no-visible-literals": "error",
       complexity: ["error", 18],
       "@typescript-eslint/consistent-type-imports": [
         "error",
@@ -90,6 +99,12 @@ export default [
     files: ["src/services/logger.ts"],
     rules: {
       "no-console": "off",
+    },
+  },
+  {
+    files: ["src/i18n/**"],
+    rules: {
+      "notepalace/no-visible-literals": "off",
     },
   },
   {

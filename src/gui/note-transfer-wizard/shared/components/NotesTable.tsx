@@ -1,5 +1,6 @@
 import { useMemo, type JSX, type ReactNode } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { listClasses } from "../classes/common";
 import type { SyncDecisionRow } from "src/services/notes/decision-table";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
@@ -116,7 +117,7 @@ function NoteRow<T>({
                 }
                 type="checkbox"
               />
-              {forceStrategy.label}
+              {t(forceStrategy.labelKey)}
             </label>
           )}
         </span>,
@@ -139,7 +140,7 @@ export function NotesTable<T>({
   pageSize,
   columns,
   countText = (selectedCount: number, total: number) =>
-    `Cards to import: ${selectedCount}/${total}.`,
+    t("preview.cardsToImport", { selected: selectedCount, total }),
   getDefaultSelected,
   getNoteId,
   getRow,
@@ -182,7 +183,7 @@ export function NotesTable<T>({
   if (items.length === 0) {
     return (
       <div>
-        <p>No notes to display.</p>
+        <p>{t("preview.noNotes")}</p>
       </div>
     );
   }
@@ -234,7 +235,7 @@ export function NotesTable<T>({
             disabled={currentPage === 0}
             onClick={() => onPageChange(currentPage - 1)}
           >
-            ← Prev
+            {t("wizard.prevPage")}
           </button>
           <span>
             {currentPage + 1} / {totalPages}
@@ -243,7 +244,7 @@ export function NotesTable<T>({
             disabled={currentPage >= totalPages - 1}
             onClick={() => onPageChange(currentPage + 1)}
           >
-            Next →
+            {t("wizard.nextPage")}
           </button>
         </div>
       )}

@@ -17,6 +17,7 @@ import { FieldMapping } from "src/gui/note-transfer-wizard/import/components/Fie
 import {
   cardsToImportPattern,
   mappedFieldsPattern,
+  messagePattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../../../helpers/anki-responder";
 import { createSettings } from "../../../../helpers/settings";
@@ -99,9 +100,17 @@ test("given a custom model when advancing past fields then no pack is written", 
   const user = userEvent.setup();
   // when
   await user.click(await screen.findByRole("radio", { name: /Languages/ }));
-  await user.click(await screen.findByRole("button", { name: /Next: Fields/ }));
+  await user.click(
+    await screen.findByRole("button", {
+      name: messagePattern("wizard.next", "Fields"),
+    }),
+  );
   await screen.findByText(mappedFieldsPattern);
-  await user.click(await screen.findByRole("button", { name: /Next: Cards/ }));
+  await user.click(
+    await screen.findByRole("button", {
+      name: messagePattern("wizard.next", "Cards"),
+    }),
+  );
   await screen.findByText(cardsToImportPattern);
   // then
   const vault = app.vault as unknown as ObsidianVault;

@@ -1,6 +1,7 @@
 import { addIcon, Notice, Plugin } from "obsidian";
 import type { ISettings } from "src/conf/settings";
 import { normalizeSettings } from "src/conf/normalize-settings";
+import { t } from "src/i18n";
 import { SettingsTab } from "src/gui/settings-tab";
 import { NotesImportModal } from "src/gui/note-transfer-wizard/import/notes-import-modal";
 import { NotesExportModal } from "src/gui/note-transfer-wizard/export/notes-export-modal";
@@ -21,14 +22,6 @@ import {
   forgetRecordsWithoutFiles,
   formatPurgeLedgerReport,
 } from "src/services/vault/records";
-
-const syncCommandName = "Sync";
-const importDeckCommandName = "Import deck from Anki";
-const exportDeckCommandName = "Export deck to Anki";
-const purgeLedgerCommandName = "Purge ledger";
-const insertNoteFormCommandName = "Insert note form";
-const newNoteFileCommandName = "New note file";
-const newClozeNoteFileCommandName = "New cloze note file";
 
 export default class NotePalace extends Plugin {
   override settings!: ISettings;
@@ -67,12 +60,12 @@ export default class NotePalace extends Plugin {
   private registerImportCommand(): void {
     this.addCommand({
       id: "import-deck-from-anki",
-      name: importDeckCommandName,
+      name: t("commandNames.importDeck"),
       callback: () => {
         new NotesImportModal(this.app, this.settings, () =>
           this.saveData(this.settings),
         )
-          .setTitle("Import deck from Anki")
+          .setTitle(t("commandNames.importDeck"))
           .open();
       },
     });
@@ -81,12 +74,12 @@ export default class NotePalace extends Plugin {
   private registerExportCommand(): void {
     this.addCommand({
       id: "export-deck-to-anki",
-      name: exportDeckCommandName,
+      name: t("commandNames.exportDeck"),
       callback: () => {
         new NotesExportModal(this.app, this.settings, () =>
           this.saveData(this.settings),
         )
-          .setTitle("Export deck to Anki")
+          .setTitle(t("commandNames.exportDeck"))
           .open();
       },
     });
@@ -95,7 +88,7 @@ export default class NotePalace extends Plugin {
   private registerSyncCommand(): void {
     this.addCommand({
       id: "sync-with-anki",
-      name: syncCommandName,
+      name: t("commandNames.sync"),
       callback: () => {
         void this.runSync();
       },
@@ -105,19 +98,13 @@ export default class NotePalace extends Plugin {
   private async runSync(): Promise<void> {
     const snapshots = this.settings.deckImportSnapshots;
     if (Object.keys(snapshots).length === 0) {
-      new Notice(
-        "No wizard import yet. Run Import deck from Anki first.",
-        noticeTimeout,
-      );
+      new Notice(t("notice.noImportYet"), noticeTimeout);
       return;
     }
     try {
       await new Anki().ping();
     } catch {
-      new Notice(
-        "Error: Anki must be open with AnkiConnect installed.",
-        noticeTimeout,
-      );
+      new Notice(t("errors.ankiNotConnected"), noticeTimeout);
       return;
     }
     try {
@@ -129,14 +116,17 @@ export default class NotePalace extends Plugin {
       await this.saveData(this.settings);
       new Notice(formatSyncReport(report), noticeTimeout);
     } catch (error) {
-      new Notice(`Sync failed: ${describeUnknown(error)}`, noticeTimeout);
+      new Notice(
+        t("notice.syncFailed", { error: describeUnknown(error) }),
+        noticeTimeout,
+      );
     }
   }
 
   private registerPurgeLedgerCommand(): void {
     this.addCommand({
       id: "purge-ledger",
-      name: purgeLedgerCommandName,
+      name: t("commandNames.purgeLedger"),
       callback: () => {
         void this.runPurgeLedger();
       },
@@ -153,7 +143,7 @@ export default class NotePalace extends Plugin {
       new Notice(formatPurgeLedgerReport(report), noticeTimeout);
     } catch (error) {
       new Notice(
-        `Purge ledger failed: ${describeUnknown(error)}`,
+        t("notice.purgeFailed", { error: describeUnknown(error) }),
         noticeTimeout,
       );
     }
@@ -162,21 +152,21 @@ export default class NotePalace extends Plugin {
   private registerNoteFormCommands(): void {
     this.addCommand({
       id: "insert-note-form",
-      name: insertNoteFormCommandName,
+      name: t("commandNames.insertNoteForm"),
       editorCallback: (editor) => {
         editor.replaceSelection(noteFormBlock());
       },
     });
     this.addCommand({
       id: "new-note-form-file",
-      name: newNoteFileCommandName,
+      name: t("commandNames.newNoteFile"),
       callback: () => {
         void createNoteFormFile(this.app);
       },
     });
     this.addCommand({
       id: "new-cloze-note-file",
-      name: newClozeNoteFileCommandName,
+      name: t("commandNames.newClozeNoteFile"),
       callback: () => {
         void createNoteFormFile(this.app, clozeModelName);
       },
@@ -188,7 +178,7 @@ export default class NotePalace extends Plugin {
       window.setInterval(() => {
         void anki
           .ping()
-          .then(() => statusBar.setText("Anki"))
+          .then(() => statusBar.setText(t("status.anki")))
           .catch(() => statusBar.setText(""));
       }, 15 * 1000),
     );

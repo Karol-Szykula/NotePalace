@@ -6,10 +6,11 @@
 import "obsidian-test-mocks/jest-setup";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { t } from "src/i18n";
 import { ResetPrompt } from "src/gui/dev/reset-prompt";
 
 describe("ResetPrompt", () => {
-  test("given the reset prompt when rendered then it says what the reset forgets", () => {
+  test("given the reset prompt when rendered then it shows what the reset forgets", () => {
     // given
     const onCancel = jest.fn();
     const onConfirm = jest.fn();
@@ -18,19 +19,7 @@ describe("ResetPrompt", () => {
     render(<ResetPrompt onCancel={onCancel} onConfirm={onConfirm} />);
 
     // then
-    expect(screen.getByText(/forgets every link to Anki/i)).toBeInTheDocument();
-  });
-
-  test("given the reset prompt when rendered then it says the next import creates duplicates", () => {
-    // given
-    const onCancel = jest.fn();
-    const onConfirm = jest.fn();
-
-    // when
-    render(<ResetPrompt onCancel={onCancel} onConfirm={onConfirm} />);
-
-    // then
-    expect(screen.getByText(/duplicates in Anki/i)).toBeInTheDocument();
+    expect(screen.getByText(t("dev.resetConfirm"))).toBeInTheDocument();
   });
 
   test("given the reset prompt when cancel is pressed then nothing is reset", async () => {
@@ -40,7 +29,9 @@ describe("ResetPrompt", () => {
     render(<ResetPrompt onCancel={onCancel} onConfirm={onConfirm} />);
 
     // when
-    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: t("dev.cancel") }),
+    );
 
     // then
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -55,7 +46,7 @@ describe("ResetPrompt", () => {
 
     // when
     await userEvent.click(
-      screen.getByRole("button", { name: "Reset everything" }),
+      screen.getByRole("button", { name: t("dev.resetButton") }),
     );
 
     // then

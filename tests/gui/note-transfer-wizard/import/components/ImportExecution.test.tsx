@@ -10,7 +10,10 @@ import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import { ImportExecution } from "src/gui/note-transfer-wizard/import/components/ImportExecution";
-import { createdPattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
+import {
+  createdPattern,
+  messagePattern,
+} from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { ImportExecutionReport } from "src/services/commands/import-deck";
 import { syncedCleanRecord } from "src/services/notes/lifecycle";
 import type {
@@ -133,7 +136,9 @@ describe("ImportExecution", () => {
     });
 
     // when
-    const report = await screen.findByText(/forced: 1/);
+    const report = await screen.findByText(
+      messagePattern("report.forced", "1"),
+    );
 
     // then
     expect(report).toBeInTheDocument();
@@ -147,7 +152,9 @@ describe("ImportExecution", () => {
     jest.spyOn(app.vault, "create").mockRejectedValueOnce(failure);
 
     // when
-    const message = await screen.findByText(/Import failed: ENOENT/);
+    const message = await screen.findByText(
+      messagePattern("notice.importFailed", "ENOENT"),
+    );
 
     // then
     expect(message).toBeInTheDocument();
@@ -160,7 +167,9 @@ describe("ImportExecution", () => {
     const { onFinish } = renderExecution();
 
     // when
-    const report = await screen.findByText(/1 no longer in the deck/);
+    const report = await screen.findByText(
+      messagePattern("report.vanishedFromDeck", "1"),
+    );
 
     // then
     expect(report).toBeInTheDocument();
@@ -183,7 +192,9 @@ describe("ImportExecution", () => {
     });
 
     // when
-    const report = await screen.findByText(/1 changed since the preview/);
+    const report = await screen.findByText(
+      messagePattern("report.changedSincePreview", "1"),
+    );
 
     // then
     expect(report).toBeInTheDocument();
