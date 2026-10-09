@@ -291,7 +291,7 @@ const en = {
     summary:
       "Sync: {refreshed} refreshed, {pushed} pushed, {upToDate} up to date, {missing} missing, {deleted} deleted, {purgedRecords} records forgotten, {enrolled} enrolled, {skippedUnmapped} skipped without pack",
   },
-  commands: {
+  commandNames: {
     sync: "Sync",
     importDeck: "Import deck from Anki",
     exportDeck: "Export deck to Anki",
@@ -311,19 +311,20 @@ const en = {
   },
 } as const;
 
-type LeafPaths<T> = T extends string
-  ? ""
-  : {
-      [K in keyof T & string]: T[K] extends string
-        ? K
-        : `${K}.${LeafPaths<T[K]>}`;
-    }[keyof T & string];
+type LeafKeyPaths<RecordType> = {
+  [Key in keyof RecordType & string]: RecordType[Key] extends string
+    ? Key
+    : `${Key}.${LeafKeyPaths<RecordType[Key]>}`;
+}[keyof RecordType & string];
 
-export type MessageKey = LeafPaths<typeof en>;
+export type MessageKey = LeafKeyPaths<typeof en>;
 export type LocaleId = "en";
 export type MessageParams = Record<string, string | number>;
 
-function interpolate(template: string, params?: MessageParams): string {
+function interpolateMessageParams(
+  template: string,
+  params?: MessageParams,
+): string {
   if (params === undefined) {
     return template;
   }
@@ -333,7 +334,7 @@ function interpolate(template: string, params?: MessageParams): string {
   });
 }
 
-function lookup(key: string): string | undefined {
+function lookupMessageTemplate(key: string): string | undefined {
   let value: unknown = en;
   for (const segment of key.split(".")) {
     if (value !== null && typeof value === "object" && segment in value) {
@@ -350,8 +351,10 @@ export function resolveMessage(
   key: string,
   params?: MessageParams,
 ): string {
-  const template = lookup(key);
-  return template === undefined ? key : interpolate(template, params);
+  const template = lookupMessageTemplate(key);
+  return template === undefined
+    ? key
+    : interpolateMessageParams(template, params);
 }
 
 export function resolvePlural(
@@ -362,8 +365,9 @@ export function resolvePlural(
 ): string {
   const category = new Intl.PluralRules(locale).select(count);
   const template =
-    lookup(`${baseKey}.${category}`) ?? lookup(`${baseKey}.other`);
+    lookupMessageTemplate(`${baseKey}.${category}`) ??
+    lookupMessageTemplate(`${baseKey}.other`);
   return template === undefined
     ? ""
-    : interpolate(template, { count, ...params });
+    : interpolateMessageParams(template, { count, ...params });
 }
