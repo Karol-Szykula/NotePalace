@@ -18,6 +18,7 @@ import {
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { ISettings } from "src/conf/settings";
 import { createSettings } from "../../../helpers/settings";
+import { t } from "src/i18n";
 import { AnkiConnectMock } from "../../../mocks/anki-connect";
 
 AnkiConnectMock.install();
@@ -139,7 +140,9 @@ async function openFieldsPage(deckName: string, user: UserEvent) {
     name: new RegExp(deckName),
   });
   await user.click(deckRadio);
-  await user.click(await screen.findByRole("button", { name: /Next: Fields/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(mappedFieldsPattern);
 }
 
@@ -167,7 +170,9 @@ test("given a mapping chosen when the wizard returns to the fields page then the
 
   // when
   await selectTarget(0, "Front", user);
-  await user.click(await screen.findByRole("button", { name: /Next: Notes/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(cardsToImportPattern);
   await user.click(await screen.findByRole("button", { name: /Back/ }));
   const targets = mappingTargets();
@@ -186,7 +191,9 @@ test("given a mapping chosen when the wizard advances past the fields page then 
 
   // when
   await selectTarget(0, "Front", user);
-  await user.click(await screen.findByRole("button", { name: /Next: Notes/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(cardsToImportPattern);
 
   // then
@@ -202,7 +209,9 @@ test("given a mapping abandoned when the wizard opens again then the default map
   const { unmount } = openWizard(settings);
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
-  await user.click(await screen.findByRole("button", { name: /Next: Notes/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(cardsToImportPattern);
   unmount();
 
@@ -223,7 +232,9 @@ test("given an import completed when the wizard opens again then the chosen mapp
   const { unmount } = openWizard(settings);
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
-  await user.click(await screen.findByRole("button", { name: /Next: Notes/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(cardsToImportPattern);
   await user.click(await screen.findByRole("button", { name: "Import" }));
   await screen.findByText(createdPattern);
@@ -247,7 +258,9 @@ test("given a custom model mapping when the import runs then the note is created
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
   await selectTarget(1, "Back", user);
-  await user.click(await screen.findByRole("button", { name: /Next: Notes/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(cardsToImportPattern);
 
   // when
@@ -266,7 +279,9 @@ test("given a note that vanished from Anki when the import finishes then the pac
   const { app } = openWizard(settings);
   await openFieldsPage("Languages", user);
   await selectTarget(0, "Front", user);
-  await user.click(await screen.findByRole("button", { name: /Next: Notes/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(cardsToImportPattern);
 
   // when
@@ -291,11 +306,15 @@ test("given a mapping chosen for a deck when another deck is selected and the fi
   // when
   await user.click(await screen.findByRole("button", { name: /Back/ }));
   await user.click(await screen.findByRole("radio", { name: /Capitals/ }));
-  await user.click(await screen.findByRole("button", { name: /Next: Fields/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(/Map fields for deck "Capitals"/);
   await user.click(await screen.findByRole("button", { name: /Back/ }));
   await user.click(await screen.findByRole("radio", { name: /Languages/ }));
-  await user.click(await screen.findByRole("button", { name: /Next: Fields/ }));
+  await user.click(
+    await screen.findByRole("button", { name: t("wizard.next") }),
+  );
   await screen.findByText(/Map fields for deck "Languages"/);
   const targets = mappingTargets();
 

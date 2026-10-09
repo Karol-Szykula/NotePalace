@@ -224,7 +224,6 @@ export function ExportTransferWizard({
         }
       }}
       onCancel={onCancel}
-      onFinish={() => undefined}
       pages={pages}
     />
   );
