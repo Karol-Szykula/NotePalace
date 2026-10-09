@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { Button } from "src/gui/components/Button";
 import { t } from "src/i18n";
 import { footerClasses } from "../classes/common";
 
@@ -30,17 +31,13 @@ function FooterButtonGroup({ buttons }: FooterButtonGroupProps) {
   return (
     <>
       {buttons.map((button) => (
-        <button
-          disabled={button.disabled ?? false}
+        <Button
+          disabled={button.disabled}
           key={button.label}
-          onClick={() => {
-            if (!button.disabled) {
-              button.onClick();
-            }
-          }}
+          onClick={button.onClick}
         >
           {button.label}
-        </button>
+        </Button>
       ))}
     </>
   );
@@ -61,21 +58,21 @@ export function Footer({
       </div>
       {isPaginationVisible && (
         <div className={footerClasses.footerCenter}>
-          <button
+          <Button
             disabled={pagination.currentPage === 0}
             onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
           >
             {t("wizard.prevPage")}
-          </button>
+          </Button>
           <span className={footerClasses.pageIndicator}>
             {pagination.currentPage + 1} / {pagination.totalPages}
           </span>
-          <button
+          <Button
             disabled={pagination.currentPage >= pagination.totalPages - 1}
             onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
           >
             {t("wizard.nextPage")}
-          </button>
+          </Button>
         </div>
       )}
       <div className={footerClasses.footerRight}>
