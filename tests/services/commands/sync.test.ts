@@ -6,6 +6,7 @@
 import "obsidian-test-mocks/jest-setup";
 import { App, TFile } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
+import { t } from "src/i18n";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { Anki } from "src/services/anki/anki";
 import { computeContentHash } from "src/services/notes/content-hash";
@@ -765,8 +766,16 @@ describe("formatSyncReport", () => {
 
     // then
     expect(text).toContain(
-      "Sync: 3 refreshed, 2 pushed, 4 up to date, 1 missing, 5 deleted, " +
-        "6 records forgotten, 7 enrolled, 0 skipped without pack",
+      t("sync.summary", {
+        refreshed: 3,
+        pushed: 2,
+        upToDate: 4,
+        missing: 1,
+        deleted: 5,
+        purgedRecords: 6,
+        enrolled: 7,
+        skippedUnmapped: 0,
+      }),
     );
     expect(text).toContain("Languages");
   });

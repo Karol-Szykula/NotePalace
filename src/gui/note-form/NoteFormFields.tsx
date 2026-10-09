@@ -1,5 +1,6 @@
 import { useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { noteFormClasses } from "src/gui/note-form/classes";
 import type { NoteShape } from "src/entities/note-shapes";
 import type { NoteFormData, NoteFormEdit } from "src/entities/note-form-data";
@@ -32,7 +33,7 @@ export function NoteFormFields({
           className={noteFormClasses.label}
           htmlFor={`note-form-${shape.primaryKey}`}
         >
-          {shape.primaryLabel}
+          {t(shape.primaryLabelKey)}
         </label>
         <textarea
           className={noteFormClasses.input}
@@ -48,7 +49,7 @@ export function NoteFormFields({
           className={noteFormClasses.label}
           htmlFor={`note-form-${shape.secondaryKey}`}
         >
-          {shape.secondaryLabel}
+          {t(shape.secondaryLabelKey)}
         </label>
         <textarea
           className={noteFormClasses.input}
@@ -61,7 +62,7 @@ export function NoteFormFields({
       </div>
       <div className={noteFormClasses.field}>
         <label className={noteFormClasses.label} htmlFor="note-form-tags">
-          Tags
+          {t("noteForm.tags")}
         </label>
         <input
           className={noteFormClasses.input}

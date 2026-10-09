@@ -3,6 +3,7 @@ import type {
   NoteLifecycleStatus,
 } from "src/services/notes/lifecycle";
 import { NOTE_LIFECYCLE_STATUSES } from "src/services/notes/lifecycle";
+import { resolveMessage, type MessageKey } from "src/i18n/messages";
 
 export const OUT_OF_SCOPE = "OUT_OF_SCOPE";
 
@@ -27,18 +28,18 @@ type ForceWinner = "anki" | "none" | "obsidian";
 export interface SyncDecisionRow {
   act: SyncDecisionAct;
   forcedAct?: SyncDecisionAct;
-  forcedOutcome?: string;
+  forcedOutcomeKey?: MessageKey;
   kind: OutcomeKind;
-  rationale: string;
+  rationaleKey: MessageKey;
   responsibleComponent: ResponsibleComponent;
 }
 
 interface CommandRule {
   readonly act: SyncDecisionAct;
   readonly forcedAct?: SyncDecisionAct;
-  readonly forcedOutcome?: string;
+  readonly forcedOutcome?: MessageKey;
   readonly kind: OutcomeKind;
-  readonly rationale: string;
+  readonly rationale: MessageKey;
 }
 interface CanonicalDecision {
   readonly export: CommandRule;
@@ -48,21 +49,16 @@ interface CanonicalDecision {
   readonly sync: CommandRule;
 }
 
-const enrolsSameFile =
-  "Has an id but no record: enrols it, rewrites the same file.";
-
-const staleRecord = "Only a stale record left: Purge ledger forgets it.";
-
 const forceWinnerByCommand: Record<SyncCommand, ForceWinner> = {
   export: "obsidian",
   import: "anki",
   sync: "none",
 };
 
-const forceWinnerLabel: Record<ForceWinner, string> = {
-  anki: "Anki wins",
-  none: "no force",
-  obsidian: "Obsidian wins",
+const forceWinnerLabelKey: Record<ForceWinner, MessageKey> = {
+  anki: "force.ankiWins",
+  none: "force.none",
+  obsidian: "force.obsidianWins",
 };
 
 const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
@@ -72,17 +68,17 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: OUT_OF_SCOPE,
       kind: "create",
-      rationale: "Anki only: the import wizard brings it in.",
+      rationale: "decision.ankiOnly.neverImported.export.rationale",
     },
     import: {
       act: "IMPORT",
       kind: "create",
-      rationale: "Anki only: creates the file.",
+      rationale: "decision.ankiOnly.neverImported.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "create",
-      rationale: "Untracked Anki note: counted as needing import.",
+      rationale: "decision.ankiOnly.neverImported.sync.rationale",
     },
   },
   "ankiOnly.fileDeleted": {
@@ -91,19 +87,19 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: "File gone: Sync decides, nothing to push.",
+      rationale: "decision.ankiOnly.fileDeleted.export.rationale",
     },
     import: {
       act: OUT_OF_SCOPE,
       forcedAct: "RESURRECT",
-      forcedOutcome: "re-creates the file you deleted.",
+      forcedOutcome: "decision.ankiOnly.fileDeleted.import.forcedOutcome",
       kind: "missing",
-      rationale: "File gone: Sync decides, Anki wins re-creates it.",
+      rationale: "decision.ankiOnly.fileDeleted.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: "No file: the purge path handles it outside this table.",
+      rationale: "decision.ankiOnly.fileDeleted.sync.rationale",
     },
   },
   "synced.clean": {
@@ -112,18 +108,18 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: "CHECK",
       kind: "quiet",
-      rationale: "Both sides match: nothing to write.",
+      rationale: "decision.synced.clean.export.rationale",
     },
     import: {
       act: "CHECK",
-      forcedOutcome: "rewrites the same content.",
+      forcedOutcome: "decision.synced.clean.import.forcedOutcome",
       kind: "quiet",
-      rationale: "Both sides match: rewrites nothing.",
+      rationale: "decision.synced.clean.import.rationale",
     },
     sync: {
       act: "CHECK",
       kind: "quiet",
-      rationale: "Both sides match: nothing to do.",
+      rationale: "decision.synced.clean.sync.rationale",
     },
   },
   "synced.ankiNewer": {
@@ -132,19 +128,19 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: OUT_OF_SCOPE,
       forcedAct: "FORCE_PUSH",
-      forcedOutcome: "overwrites Anki.",
+      forcedOutcome: "decision.synced.ankiNewer.export.forcedOutcome",
       kind: "skip",
-      rationale: "Newer in Anki: skipped, use Sync.",
+      rationale: "decision.synced.ankiNewer.export.rationale",
     },
     import: {
       act: "PULL",
       kind: "overwrite",
-      rationale: "Newer in Anki: overwrites your file.",
+      rationale: "decision.synced.ankiNewer.import.rationale",
     },
     sync: {
       act: "PULL",
       kind: "overwrite",
-      rationale: "Newer in Anki: refreshes the vault file.",
+      rationale: "decision.synced.ankiNewer.sync.rationale",
     },
   },
   "synced.vaultNewer": {
@@ -153,19 +149,19 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: "PUSH",
       kind: "overwrite",
-      rationale: "Newer in Obsidian: pushes to Anki.",
+      rationale: "decision.synced.vaultNewer.export.rationale",
     },
     import: {
       act: OUT_OF_SCOPE,
       forcedAct: "FORCE_PULL",
-      forcedOutcome: "overwrites your newer edits.",
+      forcedOutcome: "decision.synced.vaultNewer.import.forcedOutcome",
       kind: "skip",
-      rationale: "Newer in Obsidian: skipped, use Sync.",
+      rationale: "decision.synced.vaultNewer.import.rationale",
     },
     sync: {
       act: "PUSH",
       kind: "overwrite",
-      rationale: "Newer in Obsidian: pushes to Anki.",
+      rationale: "decision.synced.vaultNewer.sync.rationale",
     },
   },
   "synced.diverged": {
@@ -174,21 +170,21 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: OUT_OF_SCOPE,
       forcedAct: "FORCE_PUSH",
-      forcedOutcome: "overwrites Anki.",
+      forcedOutcome: "decision.synced.diverged.export.forcedOutcome",
       kind: "conflict",
-      rationale: "Edited in both: skipped, use Sync.",
+      rationale: "decision.synced.diverged.export.rationale",
     },
     import: {
       act: OUT_OF_SCOPE,
       forcedAct: "FORCE_PULL",
-      forcedOutcome: "overwrites your newer edits.",
+      forcedOutcome: "decision.synced.diverged.import.forcedOutcome",
       kind: "conflict",
-      rationale: "Edited in both: newest wins on Sync.",
+      rationale: "decision.synced.diverged.import.rationale",
     },
     sync: {
       act: "RESOLVE_NEWEST",
       kind: "conflict",
-      rationale: "Edited in both: the newer side wins.",
+      rationale: "decision.synced.diverged.sync.rationale",
     },
   },
   "linked.unenrolled": {
@@ -197,17 +193,17 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: "ENROLL",
       kind: "quiet",
-      rationale: "Has an id but no record: enrols it, writes nothing.",
+      rationale: "decision.linked.unenrolled.export.rationale",
     },
     import: {
       act: "ENROLL",
       kind: "quiet",
-      rationale: enrolsSameFile,
+      rationale: "decision.linked.unenrolled.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "quiet",
-      rationale: "Enrolling is the wizards' job.",
+      rationale: "decision.linked.unenrolled.sync.rationale",
     },
   },
   "vaultOnly.unexported": {
@@ -216,17 +212,17 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: "EXPORT",
       kind: "create",
-      rationale: "Vault only: creates the Anki note, writes the id back.",
+      rationale: "decision.vaultOnly.unexported.export.rationale",
     },
     import: {
       act: OUT_OF_SCOPE,
       kind: "create",
-      rationale: "Vault only: the export wizard creates it.",
+      rationale: "decision.vaultOnly.unexported.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "create",
-      rationale: "Vault only: the export wizard creates it.",
+      rationale: "decision.vaultOnly.unexported.sync.rationale",
     },
   },
   "vaultOnly.unenrolled": {
@@ -235,17 +231,17 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: "ENROLL",
       kind: "quiet",
-      rationale: "Has an id but no record: enrols it, writes nothing.",
+      rationale: "decision.vaultOnly.unenrolled.export.rationale",
     },
     import: {
       act: "ENROLL",
       kind: "quiet",
-      rationale: enrolsSameFile,
+      rationale: "decision.vaultOnly.unenrolled.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "quiet",
-      rationale: "Enrolling is the wizards' job.",
+      rationale: "decision.vaultOnly.unenrolled.sync.rationale",
     },
   },
   "vaultOnly.ankiDeleted": {
@@ -254,19 +250,19 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: OUT_OF_SCOPE,
       forcedAct: "EXPORT",
-      forcedOutcome: "re-creates it in Anki.",
+      forcedOutcome: "decision.vaultOnly.ankiDeleted.export.forcedOutcome",
       kind: "missing",
-      rationale: "Gone from Anki: Sync applies the deletion.",
+      rationale: "decision.vaultOnly.ankiDeleted.export.rationale",
     },
     import: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: "Gone from Anki: Sync deletes the file.",
+      rationale: "decision.vaultOnly.ankiDeleted.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: "Gone from Anki: the purge path handles it.",
+      rationale: "decision.vaultOnly.ankiDeleted.sync.rationale",
     },
   },
   orphaned: {
@@ -275,40 +271,51 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
     export: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: staleRecord,
+      rationale: "decision.orphaned.export.rationale",
     },
     import: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: staleRecord,
+      rationale: "decision.orphaned.import.rationale",
     },
     sync: {
       act: OUT_OF_SCOPE,
       kind: "missing",
-      rationale: staleRecord,
+      rationale: "decision.orphaned.sync.rationale",
     },
   },
 };
 
-function forceLabelFor(command: SyncCommand): string {
-  return forceWinnerLabel[forceWinnerByCommand[command]];
+function forceLabelText(command: SyncCommand): string {
+  return resolveMessage(
+    "en",
+    forceWinnerLabelKey[forceWinnerByCommand[command]],
+  );
 }
 
-function renderForcedOutcome(outcome: string, command: SyncCommand): string {
-  return `${forceLabelFor(command)}: ${outcome}`;
+function forcedOutcomeText(
+  command: SyncCommand,
+  row: SyncDecisionRow,
+): string | undefined {
+  if (row.forcedOutcomeKey === undefined) {
+    return undefined;
+  }
+  return resolveMessage("en", "force.outcome", {
+    force: forceLabelText(command),
+    outcome: resolveMessage("en", row.forcedOutcomeKey),
+  });
 }
 
 function forcedActOf(rule: CommandRule): Pick<SyncDecisionRow, "forcedAct"> {
   return rule.forcedAct === undefined ? {} : { forcedAct: rule.forcedAct };
 }
 
-function forcedOutcomeOf(
+function forcedOutcomeKeyOf(
   rule: CommandRule,
-  command: SyncCommand,
-): Pick<SyncDecisionRow, "forcedOutcome"> {
+): Pick<SyncDecisionRow, "forcedOutcomeKey"> {
   return rule.forcedOutcome === undefined
     ? {}
-    : { forcedOutcome: renderForcedOutcome(rule.forcedOutcome, command) };
+    : { forcedOutcomeKey: rule.forcedOutcome };
 }
 
 function deriveRow(
@@ -319,10 +326,10 @@ function deriveRow(
   return {
     act: rule.act,
     ...forcedActOf(rule),
-    ...forcedOutcomeOf(rule, command),
+    ...forcedOutcomeKeyOf(rule),
     kind: rule.kind,
+    rationaleKey: rule.rationale,
     responsibleComponent: canonical.responsibleComponent,
-    rationale: rule.rationale,
   };
 }
 
@@ -389,16 +396,16 @@ export function resolveCommandDecision(
   };
 }
 
-function whyOf(row: SyncDecisionRow): string {
-  return row.forcedOutcome === undefined
-    ? row.rationale
-    : `${row.rationale} Forced: ${row.forcedOutcome}`;
+function whyOf(row: SyncDecisionRow, command: SyncCommand): string {
+  const rationale = resolveMessage("en", row.rationaleKey);
+  const forced = forcedOutcomeText(command, row);
+  return forced === undefined ? rationale : `${rationale} Forced: ${forced}`;
 }
 
 function forceCellOf(row: SyncDecisionRow, command: SyncCommand): string {
   return row.forcedAct === undefined
     ? ""
-    : `<br/>**Force:** ${row.forcedAct} (${forceLabelFor(command)})`;
+    : `<br/>**Force:** ${row.forcedAct} (${forceLabelText(command)})`;
 }
 
 function forcedPartOf(row: SyncDecisionRow): string {
@@ -421,7 +428,7 @@ export function syncDecisionTableMarkdown(): string {
       return [
         `\`${actOf(row)}\`${forcedPartOf(row)}`,
         `${row.kind} · ${row.responsibleComponent}${forceCellOf(row, command)}`,
-        whyOf(row).replace(/\n/g, " "),
+        whyOf(row, command).replace(/\n/g, " "),
       ].join("<br/>");
     });
     return `| \`${status}\` | ${cells.join(" | ")} |`;
@@ -433,20 +440,21 @@ export function syncDecisionTableMarkdown(): string {
 function commandRowMarkdown(
   status: NoteLifecycleStatus,
   row: SyncDecisionRow,
+  command: SyncCommand,
 ): string {
   const forced = row.forcedAct ?? "—";
-  return `| \`${status}\` | \`${row.kind}\` | \`${actOf(row)}\` | \`${forced}\` | \`${row.responsibleComponent}\` | ${whyOf(row)} |`;
+  return `| \`${status}\` | \`${row.kind}\` | \`${actOf(row)}\` | \`${forced}\` | \`${row.responsibleComponent}\` | ${whyOf(row, command)} |`;
 }
 
 export function syncDecisionTableMarkdownCommandCentric(): string {
   const sections: string[] = [];
   for (const command of SYNC_COMMANDS) {
     const rows = NOTE_LIFECYCLE_STATUSES.map((status) =>
-      commandRowMarkdown(status, decisions[command][status]),
+      commandRowMarkdown(status, decisions[command][status], command),
     );
     sections.push(
       [
-        `### ${command} (force: ${forceLabelFor(command)})`,
+        `### ${command} (force: ${forceLabelText(command)})`,
         "",
         "| state | kind | default | forced | responsibleComponent | why |",
         "| --- | --- | --- | --- | --- | --- |",
@@ -475,12 +483,12 @@ function cellContent(row: SyncDecisionRow, command: SyncCommand): string {
   const forcedInfo =
     row.forcedAct === undefined
       ? ""
-      : `<br/>force: ${row.forcedAct} (${forceLabelFor(command)})`;
+      : `<br/>force: ${row.forcedAct} (${forceLabelText(command)})`;
   const actSymbol = row.act === OUT_OF_SCOPE ? "\u2014" : row.act;
   const forcedPart =
     row.forcedAct === undefined ? "" : ` / ${row.forcedAct} (force)`;
   const base = `${actSymbol}${forcedPart}<br/>${row.kind} \u00b7 ${row.responsibleComponent}`;
-  const content = `${base}${forcedInfo}<br/>${whyOf(row).replace(/\n/g, " ")}`;
+  const content = `${base}${forcedInfo}<br/>${whyOf(row, command).replace(/\n/g, " ")}`;
   return escapeForMermaid(content);
 }
 

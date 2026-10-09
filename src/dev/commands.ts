@@ -1,6 +1,7 @@
 import { Notice } from "obsidian";
 import type { App, Command } from "obsidian";
 import { noticeTimeout } from "src/conf/constants";
+import { t } from "src/i18n";
 import type { ISettings } from "src/conf/settings";
 import { ResetConfirmModal } from "src/gui/dev/reset-confirm-modal";
 import { formatResetReport, resetPluginData } from "src/dev/reset-data";
@@ -16,7 +17,7 @@ interface DevCommandHost {
 export function registerDevCommands(plugin: DevCommandHost): void {
   plugin.addCommand({
     id: "dev-reset-plugin-data",
-    name: "Dev: reset plugin data",
+    name: t("dev.resetCommand"),
     callback: () => {
       new ResetConfirmModal(plugin.app, () => {
         void runPluginDataReset(plugin);
@@ -31,6 +32,9 @@ async function runPluginDataReset(plugin: DevCommandHost): Promise<void> {
     await plugin.saveData(plugin.settings);
     new Notice(formatResetReport(report), noticeTimeout);
   } catch (error) {
-    new Notice(`Reset failed: ${describeUnknown(error)}`, noticeTimeout);
+    new Notice(
+      t("notice.resetFailed", { error: describeUnknown(error) }),
+      noticeTimeout,
+    );
   }
 }

@@ -1,5 +1,6 @@
 import type { App } from "obsidian";
 import { Notice, PluginSettingTab, Setting } from "obsidian";
+import { t } from "src/i18n";
 import { Anki } from "src/services/anki/anki";
 import { logger } from "src/services/logger";
 import type NotePalace from "../../main";
@@ -20,55 +21,53 @@ export class SettingsTab extends PluginSettingTab {
 
     const description = createFragment();
     description.append(
-      "This needs to be done only one time. Open Anki and click the button to grant permission.",
+      t("settings.permissionDesc"),
       createEl("br"),
-      "Be aware that AnkiConnect must be installed.",
+      t("settings.permissionDescSecondLine"),
     );
 
     new Setting(containerEl)
-      .setName("Give Permission")
+      .setName(t("settings.givePermission"))
       .setDesc(description)
       .addButton((button) => {
-        button.setButtonText("Grant Permission").onClick(() => {
+        button.setButtonText(t("settings.grantPermission")).onClick(() => {
           new Anki()
             .requestPermission()
             .then((result) => {
               if (result.permission === "granted") {
                 plugin.settings.ankiConnectPermission = true;
                 void plugin.saveData(plugin.settings);
-                new Notice("Anki Connect permission granted");
+                new Notice(t("notice.permissionGranted"));
               } else {
-                new Notice("AnkiConnect permission not granted");
+                new Notice(t("notice.permissionNotGranted"));
               }
             })
             .catch((error: unknown) => {
-              new Notice("Something went wrong, is Anki open?");
+              new Notice(t("notice.ankiError"));
               logger.error("requesting AnkiConnect permission failed", error);
             });
         });
       });
 
     new Setting(containerEl)
-      .setName("Test Anki")
-      .setDesc("Test that connection between Anki and Obsidian actually works.")
+      .setName(t("settings.testAnki"))
+      .setDesc(t("settings.testDesc"))
       .addButton((text) => {
-        text.setButtonText("Test").onClick(() => {
+        text.setButtonText(t("settings.testButton")).onClick(() => {
           new Anki()
             .ping()
-            .then(() => new Notice("Anki works"))
-            .catch(() => new Notice("Anki is not connected"));
+            .then(() => new Notice(t("notice.ankiWorks")))
+            .catch(() => new Notice(t("notice.ankiNotConnectedShort")));
         });
       });
 
     new Setting(containerEl)
-      .setName("Ignored directories")
-      .setDesc(
-        "Comma-separated list of directories to skip when generating cards (e.g. templates, daily-notes).",
-      )
+      .setName(t("settings.ignoredDirectories"))
+      .setDesc(t("settings.ignoredDesc"))
       .addText((text) => {
         text
           .setValue(plugin.settings.ignoredDirectories)
-          .setPlaceholder("templates, daily-notes")
+          .setPlaceholder(t("settings.ignoredPlaceholder"))
           .onChange((value) => {
             plugin.settings.ignoredDirectories = value;
             void plugin.saveData(plugin.settings);

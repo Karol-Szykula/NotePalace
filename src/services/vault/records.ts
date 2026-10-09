@@ -1,4 +1,5 @@
 import type { Vault } from "obsidian";
+import { t } from "src/i18n";
 import type { ISettings } from "src/conf/settings";
 import {
   collectVaultNoteIndex,
@@ -79,8 +80,17 @@ export async function forgetRecordsWithoutFiles(
 
 export function formatPurgeLedgerReport(report: PurgeLedgerReport): string {
   const outOfScope =
-    report.outOfScope > 0 ? `, ${report.outOfScope} in ignored folders` : "";
+    report.outOfScope > 0
+      ? t("report.purgeOutOfScope", { count: report.outOfScope })
+      : "";
   const unreadable =
-    report.unreadable > 0 ? `, ${report.unreadable} unreadable` : "";
-  return `Ledger: forgot ${report.forgotten} records (the import wizard will offer the ones Anki still has as new), kept ${report.kept}${outOfScope}${unreadable}.`;
+    report.unreadable > 0
+      ? t("report.purgeUnreadable", { count: report.unreadable })
+      : "";
+  return t("report.purgeLedger", {
+    forgotten: report.forgotten,
+    kept: report.kept,
+    outOfScope,
+    unreadable,
+  });
 }

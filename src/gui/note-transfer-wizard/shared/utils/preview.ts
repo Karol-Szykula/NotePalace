@@ -1,8 +1,6 @@
-import type {
-  OutcomeKind,
-  SyncDecisionRow,
-} from "src/services/notes/decision-table";
+import type { OutcomeKind } from "src/services/notes/decision-table";
 import type { NotePreviewStatus } from "src/services/notes/lifecycle";
+import { plural, t } from "src/i18n";
 
 export interface PreviewBadgeClasses {
   readonly badgeImported: string;
@@ -31,26 +29,23 @@ export function previewBadgeClass(
 }
 
 export function resolveBadgeText(
-  row: SyncDecisionRow,
   isForced: boolean,
+  forcedOutcome: string | undefined,
   fallback: string,
 ): string {
-  if (isForced && row.forcedOutcome !== undefined) {
-    return row.forcedOutcome;
-  }
-  return fallback;
+  return isForced && forcedOutcome !== undefined ? forcedOutcome : fallback;
 }
 
 export function countNotes(count: number): string {
-  return count === 1 ? "1 note" : `${count} notes`;
+  return plural("preview.noteCount", count);
 }
 
 export function selectionNoticeText(reasons: string[], action: string): string {
-  return `Nothing is selected yet: ${reasons.join(", ")}. ${action}`;
+  return t("preview.selectionNotice", { reasons: reasons.join(", "), action });
 }
 
 export function recreateWarning(count: number, location: string): string {
-  return `This re-creates ${countNotes(count)} you deleted in ${location}.`;
+  return plural("preview.recreatedWarning", count, { location });
 }
 
 export const previewStatusOrder: NotePreviewStatus[] = [

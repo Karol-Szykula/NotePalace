@@ -1,10 +1,10 @@
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
+import type { MessageKey } from "src/i18n/messages";
+import { t } from "src/i18n";
 
-const bannerByStatus: Partial<Record<NoteLifecycleStatus, string>> = {
-  "synced.diverged":
-    "Edited in both Anki and Obsidian — the newest version wins on sync.",
-  "vaultOnly.ankiDeleted":
-    "Deleted in Anki — sync will remove this note from the vault.",
+const bannerKeyByStatus: Partial<Record<NoteLifecycleStatus, MessageKey>> = {
+  "synced.diverged": "banners.diverged",
+  "vaultOnly.ankiDeleted": "banners.ankiDeleted",
 };
 
 export function bannerForStatus(
@@ -13,5 +13,6 @@ export function bannerForStatus(
   if (status === undefined) {
     return undefined;
   }
-  return bannerByStatus[status];
+  const key = bannerKeyByStatus[status];
+  return key === undefined ? undefined : t(key);
 }

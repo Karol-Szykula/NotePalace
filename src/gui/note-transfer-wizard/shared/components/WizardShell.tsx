@@ -1,5 +1,6 @@
 import { useMemo, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { PageIndicator } from "./PageIndicator";
 import { Footer } from "./Footer";
 import { useWizardNavigation } from "../hooks/useWizardNavigation";
@@ -76,9 +77,9 @@ export function WizardShell<Context>({
   const followingPage = pages[currentPage];
   let defaultNextLabel: string | undefined;
   if (currentPage < pages.length - 1 && followingPage) {
-    defaultNextLabel = `Next: ${followingPage.title} →`;
+    defaultNextLabel = t("wizard.next", { title: followingPage.title });
   } else if (currentPage === pages.length - 1) {
-    defaultNextLabel = "Finish";
+    defaultNextLabel = t("wizard.finish");
   }
   const nextLabel = customNextLabel ?? defaultNextLabel;
 
@@ -88,7 +89,7 @@ export function WizardShell<Context>({
     disabled?: boolean;
   }[] = [];
   if (currentPage > 1 && currentPage < pages.length) {
-    rightButtons.push({ label: "← Back", onClick: goToPrevPage });
+    rightButtons.push({ label: t("wizard.back"), onClick: goToPrevPage });
   }
   if (nextLabel !== undefined && currentPage < pages.length) {
     rightButtons.push({
@@ -98,7 +99,7 @@ export function WizardShell<Context>({
     });
   }
   if (currentPage === pages.length) {
-    rightButtons.push({ label: "OK", onClick: onCancel });
+    rightButtons.push({ label: t("wizard.ok"), onClick: onCancel });
   }
 
   return (
@@ -109,7 +110,7 @@ export function WizardShell<Context>({
         leftButtons={
           currentPage === pages.length
             ? []
-            : [{ label: "Cancel", onClick: onCancel }]
+            : [{ label: t("wizard.cancel"), onClick: onCancel }]
         }
         pagination={getPagination?.(currentPage)}
         rightButtons={rightButtons}

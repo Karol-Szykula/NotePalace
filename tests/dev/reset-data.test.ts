@@ -12,6 +12,7 @@ import { loadPack, notePackVersion, savePack } from "src/services/notes/packs";
 import type { NotePack } from "src/services/notes/packs";
 import { syncedCleanRecord } from "src/services/notes/lifecycle";
 import { formatResetReport, resetPluginData } from "src/dev/reset-data";
+import { t } from "src/i18n";
 import { createSettings } from "../helpers/settings";
 
 function mockVault(files: Record<string, string> = {}): ObsidianVault {
@@ -36,9 +37,9 @@ function customPack(): NotePack {
       layout: "basic",
       model: "My Model",
       primaryKey: "front",
-      primaryLabel: "Front",
+      primaryLabelKey: "noteForm.front",
       secondaryKey: "back",
-      secondaryLabel: "Back",
+      secondaryLabelKey: "noteForm.back",
     },
   };
 }
@@ -149,10 +150,14 @@ describe("formatResetReport", () => {
     const message = formatResetReport(report);
 
     // then
-    expect(message).toContain("12 note records");
-    expect(message).toContain("3 deck snapshots");
-    expect(message).toContain("4 field mappings");
-    expect(message).toContain("5 note packs");
+    expect(message).toBe(
+      t("dev.resetReport", {
+        records: 12,
+        snapshots: 3,
+        mappings: 4,
+        packs: 5,
+      }),
+    );
   });
 
   test("given a reset report when formatted then it says Anki and the notes are untouched", () => {

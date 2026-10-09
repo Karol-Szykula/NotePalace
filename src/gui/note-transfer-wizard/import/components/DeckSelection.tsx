@@ -1,5 +1,6 @@
 import { useEffect, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
+import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import type { Anki } from "src/services/anki/anki";
 import type { VaultNoteIndex } from "src/services/vault/vault";
@@ -131,7 +132,7 @@ export function DeckSelection({
         }
       } catch {
         if (isLive()) {
-          setLoadError("Error: Anki must be open with AnkiConnect installed.");
+          setLoadError(t("errors.ankiNotConnected"));
         }
       }
     });
@@ -150,21 +151,21 @@ export function DeckSelection({
   if (decks === null) {
     return (
       <div className={rootClassName}>
-        <p>Connecting to Anki…</p>
+        <p>{t("deck.connecting")}</p>
       </div>
     );
   }
   if (!decks.length) {
     return (
       <div className={rootClassName}>
-        <p>No decks found in Anki.</p>
+        <p>{t("deck.noDecksInAnki")}</p>
       </div>
     );
   }
   return (
     <div className={rootClassName}>
       <DeckList
-        alreadySyncedTooltip="Already in Obsidian"
+        alreadySyncedTooltip={t("deck.alreadyInObsidian")}
         getRowClassName={(_item, isDisabled) =>
           mergeClasses(
             scopeSelectionClasses.scopeRow,
@@ -178,7 +179,7 @@ export function DeckSelection({
         )}
         labelClassName={scopeSelectionClasses.scopeLabelText}
         onSelect={onSelectDeckName}
-        prompt="Select a deck to import:"
+        prompt={t("deck.selectImportPrompt")}
         selectedName={selectedDeckName}
       />
     </div>

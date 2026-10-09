@@ -2,6 +2,7 @@ import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, Vault } from "obsidian";
 import { createElement, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
+import { t } from "src/i18n";
 import { BasicNoteForm } from "src/gui/note-form/BasicNoteForm";
 import { ClozeNoteForm } from "src/gui/note-form/ClozeNoteForm";
 import { bannerForStatus } from "src/gui/note-form/banners";
@@ -42,8 +43,6 @@ export class NoteFormChild extends MarkdownRenderChild {
   }
 }
 
-const invalidBlockMessage = "Invalid note-form block";
-
 function componentForLayout(layout: NoteFormLayout) {
   return layout === "cloze" ? ClozeNoteForm : BasicNoteForm;
 }
@@ -51,7 +50,7 @@ function componentForLayout(layout: NoteFormLayout) {
 function renderFormError(el: HTMLElement): void {
   const error = document.createElement("div");
   error.className = noteFormClasses.error;
-  error.textContent = invalidBlockMessage;
+  error.textContent = t("noteForm.invalidBlock");
   el.appendChild(error);
 }
 

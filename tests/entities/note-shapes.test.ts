@@ -10,9 +10,9 @@ describe("noteShapeFor", () => {
       layout: "basic",
       model: "Basic",
       primaryKey: "front",
-      primaryLabel: "Front",
+      primaryLabelKey: "noteForm.front",
       secondaryKey: "back",
-      secondaryLabel: "Back",
+      secondaryLabelKey: "noteForm.back",
     });
   });
 
@@ -25,9 +25,9 @@ describe("noteShapeFor", () => {
       layout: "cloze",
       model: "Cloze",
       primaryKey: "text",
-      primaryLabel: "Text",
+      primaryLabelKey: "noteForm.text",
       secondaryKey: "back_extra",
-      secondaryLabel: "Back Extra",
+      secondaryLabelKey: "noteForm.backExtra",
     });
   });
 

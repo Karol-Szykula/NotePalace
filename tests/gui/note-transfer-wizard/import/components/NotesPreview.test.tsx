@@ -17,12 +17,24 @@ import { computeContentHash } from "src/services/notes/content-hash";
 import { syncedCleanRecord } from "src/services/notes/lifecycle";
 import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 import { AnkiConnectMock } from "../../../../mocks/anki-connect";
+import { messagePattern } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
+import { t } from "src/i18n";
 
 AnkiConnectMock.install();
 
 beforeEach(() => {
   AnkiConnectMock.reset();
 });
+
+const ankiWinsFileDeleted = t("force.outcome", {
+  force: t("force.ankiWins"),
+  outcome: t("decision.ankiOnly.fileDeleted.import.forcedOutcome"),
+});
+const ankiWinsVaultNewer = t("force.outcome", {
+  force: t("force.ankiWins"),
+  outcome: t("decision.synced.vaultNewer.import.forcedOutcome"),
+});
+const bulkAnkiFour = t("preview.bulkAnki").replace("X", "4");
 
 function previewNote(noteId: number, mod: number, front: string) {
   return {
@@ -198,7 +210,9 @@ describe("NotesPreview", () => {
     const { onNotesSelectedToImportChange } = await renderPreview();
 
     // when
-    await screen.findByText(/newer in Obsidian/i);
+    await screen.findByText(
+      messagePattern("decision.synced.vaultNewer.import.rationale"),
+    );
 
     // then
     expect(onNotesSelectedToImportChange).toHaveBeenCalledWith({
@@ -218,7 +232,7 @@ describe("NotesPreview", () => {
 
     // when
     const warning = await screen.findByText(
-      /newer in Anki.*overwrites your file/i,
+      messagePattern("decision.synced.ankiNewer.import.rationale"),
     );
 
     // then
@@ -231,7 +245,9 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const badge = await screen.findByText(/creates the file/i);
+    const badge = await screen.findByText(
+      messagePattern("decision.ankiOnly.neverImported.import.rationale"),
+    );
 
     // then
     expect(badge).toBeInTheDocument();
@@ -251,7 +267,9 @@ describe("NotesPreview", () => {
     });
 
     // when
-    const badge = await screen.findByText(/enrols it, rewrites the same file/i);
+    const badge = await screen.findByText(
+      messagePattern("decision.linked.unenrolled.import.rationale"),
+    );
 
     // then
     expect(badge).toBeInTheDocument();
@@ -264,7 +282,7 @@ describe("NotesPreview", () => {
 
     // when
     const badge = await screen.findByText(
-      /edited in both.*newest wins on sync/i,
+      messagePattern("decision.synced.diverged.import.rationale"),
     );
 
     // then
@@ -278,7 +296,9 @@ describe("NotesPreview", () => {
 
     // when
     const badge = await screen.findByText(
-      /rewrites nothing.*Up to date-101\.md/i,
+      new RegExp(
+        `${messagePattern("decision.synced.clean.import.rationale").source} \\(Up to date-101\\.md\\)`,
+      ),
     );
 
     // then
@@ -291,7 +311,9 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const leftToSync = await screen.findByText(/no file.*Sync decides/i);
+    const leftToSync = await screen.findByText(
+      messagePattern("preview.idNowhereInVault"),
+    );
 
     // then
     expect(leftToSync).not.toBeNull();
@@ -310,7 +332,9 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const badge = await screen.findByText(/no file.*nowhere in the vault/i);
+    const badge = await screen.findByText(
+      messagePattern("preview.idNowhereInVault"),
+    );
 
     // then
     expect(badge).toBeInTheDocument();
@@ -330,7 +354,7 @@ describe("NotesPreview", () => {
 
     // when
     const badge = await screen.findByText(
-      /no file.*no readable note-form block/i,
+      messagePattern("preview.noReadableBlock"),
     );
 
     // then
@@ -353,9 +377,11 @@ describe("NotesPreview", () => {
     const hint = await screen.findByText(/nothing is selected/i);
 
     // then
-    expect(hint.textContent).toMatch(/1 note with no file in Obsidian/i);
+    expect(hint.textContent).toMatch(messagePattern("preview.noFileShort"));
     expect(
-      screen.getByText(/re-creates 1 note you deleted in Obsidian/i),
+      screen.getByText(
+        messagePattern("preview.recreatedWarning.one", "Obsidian"),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -369,7 +395,7 @@ describe("NotesPreview", () => {
     const toggle = within(previewRow("Missing file card")).getByRole(
       "checkbox",
       {
-        name: /re-creates the file you deleted/i,
+        name: ankiWinsFileDeleted,
       },
     );
 
@@ -391,7 +417,7 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const row = await screen.findByText(/Anki wins.*re-creates the file/i);
+    const row = await screen.findByText(ankiWinsFileDeleted);
 
     // then
     expect(row).toBeInTheDocument();
@@ -407,7 +433,7 @@ describe("NotesPreview", () => {
     // when
     await userEvent.setup().click(
       within(previewRow("Vault newer card")).getByRole("checkbox", {
-        name: /Anki wins: overwrite/i,
+        name: ankiWinsVaultNewer,
       }),
     );
 
@@ -424,7 +450,7 @@ describe("NotesPreview", () => {
     const { onForcedNoteIdsChange, onNotesSelectedToImportChange } =
       await renderPreview();
     const useAnkiForAll = await screen.findByRole("button", {
-      name: /use anki's version for all \(4\)/i,
+      name: bulkAnkiFour,
     });
 
     // when

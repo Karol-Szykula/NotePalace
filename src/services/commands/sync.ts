@@ -1,5 +1,6 @@
 import { TFile } from "obsidian";
 import type { Vault } from "obsidian";
+import { t } from "src/i18n";
 import type { Anki } from "src/services/anki/anki";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import type { DeckImportSnapshot, ISettings } from "src/conf/settings";
@@ -401,7 +402,7 @@ export async function executeSync(
   const snapshots = settings.deckImportSnapshots;
   const deckNames = Object.keys(snapshots);
   if (deckNames.length === 0) {
-    throw new Error("No wizard import yet. Run Import deck from Anki first.");
+    throw new Error(t("notice.noImportYet"));
   }
   await fillMissingBlockIds(vault, settings, yaml);
   const index = await collectVaultNoteIndex(vault);
@@ -445,31 +446,49 @@ export async function executeSync(
   };
 }
 
-export function formatSyncReport(report: SyncReport): string {
-  let refreshed = 0;
-  let pushed = 0;
-  let upToDate = 0;
-  let missing = 0;
-  let skippedUnmapped = 0;
-  const lines: string[] = [];
+interface SyncTotals {
+  missing: number;
+  pushed: number;
+  refreshed: number;
+  skippedUnmapped: number;
+  upToDate: number;
+}
+
+function syncTotals(report: SyncReport): SyncTotals {
+  const totals: SyncTotals = {
+    missing: 0,
+    pushed: 0,
+    refreshed: 0,
+    skippedUnmapped: 0,
+    upToDate: 0,
+  };
   for (const deck of report.decks) {
-    refreshed += deck.refreshed;
-    pushed += deck.pushed;
-    upToDate += deck.upToDate;
-    missing += deck.missing;
-    skippedUnmapped += deck.skippedUnmapped;
-    lines.push(
-      `${deck.deckName}: ${deck.refreshed} refreshed, ` +
-        `${deck.pushed} pushed, ` +
-        `${deck.upToDate} up to date, ${deck.missing} missing, ` +
-        `${deck.skippedUnmapped} skipped without pack`,
-    );
+    totals.refreshed += deck.refreshed;
+    totals.pushed += deck.pushed;
+    totals.upToDate += deck.upToDate;
+    totals.missing += deck.missing;
+    totals.skippedUnmapped += deck.skippedUnmapped;
   }
-  return (
-    `Sync: ${refreshed} refreshed, ${pushed} pushed, ` +
-    `${upToDate} up to date, ${missing} missing, ${report.deleted} deleted, ` +
-    `${report.purgedRecords} records forgotten, ` +
-    `${report.enrolled} enrolled, ${skippedUnmapped} skipped without pack\n` +
-    lines.join("\n")
-  );
+  return totals;
+}
+
+function deckLine(deck: SyncDeckReport): string {
+  return t("sync.deckLine", {
+    deck: deck.deckName,
+    missing: deck.missing,
+    pushed: deck.pushed,
+    refreshed: deck.refreshed,
+    skippedUnmapped: deck.skippedUnmapped,
+    upToDate: deck.upToDate,
+  });
+}
+
+export function formatSyncReport(report: SyncReport): string {
+  const summary = t("sync.summary", {
+    ...syncTotals(report),
+    deleted: report.deleted,
+    enrolled: report.enrolled,
+    purgedRecords: report.purgedRecords,
+  });
+  return [summary, ...report.decks.map(deckLine)].join("\n");
 }

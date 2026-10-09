@@ -11,6 +11,7 @@ import type {
 } from "obsidian";
 import userEvent from "@testing-library/user-event";
 import { screen, waitFor } from "@testing-library/react";
+import { t } from "src/i18n";
 import { createNoteFormHandler } from "src/gui/note-form/processor";
 import type { NoteFormChild } from "src/gui/note-form/processor";
 import { required } from "../../helpers/required";
@@ -71,9 +72,9 @@ describe("createNoteFormHandler", () => {
     required(children[0], "child").onload();
 
     // then
-    expect(await screen.findByLabelText("Front")).toHaveValue("Q");
-    expect(screen.getByLabelText("Back")).toHaveValue("A");
-    expect(screen.getByLabelText("Tags")).toHaveValue("math");
+    expect(await screen.findByLabelText(t("noteForm.front"))).toHaveValue("Q");
+    expect(screen.getByLabelText(t("noteForm.back"))).toHaveValue("A");
+    expect(screen.getByLabelText(t("noteForm.tags"))).toHaveValue("math");
     expect(screen.queryByLabelText("ID")).not.toBeInTheDocument();
   });
 
@@ -93,10 +94,12 @@ describe("createNoteFormHandler", () => {
     required(children[0], "child").onload();
 
     // then
-    expect(await screen.findByLabelText("Text")).toHaveValue(
+    expect(await screen.findByLabelText(t("noteForm.text"))).toHaveValue(
       "Paris is {{c1::France}}",
     );
-    expect(screen.queryByLabelText("Front")).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(t("noteForm.front")),
+    ).not.toBeInTheDocument();
   });
 
   test("given an edited front when blurred then writes the block back to the note", async () => {
@@ -112,7 +115,7 @@ describe("createNoteFormHandler", () => {
     const user = userEvent.setup();
 
     // when
-    const front = await screen.findByLabelText("Front");
+    const front = await screen.findByLabelText(t("noteForm.front"));
     await user.clear(front);
     await user.type(front, "Q2");
     await user.tab();
@@ -148,9 +151,11 @@ describe("createNoteFormHandler", () => {
 
     // then
     expect(
-      await screen.findByText("Invalid note-form block"),
+      await screen.findByText(t("noteForm.invalidBlock")),
     ).toBeInTheDocument();
-    expect(screen.queryByLabelText("Front")).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(t("noteForm.front")),
+    ).not.toBeInTheDocument();
   });
 
   test("given a diverged note when processed then shows the conflict banner", async () => {
@@ -171,8 +176,8 @@ describe("createNoteFormHandler", () => {
     required(children[0], "child").onload();
 
     // then
-    expect(await screen.findByText(/newest version wins/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Front")).toBeInTheDocument();
+    expect(await screen.findByText(t("banners.diverged"))).toBeInTheDocument();
+    expect(screen.getByLabelText(t("noteForm.front"))).toBeInTheDocument();
   });
 
   test("given a clean note when processed then shows no banner", async () => {
@@ -193,7 +198,9 @@ describe("createNoteFormHandler", () => {
     required(children[0], "child").onload();
 
     // then
-    expect(await screen.findByLabelText("Front")).toBeInTheDocument();
-    expect(screen.queryByText(/newest version wins/)).not.toBeInTheDocument();
+    expect(
+      await screen.findByLabelText(t("noteForm.front")),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(t("banners.diverged"))).not.toBeInTheDocument();
   });
 });
