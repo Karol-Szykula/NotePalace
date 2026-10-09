@@ -60,12 +60,12 @@ export default class NotePalace extends Plugin {
   private registerImportCommand(): void {
     this.addCommand({
       id: "import-deck-from-anki",
-      name: t("commands.importDeck"),
+      name: t("commandNames.importDeck"),
       callback: () => {
         new NotesImportModal(this.app, this.settings, () =>
           this.saveData(this.settings),
         )
-          .setTitle(t("commands.importDeck"))
+          .setTitle(t("commandNames.importDeck"))
           .open();
       },
     });
@@ -74,12 +74,12 @@ export default class NotePalace extends Plugin {
   private registerExportCommand(): void {
     this.addCommand({
       id: "export-deck-to-anki",
-      name: t("commands.exportDeck"),
+      name: t("commandNames.exportDeck"),
       callback: () => {
         new NotesExportModal(this.app, this.settings, () =>
           this.saveData(this.settings),
         )
-          .setTitle(t("commands.exportDeck"))
+          .setTitle(t("commandNames.exportDeck"))
           .open();
       },
     });
@@ -88,7 +88,7 @@ export default class NotePalace extends Plugin {
   private registerSyncCommand(): void {
     this.addCommand({
       id: "sync-with-anki",
-      name: t("commands.sync"),
+      name: t("commandNames.sync"),
       callback: () => {
         void this.runSync();
       },
@@ -126,7 +126,7 @@ export default class NotePalace extends Plugin {
   private registerPurgeLedgerCommand(): void {
     this.addCommand({
       id: "purge-ledger",
-      name: t("commands.purgeLedger"),
+      name: t("commandNames.purgeLedger"),
       callback: () => {
         void this.runPurgeLedger();
       },
@@ -152,21 +152,21 @@ export default class NotePalace extends Plugin {
   private registerNoteFormCommands(): void {
     this.addCommand({
       id: "insert-note-form",
-      name: t("commands.insertNoteForm"),
+      name: t("commandNames.insertNoteForm"),
       editorCallback: (editor) => {
         editor.replaceSelection(noteFormBlock());
       },
     });
     this.addCommand({
       id: "new-note-form-file",
-      name: t("commands.newNoteFile"),
+      name: t("commandNames.newNoteFile"),
       callback: () => {
         void createNoteFormFile(this.app);
       },
     });
     this.addCommand({
       id: "new-cloze-note-file",
-      name: t("commands.newClozeNoteFile"),
+      name: t("commandNames.newClozeNoteFile"),
       callback: () => {
         void createNoteFormFile(this.app, clozeModelName);
       },
