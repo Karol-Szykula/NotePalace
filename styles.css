@@ -55,6 +55,11 @@
   text-align:    center;
 }
 
+.notepalace-switch {
+  cursor:         pointer;
+  vertical-align: middle;
+}
+
 .modal:has(> .modal-content > .notepalace-note-transfer-wizard-modal) {
   display:        flex;
   flex-direction: column;
