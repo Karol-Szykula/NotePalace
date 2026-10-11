@@ -34,8 +34,9 @@ and issues, never in source prose.
   builder. `jscpd` gates `src` only, so this rule is what keeps test
   duplication in check.
 - `null` values in test fixtures need explicit type annotations
-  (`unknown[]`, `Record<string, unknown>`) - the project has no
-  `strict` mode, so bare `null` widens to `any` (TS7005/TS7018).
+  (`unknown[]`, `Record<string, unknown>`) - even with `strict: true`
+  and `noImplicitAny`, a bare `null` in an untyped literal position
+  widens to `any` (TS7005/TS7018).
 - Decision-table integration suites (Stryker targets, `type:testing` `#8`)
   assert the user-visible outcome (preselection, `Created:` report counts,
   file content, written ids), never intermediate state; their `test.each`

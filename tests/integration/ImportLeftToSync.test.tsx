@@ -89,6 +89,7 @@ describe("ImportLeftToSync", () => {
       await page.goToCardsPage(deckName);
       const preselected = await page.isNotePreselected();
       const importEnabled = await page.isImportButtonEnabled();
+      await page.expandFirstRow();
       const texts: HTMLElement[] = [];
       for (const loadText of loadTexts) {
         texts.push(await page.expectTextDisplayed(loadText));

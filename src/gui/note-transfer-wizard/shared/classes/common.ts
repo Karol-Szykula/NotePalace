@@ -29,16 +29,41 @@ export const listClasses = {
   listHeaderControl:
     "notepalace-note-transfer-wizard-modal__list-header-control",
   listRow: "notepalace-note-transfer-wizard-modal__list-row",
+  listRowDetails: "notepalace-note-transfer-wizard-modal__list-row-details",
+  listRowToggle: "notepalace-note-transfer-wizard-modal__list-row-toggle",
+  listRowToggleExpanded:
+    "notepalace-note-transfer-wizard-modal__list-row-toggle--expanded",
   listCell: "notepalace-note-transfer-wizard-modal__list-cell",
   listDividersTop: "notepalace-note-transfer-wizard-modal__list--dividers-top",
   listDividersBottom:
     "notepalace-note-transfer-wizard-modal__list--dividers-bottom",
   listStriped: "notepalace-note-transfer-wizard-modal__list--striped",
   listToolbar: "notepalace-note-transfer-wizard-modal__list-toolbar",
+  listToolbarAction:
+    "notepalace-note-transfer-wizard-modal__list-toolbar-action",
   listToolbarCount: "notepalace-note-transfer-wizard-modal__list-toolbar-count",
   listToolbarBanner:
     "notepalace-note-transfer-wizard-modal__list-toolbar-banner",
   labeledControl: "notepalace-note-transfer-wizard-modal__labeled-control",
   labeledControlDisabled:
     "notepalace-note-transfer-wizard-modal__labeled-control--disabled",
+} as const;
+
+export const chipClasses = {
+  chip: "notepalace-chip",
+  chipConflict: "notepalace-chip--conflict",
+  chipCreate: "notepalace-chip--create",
+  chipDanger: "notepalace-chip--danger",
+  chipIcon: "notepalace-chip__icon",
+  chipMissing: "notepalace-chip--missing",
+  chipOverwrite: "notepalace-chip--overwrite",
+  chipQuiet: "notepalace-chip--quiet",
+  chipSkip: "notepalace-chip--skip",
+} as const;
+
+export const noteDetailsClasses = {
+  detail: "notepalace-note-details__detail",
+  detailLabel: "notepalace-note-details__detail-label",
+  detailValue: "notepalace-note-details__detail-value",
+  list: "notepalace-note-details",
 } as const;

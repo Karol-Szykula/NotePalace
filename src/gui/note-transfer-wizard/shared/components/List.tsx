@@ -11,6 +11,7 @@ export interface ListProps {
   readonly columnWidths?: string;
   readonly dividers?: ListDividers;
   readonly headerControls?: ReactNode[];
+  readonly role?: "grid" | undefined;
   readonly striped?: boolean;
 }
 
@@ -30,9 +31,13 @@ export function List({
   headerControls,
   dividers = "bottom",
   striped = false,
+  role,
   className,
   children,
 }: ListProps): JSX.Element {
+  const headerRowRole = role === undefined ? undefined : "row";
+  const columnRole = role === undefined ? undefined : "columnheader";
+  const controlRole = role === undefined ? undefined : "gridcell";
   return (
     <div
       className={mergeClasses(
@@ -41,19 +46,26 @@ export function List({
         striped ? listClasses.listStriped : undefined,
         className,
       )}
+      role={role}
       style={columnWidths ? { gridTemplateColumns: columnWidths } : undefined}
     >
       {columns && columns.length > 0 && (
         <div className={listClasses.listHeader}>
-          <div className={listClasses.listHeaderRow}>
+          <div className={listClasses.listHeaderRow} role={headerRowRole}>
             {columns.map((column) => (
-              <span key={column}>{column}</span>
+              <span key={column} role={columnRole}>
+                {column}
+              </span>
             ))}
           </div>
           {headerControls && headerControls.length > 0 && (
-            <div className={listClasses.listHeaderRow}>
+            <div className={listClasses.listHeaderRow} role={headerRowRole}>
               {headerControls.map((control, index) => (
-                <span className={listClasses.listHeaderControl} key={index}>
+                <span
+                  className={listClasses.listHeaderControl}
+                  key={index}
+                  role={controlRole}
+                >
                   {control}
                 </span>
               ))}

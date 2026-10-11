@@ -1,4 +1,4 @@
-import { useMemo, type JSX, type ReactNode } from "react";
+import { useMemo, useState, type JSX, type ReactNode } from "react";
 import { mergeClasses } from "src/gui/classes";
 import { Switch } from "src/gui/components/Switch";
 import { t } from "src/i18n";
@@ -21,6 +21,7 @@ import {
 import { Checkbox } from "./Checkbox";
 import { List } from "./List";
 import { ListRow } from "./ListRow";
+import { NoteDetails, type NoteDetailsData } from "./NoteDetails";
 
 export interface ColumnDef<T> {
   readonly header: string;
@@ -36,12 +37,16 @@ interface NoteRowProps<T> {
   readonly getRow: (item: T) => SyncDecisionRow;
   readonly getRowAriaLabel: (item: T) => string;
   readonly getRowClassName: (item: T) => string | undefined;
+  readonly getRowDetails: (item: T) => NoteDetailsData;
+  readonly getRowTitle: (item: T) => string;
   readonly index: number;
+  readonly isExpanded: boolean;
   readonly isForced: boolean;
   readonly isSelectable: boolean;
   readonly isSelected: boolean;
   readonly item: T;
   readonly notesSelectedToImport: Record<number, boolean>;
+  readonly onExpandedChange: (noteId: number) => void;
   readonly onForcedChange: (
     forced: Record<number, boolean>,
     selected: Record<number, boolean>,
@@ -53,23 +58,58 @@ function NoteRow<T>({
   item,
   index,
   columns,
+  isExpanded,
   forcedNoteIds,
   isForced,
   isSelected,
   isSelectable,
+  onExpandedChange,
   onForcedChange,
   onSelectedChange,
   getNoteId,
   getRow,
   getRowAriaLabel,
   getRowClassName,
+  getRowDetails,
+  getRowTitle,
   getDefaultSelected,
   notesSelectedToImport,
 }: NoteRowProps<T>): JSX.Element {
   const noteId = getNoteId(item);
+  const summary = getRowTitle(item);
   return (
     <ListRow
+      cellRole="gridcell"
       cells={[
+        <button
+          aria-expanded={isExpanded}
+          aria-label={
+            isExpanded
+              ? t("preview.collapseRow", { summary })
+              : t("preview.expandRow", { summary })
+          }
+          className={mergeClasses(
+            listClasses.listRowToggle,
+            isExpanded ? listClasses.listRowToggleExpanded : undefined,
+          )}
+          key="expand"
+          onClick={() => onExpandedChange(noteId)}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="12"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.5"
+            viewBox="0 0 16 16"
+            width="12"
+          >
+            <path d="M6 3l5 5-5 5" />
+          </svg>
+        </button>,
         <Checkbox
           ariaLabel={getRowAriaLabel(item)}
           checked={isSelected}
@@ -103,7 +143,11 @@ function NoteRow<T>({
         )),
       ]}
       className={mergeClasses(listClasses.listRow, getRowClassName(item))}
+      details={
+        isExpanded ? <NoteDetails data={getRowDetails(item)} /> : undefined
+      }
       key={noteId}
+      role="row"
     />
   );
 }
@@ -119,6 +163,8 @@ export interface NotesTableProps<T> {
   readonly getRow: (item: T) => SyncDecisionRow;
   readonly getRowAriaLabel: (item: T) => string;
   readonly getRowClassName?: (item: T) => string | undefined;
+  readonly getRowDetails: (item: T) => NoteDetailsData;
+  readonly getRowTitle: (item: T) => string;
   readonly getStatus: (item: T) => NoteLifecycleStatus;
   readonly isResurrectable: (item: T) => boolean;
   readonly isSelectionLocked?: (item: T) => boolean | undefined;
@@ -146,6 +192,8 @@ export function NotesTable<T>({
   getRow,
   getRowAriaLabel,
   getRowClassName,
+  getRowDetails,
+  getRowTitle,
   getStatus,
   isResurrectable,
   isSelectionLocked,
@@ -157,6 +205,7 @@ export function NotesTable<T>({
   onSelectionChange,
   notesSelectedToImport,
 }: NotesTableProps<T>): JSX.Element {
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const projection = useMemo(
     () => ({
       getNoteId,
@@ -207,6 +256,25 @@ export function NotesTable<T>({
       !forcedNoteIds[getNoteId(item)] &&
       isResurrectable(item),
   );
+  const anyExpandedOnPage = pageRows.some((row) => expandedIds.has(row.id));
+
+  const onExpandedToggle = (noteId: number): void => {
+    setExpandedIds((current) => {
+      const next = new Set(current);
+      if (next.has(noteId)) {
+        next.delete(noteId);
+      } else {
+        next.add(noteId);
+      }
+      return next;
+    });
+  };
+
+  const onExpandAllToggle = (): void => {
+    setExpandedIds(
+      anyExpandedOnPage ? new Set() : new Set(pageRows.map((row) => row.id)),
+    );
+  };
 
   if (items.length === 0) {
     return (
@@ -222,15 +290,25 @@ export function NotesTable<T>({
         <p className={listClasses.listToolbarCount}>
           {countText(selectedCount(allRows), items.length)}
         </p>
-        {selectionNotice && notesLeftToDecide.length > 0 && (
-          <p className={listClasses.listToolbarBanner}>{selectionNotice}</p>
-        )}
+        <button
+          className={listClasses.listToolbarAction}
+          onClick={onExpandAllToggle}
+          type="button"
+        >
+          {anyExpandedOnPage
+            ? t("preview.collapseAll")
+            : t("preview.expandAll")}
+        </button>
       </div>
+      {selectionNotice && notesLeftToDecide.length > 0 && (
+        <p className={listClasses.listToolbarBanner}>{selectionNotice}</p>
+      )}
       {resurrectionWarning && resurrectableLeft && (
         <p className={listClasses.listToolbarBanner}>{resurrectionWarning}</p>
       )}
       <List
         columns={[
+          "",
           t("preview.selectColumn"),
           t("preview.forceColumn"),
           ...columns.map((column) => column.header),
@@ -238,9 +316,11 @@ export function NotesTable<T>({
         columnWidths={[
           "auto",
           "auto",
+          "auto",
           ...columns.map((column) => column.width),
         ].join(" ")}
         headerControls={[
+          undefined,
           <Checkbox
             ariaLabel={t("preview.selectAllOnPage")}
             checked={selectAllState.checked}
@@ -280,6 +360,7 @@ export function NotesTable<T>({
             }}
           />,
         ]}
+        role="grid"
       >
         {pageRows.map((row, index) => {
           const item = pageNotes[index];
@@ -295,13 +376,17 @@ export function NotesTable<T>({
               getRow={getRow}
               getRowAriaLabel={getRowAriaLabel}
               getRowClassName={getRowClassName ?? (() => undefined)}
+              getRowDetails={getRowDetails}
+              getRowTitle={getRowTitle}
               index={index}
+              isExpanded={expandedIds.has(row.id)}
               isForced={row.isForced}
               isSelectable={isRowSelectable(row)}
               isSelected={row.isSelected}
               item={item}
               key={row.id}
               notesSelectedToImport={notesSelectedToImport}
+              onExpandedChange={onExpandedToggle}
               onForcedChange={onForceChange}
               onSelectedChange={onSelectionChange}
             />

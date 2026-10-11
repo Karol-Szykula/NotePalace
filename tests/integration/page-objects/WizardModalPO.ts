@@ -1,5 +1,6 @@
 import {
   act,
+  findAllByRole,
   findByRole,
   findByText,
   queryByRole,
@@ -113,6 +114,23 @@ export abstract class WizardModalPO {
 
   clickCancelButton(): Promise<void> {
     return this.clickElement(this.elements.cancelButton);
+  }
+
+  clickExpandAll(): Promise<void> {
+    return this.clickElement(
+      findByRole(this.container, "button", { name: "Expand all" }),
+    );
+  }
+
+  async expandFirstRow(): Promise<void> {
+    const toggleButtons = await findAllByRole(this.container, "button", {
+      name: /^Expand /,
+    });
+    const firstToggle = toggleButtons[0];
+    if (firstToggle === undefined) {
+      throw new Error("No disclosure expand button found");
+    }
+    await this.user.click(firstToggle);
   }
 
   clickExportButton(): Promise<void> {

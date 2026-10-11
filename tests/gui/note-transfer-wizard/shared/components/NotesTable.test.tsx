@@ -1,9 +1,7 @@
 /**
  * @jest-environment jsdom
  *
- * User-perspective tests for the shared notes table: it lists only the
- * current page, leaves pagination to the wizard footer, and its header
- * controls act per page on selectable / forceable rows.
+ * User-perspective tests for the shared notes table's per-page controls.
  */
 import "obsidian-test-mocks/jest-setup";
 import { useState, type JSX } from "react";
@@ -63,6 +61,8 @@ function renderTable({
       getNoteId: (item) => item,
       getRow: () => syncDecisionFor("import", "synced.diverged"),
       getRowAriaLabel: (item) => `Select note ${item}`,
+      getRowDetails: (item) => ({ rationale: `Rationale ${item}` }),
+      getRowTitle: (item) => `Note ${item}`,
       getStatus,
       isResurrectable: () => false,
       items: items as number[],
@@ -78,6 +78,10 @@ function renderTable({
     return <NotesTable {...notesTableProps} />;
   }
   render(<Harness />);
+}
+
+async function clickRowToggle(name: string): Promise<void> {
+  await userEvent.click(screen.getByRole("button", { name }));
 }
 
 describe("NotesTable", () => {
@@ -236,5 +240,60 @@ describe("NotesTable", () => {
     });
     expect(rowCheckbox).toBeDisabled();
     expect(rowCheckbox).toBeChecked();
+  });
+
+  test("given rows when the toolbar button is clicked then every row on the page is expanded", async () => {
+    // given
+    const items = [1, 2];
+    const pageSize = 2;
+
+    // when
+    renderTable({ items, pageSize });
+    await clickRowToggle("Expand all");
+
+    // then
+    expect(screen.getByText("Rationale 1")).toBeInTheDocument();
+    expect(screen.getByText("Rationale 2")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse all" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("grid")).toBeInTheDocument();
+  });
+
+  test("given expanded rows when the toolbar button is clicked again then every row collapses", async () => {
+    // given
+    const items = [1, 2];
+    const pageSize = 2;
+
+    // when
+    renderTable({ items, pageSize });
+    await clickRowToggle("Expand all");
+    await clickRowToggle("Collapse all");
+
+    // then
+    expect(screen.queryByText("Rationale 1")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Expand all" }),
+    ).toBeInTheDocument();
+  });
+
+  test("given rows when a chevron is clicked then only that row expands", async () => {
+    // given
+    const items = [1, 2];
+    const pageSize = 2;
+
+    // when
+    renderTable({ items, pageSize });
+    await clickRowToggle("Expand Note 1");
+
+    // then
+    expect(
+      screen.getByRole("gridcell", { name: "Note 1" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Rationale 1")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Collapse Note 1" }),
+    ).toHaveAttribute("aria-expanded", "true");
+    expect(screen.queryByText("Rationale 2")).not.toBeInTheDocument();
   });
 });

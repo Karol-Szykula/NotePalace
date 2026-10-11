@@ -95,6 +95,7 @@ describe("ExportLeftToSync", () => {
       await page.goToNotesPage(folderName);
       const preselected = await page.isNotePreselected();
       const importEnabled = await page.isExportButtonEnabled();
+      await page.expandFirstRow();
       const texts: HTMLElement[] = [];
       for (const loadText of loadTexts) {
         texts.push(await page.expectTextDisplayed(loadText));

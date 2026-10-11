@@ -1,6 +1,7 @@
 import {
   cloneElement,
   isValidElement,
+  type AriaRole,
   type CSSProperties,
   type JSX,
   type MouseEvent,
@@ -11,18 +12,24 @@ import { mergeClasses } from "src/gui/classes";
 import { listClasses } from "../classes/common";
 
 export interface ListRowProps {
+  readonly cellRole?: AriaRole | undefined;
   readonly cells: ReactNode[];
   readonly className?: string | undefined;
+  readonly details?: ReactNode | undefined;
   readonly disabled?: boolean | undefined;
   readonly onSelect?: (() => void) | undefined;
+  readonly role?: AriaRole | undefined;
   readonly style?: CSSProperties | undefined;
 }
 
 export function ListRow({
   cells,
+  cellRole,
   className,
+  details,
   disabled = false,
   onSelect,
+  role,
   style,
 }: ListRowProps): JSX.Element {
   return (
@@ -36,13 +43,17 @@ export function ListRow({
           onSelect();
         }
       }}
+      role={role}
       style={style}
     >
       {cells.map((cell, index) => (
-        <div className={listClasses.listCell} key={index}>
+        <div className={listClasses.listCell} key={index} role={cellRole}>
           {cell}
         </div>
       ))}
+      {details !== undefined && (
+        <div className={listClasses.listRowDetails}>{details}</div>
+      )}
     </div>
   );
 }

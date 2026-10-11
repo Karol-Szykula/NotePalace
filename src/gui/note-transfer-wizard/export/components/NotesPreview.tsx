@@ -28,16 +28,15 @@ import { obsidianYamlEngine } from "src/services/yaml-engine";
 import { normalizeNoteText } from "src/services/notes/text";
 import { exportNotesPreviewClasses } from "../classes";
 import { commonWizardClasses } from "@shared/classes";
-import { NotesTable, type ColumnDef } from "@shared/components";
+import { NotesTable, StatusChip, type ColumnDef } from "@shared/components";
 import {
   comparePreviewRank,
   countNotes,
-  previewBadgeClass,
+  outcomeLabelKey,
   previewStatusOrder,
+  rationaleText,
   recreateWarning,
-  resolveBadgeText,
   selectionNoticeText,
-  type PreviewBadgeClasses,
 } from "@shared/utils/preview";
 
 interface ExportableBlock {
@@ -75,8 +74,17 @@ export interface NotesPreviewProps {
 
 const previewPageSize = 100;
 
+function blockFront(block: YamlNote): string {
+  return normalizeNoteText(block.front);
+}
+
 function blockSummary(block: YamlNote): string {
-  return normalizeNoteText(block.front).slice(0, 80);
+  return blockFront(block).slice(0, 80);
+}
+
+function tagsText(tags: string): string | undefined {
+  const names = tags.split(/\s+/).filter(Boolean);
+  return names.length > 0 ? names.join(", ") : undefined;
 }
 
 function exportRow(item: ExportableBlock): SyncDecisionRow {
@@ -96,14 +104,7 @@ function isExportSelectedByDefault(status: NoteLifecycleStatus): boolean {
   );
 }
 
-const exportBadgeClasses: PreviewBadgeClasses = {
-  badgeImported: exportNotesPreviewClasses.previewBadgeImported,
-  badgeNew: exportNotesPreviewClasses.previewBadgeNew,
-  badgeOverwrite: exportNotesPreviewClasses.previewBadgeOverwrite,
-  badgeSkipped: exportNotesPreviewClasses.previewBadgeSkipped,
-};
-
-function previewBadgeOutcome(item: ExportableBlock): string {
+function rationaleOutcome(item: ExportableBlock): string {
   const row = exportRow(item);
   if (item.previewStatus === "upToDate") {
     return `${t(row.rationaleKey)} (${item.filePath})`;
@@ -111,11 +112,11 @@ function previewBadgeOutcome(item: ExportableBlock): string {
   return t(row.rationaleKey);
 }
 
-function previewBadgeText(item: ExportableBlock, isForced: boolean): string {
-  return resolveBadgeText(
+function rowRationale(item: ExportableBlock, isForced: boolean): string {
+  return rationaleText(
     isForced,
     obsidianWinsStrategy.getForcedOutcome(exportRow(item)),
-    previewBadgeOutcome(item),
+    rationaleOutcome(item),
   );
 }
 
@@ -153,19 +154,24 @@ function buildCardColumns(
   return [
     {
       header: t("preview.noteColumn"),
-      render: (item: ExportableBlock) => (
-        <label>
-          <span>{blockSummary(item.block)}</span>
-          <span
-            className={mergeClasses(
-              exportNotesPreviewClasses.previewBadge,
-              previewBadgeClass(exportRow(item).kind, exportBadgeClasses),
-            )}
-          >
-            {previewBadgeText(item, forcedNoteIds[item.rowKey] ?? false)}
-          </span>
-        </label>
-      ),
+      render: (item: ExportableBlock) => {
+        const row = exportRow(item);
+        return (
+          <div className={exportNotesPreviewClasses.previewTitle}>
+            <span
+              className={exportNotesPreviewClasses.previewTitleText}
+              title={blockFront(item.block)}
+            >
+              {blockSummary(item.block)}
+            </span>
+            <StatusChip
+              kind={row.kind}
+              label={t(outcomeLabelKey[row.kind])}
+              tooltip={rowRationale(item, forcedNoteIds[item.rowKey] ?? false)}
+            />
+          </div>
+        );
+      },
       width: "1fr",
     },
   ];
@@ -359,6 +365,14 @@ export function NotesPreview({
               : undefined,
           )
         }
+        getRowDetails={(item) => ({
+          back: item.block.back,
+          model: item.block.model,
+          path: item.filePath,
+          rationale: rowRationale(item, forcedNoteIds[item.rowKey] ?? false),
+          tags: tagsText(item.block.tags),
+        })}
+        getRowTitle={(item) => blockSummary(item.block)}
         getStatus={(item) => item.status}
         isResurrectable={(item) => item.status === "vaultOnly.ankiDeleted"}
         isSelectionLocked={(item) => item.block.id === undefined}
