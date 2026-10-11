@@ -3,7 +3,6 @@ import { mergeClasses } from "src/gui/classes";
 import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
-import { useForceToggle } from "@shared/hooks/useForceToggle";
 import { obsidianWinsStrategy } from "@shared/types/ObsidianWinsStrategy";
 import type { Anki } from "src/services/anki/anki";
 import { fetchNotesByIdMap } from "src/services/anki/read";
@@ -153,11 +152,6 @@ function buildCardColumns(
 ): ColumnDef<ExportableBlock>[] {
   return [
     {
-      header: t("preview.selectColumn"),
-      render: () => <></>,
-      width: "auto",
-    },
-    {
       header: t("preview.noteColumn"),
       render: (item: ExportableBlock) => (
         <label>
@@ -185,7 +179,7 @@ export function NotesPreview({
   anki,
   currentPage,
   deckName,
-  forcedNoteIds: initialForcedNoteIds,
+  forcedNoteIds,
   ignoredDirectories,
   noteLifecycle,
   onPageChange,
@@ -201,10 +195,6 @@ export function NotesPreview({
   const [classified, setClassified] = useState<ExportableBlock[] | null>(null);
   const [progress, setProgress] = useState("");
   const [loadError, setLoadError] = useState("");
-  const [forceState, forceActions] = useForceToggle(
-    initialForcedNoteIds,
-    obsidianWinsStrategy,
-  );
 
   const loadClassifiedBlocks = (): (() => void) => {
     setClassified(null);
@@ -303,48 +293,29 @@ export function NotesPreview({
         (item) =>
           item.block.id !== undefined &&
           !isExportSelectedByDefault(item.status) &&
-          !forceState.forcedNoteIds[item.rowKey],
+          !forcedNoteIds[item.rowKey],
       ) ?? [],
-    [classified, forceState.forcedNoteIds],
+    [classified, forcedNoteIds],
   );
   const notesToRecreate = notesLeftToDecide.filter(
     (item) => item.status === "vaultOnly.ankiDeleted",
   ).length;
 
-  const selectNote = (
+  const onSelectionChange = (selected: Record<number, boolean>): void => {
+    onNotesSelectedToExportChange(selected);
+  };
+
+  const onForceChange = (
+    forced: Record<number, boolean>,
     selected: Record<number, boolean>,
-    noteId: number,
-    isSelected: boolean,
   ): void => {
-    onNotesSelectedToExportChange({ ...selected, [noteId]: isSelected });
-  };
-
-  const toggleForced = (noteId: number, isForced: boolean): void => {
-    forceActions.toggleForced(noteId, isForced);
-    onForcedNoteIdsChange({ ...forceState.forcedNoteIds, [noteId]: isForced });
-    onNotesSelectedToExportChange({
-      ...notesSelectedToExport,
-      [noteId]: isForced,
-    });
-  };
-
-  const useObsidianForEveryNote = (): void => {
-    const forced = { ...forceState.forcedNoteIds };
-    const selected = { ...notesSelectedToExport };
-    for (const item of notesLeftToDecide) {
-      forced[item.rowKey] = true;
-      selected[item.rowKey] = true;
-    }
     onForcedNoteIdsChange(forced);
     onNotesSelectedToExportChange(selected);
-    for (const item of notesLeftToDecide) {
-      forceActions.setForced(item.rowKey, true);
-    }
   };
 
   const columns = useMemo(
-    () => buildCardColumns(forceState.forcedNoteIds),
-    [forceState.forcedNoteIds],
+    () => buildCardColumns(forcedNoteIds),
+    [forcedNoteIds],
   );
 
   if (loadError) {
@@ -365,20 +336,21 @@ export function NotesPreview({
   return (
     <div className={rootClassName}>
       <NotesTable
-        bulkActionHandler={useObsidianForEveryNote}
-        bulkActionLabel={t("preview.bulkObsidian")}
         columns={columns}
         countText={(selectedCount, total) =>
           t("preview.notesToExport", { selected: selectedCount, total })
         }
         currentPage={currentPage}
-        forcedNoteIds={forceState.forcedNoteIds}
+        forcedNoteIds={forcedNoteIds}
         forceStrategy={obsidianWinsStrategy}
         getDefaultSelected={(item) =>
           item.block.id === undefined || isExportSelectedByDefault(item.status)
         }
         getNoteId={(item) => item.rowKey}
         getRow={(item) => syncDecisionFor("export", item.status)}
+        getRowAriaLabel={(item) =>
+          t("preview.selectRow", { summary: blockSummary(item.block) })
+        }
         getRowClassName={(item) =>
           mergeClasses(
             exportNotesPreviewClasses.previewRow,
@@ -392,8 +364,8 @@ export function NotesPreview({
         isSelectionLocked={(item) => item.block.id === undefined}
         items={classified}
         notesSelectedToImport={notesSelectedToExport}
-        onForcedChange={toggleForced}
-        onSelectedChange={selectNote}
+        onForceChange={onForceChange}
+        onSelectionChange={onSelectionChange}
         pageSize={previewPageSize}
         resurrectionWarning={recreateWarning(notesToRecreate, "Anki")}
         selectionNotice={selectionNotice(classified)}

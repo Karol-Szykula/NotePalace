@@ -29,13 +29,13 @@ ${noteLifecycleMermaid().replace(/\(/g, "<br/>").replace(/\)/g, "")}
 
 This is the **second independent authority**. One canonical table per state defines what each command (import/export/sync) does in that state — which event to emit, whether force changes it, which component is responsible, and why. The three command tables are derived from it at runtime.
 
-### 1. Export Wizard (force: Obsidian wins)
+### 1. Export Wizard (force)
 
 \`\`\`mermaid
 ${syncDecisionTableMermaid("export")}
 \`\`\`
 
-### 2. Import Wizard (force: Anki wins)
+### 2. Import Wizard (force)
 
 \`\`\`mermaid
 ${syncDecisionTableMermaid("import")}

@@ -12,7 +12,7 @@ import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
 import {
-  cardsToImportPattern,
+  notesToImportPattern,
   createdPattern,
   mappedFieldsPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
@@ -173,7 +173,7 @@ test("given a mapping chosen when the wizard returns to the fields page then the
   await user.click(
     await screen.findByRole("button", { name: t("wizard.next") }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
   await user.click(await screen.findByRole("button", { name: /Back/ }));
   const targets = mappingTargets();
 
@@ -194,7 +194,7 @@ test("given a mapping chosen when the wizard advances past the fields page then 
   await user.click(
     await screen.findByRole("button", { name: t("wizard.next") }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
 
   // then
   expect(saveSettings).not.toHaveBeenCalled();
@@ -212,7 +212,7 @@ test("given a mapping abandoned when the wizard opens again then the default map
   await user.click(
     await screen.findByRole("button", { name: t("wizard.next") }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
   unmount();
 
   // when
@@ -235,7 +235,7 @@ test("given an import completed when the wizard opens again then the chosen mapp
   await user.click(
     await screen.findByRole("button", { name: t("wizard.next") }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
   await user.click(await screen.findByRole("button", { name: "Import" }));
   await screen.findByText(createdPattern);
   unmount();
@@ -261,7 +261,7 @@ test("given a custom model mapping when the import runs then the note is created
   await user.click(
     await screen.findByRole("button", { name: t("wizard.next") }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
 
   // when
   await user.click(await screen.findByRole("button", { name: "Import" }));
@@ -282,7 +282,7 @@ test("given a note that vanished from Anki when the import finishes then the pac
   await user.click(
     await screen.findByRole("button", { name: t("wizard.next") }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
 
   // when
   await user.click(await screen.findByRole("button", { name: "Import" }));

@@ -16,7 +16,7 @@ import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImpo
 import { FieldMapping } from "src/gui/note-transfer-wizard/import/components/FieldMapping";
 import { t } from "src/i18n";
 import {
-  cardsToImportPattern,
+  notesToImportPattern,
   mappedFieldsPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../../../helpers/anki-responder";
@@ -111,7 +111,7 @@ test("given a custom model when advancing past fields then no pack is written", 
       name: t("wizard.next"),
     }),
   );
-  await screen.findByText(cardsToImportPattern);
+  await screen.findByText(notesToImportPattern);
   // then
   const vault = app.vault as unknown as ObsidianVault;
   const adapter = vault.adapter as unknown as {

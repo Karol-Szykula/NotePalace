@@ -25,12 +25,19 @@ export const footerClasses = {
 export const listClasses = {
   list: "notepalace-note-transfer-wizard-modal__list",
   listHeader: "notepalace-note-transfer-wizard-modal__list-header",
+  listHeaderRow: "notepalace-note-transfer-wizard-modal__list-header-row",
+  listHeaderControl:
+    "notepalace-note-transfer-wizard-modal__list-header-control",
   listRow: "notepalace-note-transfer-wizard-modal__list-row",
   listCell: "notepalace-note-transfer-wizard-modal__list-cell",
   listDividersTop: "notepalace-note-transfer-wizard-modal__list--dividers-top",
   listDividersBottom:
     "notepalace-note-transfer-wizard-modal__list--dividers-bottom",
   listStriped: "notepalace-note-transfer-wizard-modal__list--striped",
+  listToolbar: "notepalace-note-transfer-wizard-modal__list-toolbar",
+  listToolbarCount: "notepalace-note-transfer-wizard-modal__list-toolbar-count",
+  listToolbarBanner:
+    "notepalace-note-transfer-wizard-modal__list-toolbar-banner",
   labeledControl: "notepalace-note-transfer-wizard-modal__labeled-control",
   labeledControlDisabled:
     "notepalace-note-transfer-wizard-modal__labeled-control--disabled",

@@ -14,9 +14,8 @@ export const createdPattern = messagePattern("report.created");
 export const overwrittenPattern = messagePattern("report.overwritten");
 export const updatedPattern = messagePattern("report.updated");
 export const forcedPattern = messagePattern("report.forced");
-export const unchangedPattern = messagePattern("report.unchanged");
 export const deletedPattern = messagePattern("report.skippedDeleted");
-export const cardsToImportPattern = messagePattern("preview.cardsToImport");
+export const notesToImportPattern = messagePattern("preview.notesToImport");
 export const mappedFieldsPattern = messagePattern(
   "fieldMapping.title",
   '[^"]+',

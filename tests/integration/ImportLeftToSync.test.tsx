@@ -10,7 +10,6 @@ import type { AnkiNoteInfo } from "src/entities/anki-note";
 import {
   createdPattern,
   messagePattern,
-  overwrittenPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
 import {
@@ -67,7 +66,6 @@ const leftToSyncCases: LeftToSyncCase[] = [
 ];
 
 const forcedOnce = /forced: 1/;
-const neverForced = /forced: \d+/;
 
 describe("ImportLeftToSync", () => {
   test.each(
@@ -104,7 +102,7 @@ describe("ImportLeftToSync", () => {
     },
   );
 
-  test("given a synced.clean note when the bulk action forces the run then the file keeps its content without counting a forced note", async () => {
+  test("given a synced.clean note when the cards page loads then the force-all switch is disabled", async () => {
     // given
     const note = cleanAnkiNote(noteId, cleanSpec.ankiMod);
     const fixture = await cleanSpec.buildFixture(noteId);
@@ -116,21 +114,12 @@ describe("ImportLeftToSync", () => {
     });
     // when
     await page.goToCardsPage(deckName);
-    await page.clickBulkAnkiWins();
-    await page.clickImportButton();
-    const overwritten = await page.expectTextDisplayed(overwrittenPattern);
-    const forced = page.queryTextDisplayed(neverForced);
-    const fileContents = await page.noteFileContent(noteId);
+    const forceAll = await page.forceAllSwitch();
     // then
-    expect(overwritten).toBeInTheDocument();
-    expect(forced).toBeNull();
-    expect(fileContents).toBeDefined();
-    expect(fileContents).toContain(`id: ${noteId}`);
-    expect(fileContents).toContain("Q");
-    expect(fileContents).not.toContain("What is 2+2?");
+    expect(forceAll).toBeDisabled();
   });
 
-  test("given an ankiOnly.fileDeleted note when Anki wins is toggled then the run re-creates the file", async () => {
+  test("given an ankiOnly.fileDeleted note when force is clicked on then the run re-creates the file", async () => {
     // given
     const note = basicAnkiNote(noteId, fileDeletedSpec.ankiMod);
     const fixture = await fileDeletedSpec.buildFixture(noteId);
@@ -142,7 +131,7 @@ describe("ImportLeftToSync", () => {
     });
     // when
     await page.goToCardsPage(deckName);
-    await page.toggleAnkiWins();
+    await page.toggleForce();
     await page.clickImportButton();
     const created = await page.expectTextDisplayed(createdPattern);
     const forced = await page.expectTextDisplayed(forcedOnce);

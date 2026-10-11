@@ -314,7 +314,7 @@ export function notePreviewStatusFor(
 
 /** The import wizard writes the file for these unless the user changes it. */
 /**
- * True when "Anki wins" changes the outcome: the default would have skipped
+ * True when forcing changes the outcome: the default would have skipped
  * the note or written something else. False when the default already takes
  * Anki's version, or when forcing would only rewrite identical content.
  */

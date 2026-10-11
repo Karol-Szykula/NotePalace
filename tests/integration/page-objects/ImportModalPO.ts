@@ -1,12 +1,12 @@
 import type { Modal, Vault } from "obsidian";
-import { findByRole } from "@testing-library/react";
+import { findByRole, findAllByRole } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { splitDeckHierarchy } from "@shared/utils/decks";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { NotesImportModal } from "src/gui/note-transfer-wizard/import/notes-import-modal";
 import {
-  cardsToImportPattern,
   mappedFieldsPattern,
+  notesToImportPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../helpers/anki-responder";
 import type { WizardModalFixture } from "./WizardModalPO";
@@ -52,28 +52,28 @@ export class ImportModalPO extends WizardModalPO {
     await this.clickNextButton();
     await this.expectTextDisplayed(mappedFieldsPattern);
     await this.clickNextButton();
-    await this.expectTextDisplayed(cardsToImportPattern);
+    await this.expectTextDisplayed(notesToImportPattern);
   }
 
   async isNotePreselected(): Promise<boolean> {
-    const checkbox = await findByRole(this.container, "checkbox", {
-      name: "",
+    const checkboxes = await findAllByRole(this.container, "checkbox", {
+      name: /^Select /,
     });
-    return (checkbox as HTMLInputElement).checked;
+    const firstRowBox = checkboxes.find(
+      (box) =>
+        box.getAttribute("aria-label") !== "Select all notes on this page",
+    );
+    if (firstRowBox === undefined) {
+      throw new Error("No note row found");
+    }
+    return (firstRowBox as HTMLInputElement).checked;
   }
 
-  async toggleAnkiWins(): Promise<void> {
-    const checkbox = await findByRole(this.container, "checkbox", {
-      name: /^Anki wins:/i,
+  async toggleForce(): Promise<void> {
+    const toggle = await findByRole(this.container, "switch", {
+      name: /^Forced/,
     });
-    await userEvent.setup().click(checkbox);
-  }
-
-  async clickBulkAnkiWins(): Promise<void> {
-    const button = await findByRole(this.container, "button", {
-      name: /Use Anki's version for all/,
-    });
-    await userEvent.setup().click(button);
+    await userEvent.setup().click(toggle);
   }
 
   async noteFileContent(noteId: number): Promise<string | undefined> {

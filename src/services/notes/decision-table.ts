@@ -56,9 +56,9 @@ const forceWinnerByCommand: Record<SyncCommand, ForceWinner> = {
 };
 
 const forceWinnerLabelKey: Record<ForceWinner, MessageKey> = {
-  anki: "force.ankiWins",
+  anki: "force.label",
   none: "force.none",
-  obsidian: "force.obsidianWins",
+  obsidian: "force.label",
 };
 
 const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
@@ -293,6 +293,12 @@ function forceLabelText(command: SyncCommand): string {
   );
 }
 
+function commandForceSuffix(command: SyncCommand): string {
+  return forceWinnerByCommand[command] === "none"
+    ? resolveMessage("en", "force.none")
+    : resolveMessage("en", "force.label").toLowerCase();
+}
+
 function forcedOutcomeText(
   command: SyncCommand,
   row: SyncDecisionRow,
@@ -399,13 +405,11 @@ export function resolveCommandDecision(
 function whyOf(row: SyncDecisionRow, command: SyncCommand): string {
   const rationale = resolveMessage("en", row.rationaleKey);
   const forced = forcedOutcomeText(command, row);
-  return forced === undefined ? rationale : `${rationale} Forced: ${forced}`;
+  return forced === undefined ? rationale : `${rationale} ${forced}`;
 }
 
-function forceCellOf(row: SyncDecisionRow, command: SyncCommand): string {
-  return row.forcedAct === undefined
-    ? ""
-    : `<br/>**Force:** ${row.forcedAct} (${forceLabelText(command)})`;
+function forceCellOf(row: SyncDecisionRow): string {
+  return row.forcedAct === undefined ? "" : `<br/>**Force:** ${row.forcedAct}`;
 }
 
 function forcedPartOf(row: SyncDecisionRow): string {
@@ -418,7 +422,7 @@ function actOf(row: SyncDecisionRow): string {
 
 export function syncDecisionTableMarkdown(): string {
   const header = [
-    "| State | Import (Anki wins) | Export (Obsidian wins) | Sync (no force) |",
+    "| State | Export (forced) | Import (forced) | Sync (no force) |",
     "|-------|--------------------|------------------------|-----------------|",
   ];
 
@@ -427,7 +431,7 @@ export function syncDecisionTableMarkdown(): string {
       const row = decisions[command][status];
       return [
         `\`${actOf(row)}\`${forcedPartOf(row)}`,
-        `${row.kind} · ${row.responsibleComponent}${forceCellOf(row, command)}`,
+        `${row.kind} · ${row.responsibleComponent}${forceCellOf(row)}`,
         whyOf(row, command).replace(/\n/g, " "),
       ].join("<br/>");
     });
@@ -454,7 +458,7 @@ export function syncDecisionTableMarkdownCommandCentric(): string {
     );
     sections.push(
       [
-        `### ${command} (force: ${forceLabelText(command)})`,
+        `### ${command} (${commandForceSuffix(command)})`,
         "",
         "| state | kind | default | forced | responsibleComponent | why |",
         "| --- | --- | --- | --- | --- | --- |",
@@ -481,9 +485,7 @@ function escapeForMermaid(label: string): string {
 
 function cellContent(row: SyncDecisionRow, command: SyncCommand): string {
   const forcedInfo =
-    row.forcedAct === undefined
-      ? ""
-      : `<br/>force: ${row.forcedAct} (${forceLabelText(command)})`;
+    row.forcedAct === undefined ? "" : `<br/>force: ${row.forcedAct}`;
   const actSymbol = row.act === OUT_OF_SCOPE ? "\u2014" : row.act;
   const forcedPart =
     row.forcedAct === undefined ? "" : ` / ${row.forcedAct} (force)`;
@@ -503,8 +505,8 @@ function buildStatesSubgraph(lines: string[]): void {
 }
 
 function getCommandLabel(command: SyncCommand): string {
-  if (command === "import") return "Import (Anki wins)";
-  if (command === "export") return "Export (Obsidian wins)";
+  if (command === "import") return "Import (forced)";
+  if (command === "export") return "Export (forced)";
   return "Sync (no force)";
 }
 

@@ -44,6 +44,16 @@
   --notepalace-dev-reset-padding: 0.75rem;
 
   --notepalace-button-width: 5rem;
+
+  --notepalace-switch-width:         2rem;
+  --notepalace-switch-height:        1.125rem;
+  --notepalace-switch-thumb-size:    0.875rem;
+  --notepalace-switch-thumb-offset:  0.125rem;
+  --notepalace-switch-travel:        calc(var(--notepalace-switch-width) - var(--notepalace-switch-thumb-size) - 2 * var(--notepalace-switch-thumb-offset));
+  --notepalace-switch-transition:    0.15s ease;
+  --notepalace-switch-track-off:     var(--background-modifier-border);
+  --notepalace-switch-track-on:      var(--interactive-accent);
+  --notepalace-switch-thumb:         var(--text-on-accent);
 }
 
 .notepalace-button {
@@ -56,8 +66,48 @@
 }
 
 .notepalace-switch {
-  cursor:         pointer;
+  appearance:   none;
+  position:     relative;
+  box-sizing:   border-box;
+  width:        var(--notepalace-switch-width);
+  height:       var(--notepalace-switch-height);
+  margin:       0;
+  padding:      0;
+  border:       none;
+  border-radius: calc(var(--notepalace-switch-height) / 2);
+  background:   var(--notepalace-switch-track-off);
+  cursor:       pointer;
   vertical-align: middle;
+  transition:   background var(--notepalace-switch-transition);
+}
+
+.notepalace-switch::before {
+  content:       "";
+  position:      absolute;
+  top:           var(--notepalace-switch-thumb-offset);
+  left:          var(--notepalace-switch-thumb-offset);
+  width:         var(--notepalace-switch-thumb-size);
+  height:        var(--notepalace-switch-thumb-size);
+  border-radius: 50%;
+  background:    var(--notepalace-switch-thumb);
+  transition:    transform var(--notepalace-switch-transition);
+}
+
+.notepalace-switch:checked {
+  background: var(--notepalace-switch-track-on);
+}
+
+.notepalace-switch:checked::before {
+  transform: translateX(var(--notepalace-switch-travel));
+}
+
+.notepalace-switch:indeterminate::before {
+  transform: translateX(calc(var(--notepalace-switch-travel) / 2));
+}
+
+.notepalace-switch:disabled {
+  cursor:  default;
+  opacity: 0.5;
 }
 
 .modal:has(> .modal-content > .notepalace-note-transfer-wizard-modal) {
@@ -344,12 +394,48 @@
 }
 
 .notepalace-note-transfer-wizard-modal__list-header {
+  background: var(--background-primary);
+  display:    grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  position:   sticky;
+  top:        0;
+  z-index:    1;
+}
+
+.notepalace-note-transfer-wizard-modal__list-header-row {
+  align-items:          center;
+  column-gap:           var(--notepalace-note-transfer-wizard-modal__row-gap);
+  display:              grid;
+  grid-column:          1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.notepalace-note-transfer-wizard-modal__list-header-row:first-child {
   font-size: var(--notepalace-note-transfer-wizard-modal__list-header-font-size);
   opacity:   0.7;
-  position:  sticky;
-  top:       0;
-  background: var(--background-primary);
-  z-index:   1;
+}
+
+.notepalace-note-transfer-wizard-modal__list-header-control {
+  align-items: center;
+  display:     flex;
+  min-width:   0;
+}
+
+.notepalace-note-transfer-wizard-modal__list-toolbar {
+  align-items:     center;
+  display:         flex;
+  gap:             var(--notepalace-note-transfer-wizard-modal__row-gap);
+  justify-content: space-between;
+}
+
+.notepalace-note-transfer-wizard-modal__list-toolbar-count {
+  margin: 0;
+}
+
+.notepalace-note-transfer-wizard-modal__list-toolbar-banner {
+  color:   var(--text-warning);
+  margin:  0.25rem 0 0;
 }
 
 .notepalace-note-transfer-wizard-modal__labeled-control {

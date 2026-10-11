@@ -92,7 +92,7 @@ describe("ExportForcedPush", () => {
   );
 
   test.each(forcedPushCases.map((entry) => [entry.status, entry] as const))(
-    "given a %s note when Obsidian wins is toggled then the run pushes Updated and forced",
+    "given a %s note when force is clicked on then the run pushes Updated and forced",
     async (_status, { ankiMod, buildFixture }) => {
       // given
       const note = basicAnkiNote(noteId, ankiMod);
@@ -105,7 +105,7 @@ describe("ExportForcedPush", () => {
       });
       // when
       await page.goToNotesPage(folderName);
-      await page.toggleObsidianWins();
+      await page.toggleForce();
       await page.clickExportButton();
       const updated = await page.expectTextDisplayed(updatedPattern);
       const forced = await page.expectTextDisplayed(forcedPattern);
@@ -116,7 +116,7 @@ describe("ExportForcedPush", () => {
   );
 
   test.each(forcedPushCases.map((entry) => [entry.status, entry] as const))(
-    "given a %s note when the bulk action is used then it is selected and Export becomes enabled",
+    "given a %s note when the page is forced then it is selected and Export becomes enabled",
     async (_status, { ankiMod, buildFixture }) => {
       // given
       const note = basicAnkiNote(noteId, ankiMod);
@@ -129,7 +129,7 @@ describe("ExportForcedPush", () => {
       });
       // when
       await page.goToNotesPage(folderName);
-      await page.clickBulkObsidianWins();
+      await page.clickForceAllOnPage();
       const preselected = await page.isNotePreselected();
       const exportEnabled = await page.isExportButtonEnabled();
       // then

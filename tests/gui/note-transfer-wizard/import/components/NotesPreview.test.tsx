@@ -3,7 +3,7 @@
  *
  * User-perspective tests for wizard page 3: every row states the direction of
  * the change and what will happen, only notes that will really be written are
- * selected, and every row offers "Anki wins" - a per-note force that takes
+ * selected, and every forceable row offers a "Forced" switch that takes
  * Anki's version no matter the state, in bulk or for one note.
  */
 import "obsidian-test-mocks/jest-setup";
@@ -26,15 +26,14 @@ beforeEach(() => {
   AnkiConnectMock.reset();
 });
 
-const ankiWinsFileDeleted = t("force.outcome", {
-  force: t("force.ankiWins"),
+const forcedFileDeleted = t("force.outcome", {
+  force: t("force.label"),
   outcome: t("decision.ankiOnly.fileDeleted.import.forcedOutcome"),
 });
-const ankiWinsVaultNewer = t("force.outcome", {
-  force: t("force.ankiWins"),
+const forcedVaultNewer = t("force.outcome", {
+  force: t("force.label"),
   outcome: t("decision.synced.vaultNewer.import.forcedOutcome"),
 });
-const bulkAnkiFour = t("preview.bulkAnki").replace("X", "4");
 
 function previewNote(noteId: number, mod: number, front: string) {
   return {
@@ -192,7 +191,12 @@ describe("NotesPreview", () => {
 
     // when
     const upToDate = await screen.findByText("Up to date card");
-    const boxes = screen.getAllByRole("checkbox", { name: "" });
+    const rowBoxes = screen
+      .getAllByRole("checkbox", { name: /^Select / })
+      .filter(
+        (box) =>
+          box.getAttribute("aria-label") !== "Select all notes on this page",
+      );
 
     // then
     expect(upToDate).not.toBeNull();
@@ -201,7 +205,9 @@ describe("NotesPreview", () => {
         "div.notepalace-note-import-wizard-modal__preview-row--imported",
       ),
     ).not.toBeNull();
-    expect(boxes.filter((box) => box.hasAttribute("disabled"))).toHaveLength(4);
+    expect(rowBoxes.filter((box) => box.hasAttribute("disabled"))).toHaveLength(
+      4,
+    );
   });
 
   test("given a vault-newer note when preview renders then says the vault is newer and leaves it unselected", async () => {
@@ -385,19 +391,16 @@ describe("NotesPreview", () => {
     ).toBeInTheDocument();
   });
 
-  test("given a note without a file when the preview renders then Anki wins is offered", async () => {
+  test("given a note without a file when the preview renders then the force switch is offered", async () => {
     // given
     respondWithPreviewNotes();
     await renderPreview();
 
     // when
     await screen.findByText("Missing file card");
-    const toggle = within(previewRow("Missing file card")).getByRole(
-      "checkbox",
-      {
-        name: ankiWinsFileDeleted,
-      },
-    );
+    const toggle = within(previewRow("Missing file card")).getByRole("switch", {
+      name: forcedFileDeleted,
+    });
 
     // then
     expect(toggle).toBeInTheDocument();
@@ -417,13 +420,13 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const row = await screen.findByText(ankiWinsFileDeleted);
+    const row = await screen.findByText(forcedFileDeleted);
 
     // then
     expect(row).toBeInTheDocument();
   });
 
-  test("given a vault-newer note when Anki wins is clicked then it is forced and selected", async () => {
+  test("given a vault-newer note when force is clicked on then it is forced and selected", async () => {
     // given
     respondWithPreviewNotes();
     const { onForcedNoteIdsChange, onNotesSelectedToImportChange } =
@@ -432,8 +435,8 @@ describe("NotesPreview", () => {
 
     // when
     await userEvent.setup().click(
-      within(previewRow("Vault newer card")).getByRole("checkbox", {
-        name: ankiWinsVaultNewer,
+      within(previewRow("Vault newer card")).getByRole("switch", {
+        name: forcedVaultNewer,
       }),
     );
 
@@ -444,27 +447,26 @@ describe("NotesPreview", () => {
     );
   });
 
-  test("given notes left undecided when the bulk force is used then every one is forced", async () => {
+  test("given notes left undecided when the page is forced then every forceable one is forced", async () => {
     // given
     respondWithPreviewNotes();
     const { onForcedNoteIdsChange, onNotesSelectedToImportChange } =
       await renderPreview();
-    const useAnkiForAll = await screen.findByRole("button", {
-      name: bulkAnkiFour,
+    const forceAll = await screen.findByRole("switch", {
+      name: "Force all notes on this page",
     });
 
     // when
-    await userEvent.setup().click(useAnkiForAll);
+    await userEvent.setup().click(forceAll);
 
     // then
     expect(onForcedNoteIdsChange).toHaveBeenCalledWith({
-      101: true,
       104: true,
       105: true,
       106: true,
     });
     expect(onNotesSelectedToImportChange).toHaveBeenCalledWith(
-      expect.objectContaining({ 101: true, 104: true, 105: true, 106: true }),
+      expect.objectContaining({ 104: true, 105: true, 106: true }),
     );
   });
 
