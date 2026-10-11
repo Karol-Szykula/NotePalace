@@ -166,7 +166,7 @@ function buildCardColumns(
 ): ColumnDef<ClassifiedNote>[] {
   return [
     {
-      header: t("preview.cardColumn"),
+      header: t("preview.noteColumn"),
       render: (item: ClassifiedNote) => {
         const row = importRow(item);
         return (

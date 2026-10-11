@@ -117,7 +117,7 @@ describe("ImportLeftToSync", () => {
     await page.goToCardsPage(deckName);
     const forceAll = await page.forceAllSwitch();
     // then
-    expect(forceAll).toBeDisabled();
+    expect(forceAll).toHaveAttribute("aria-disabled", "true");
   });
 
   test("given an ankiOnly.fileDeleted note when force is clicked on then the run re-creates the file", async () => {

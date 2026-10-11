@@ -174,7 +174,7 @@ describe("NotesTable", () => {
     // then
     expect(
       screen.getByRole("switch", { name: "Force all notes on this page" }),
-    ).toBeChecked();
+    ).toHaveAttribute("aria-checked", "true");
     expect(
       screen.getByRole("checkbox", { name: "Select note 1" }),
     ).toBeChecked();
@@ -199,7 +199,7 @@ describe("NotesTable", () => {
     // then
     expect(
       screen.getByRole("switch", { name: "Force all notes on this page" }),
-    ).not.toBeChecked();
+    ).not.toHaveAttribute("aria-checked", "true");
     expect(
       screen.getByRole("checkbox", { name: "Select note 1" }),
     ).toBeChecked();

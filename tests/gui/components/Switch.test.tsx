@@ -53,7 +53,6 @@ describe("Switch", () => {
     // then
     const control = screen.getByRole("switch", { name: ariaLabel });
     expect(control).toHaveAttribute("aria-checked", "mixed");
-    expect((control as HTMLInputElement).indeterminate).toBe(true);
   });
 
   test("given a class name when rendered then it merges over the base class", () => {
@@ -102,6 +101,19 @@ describe("Switch", () => {
     await userEvent
       .setup()
       .click(screen.getByRole("switch", { name: "Force" }));
+
+    // then
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+
+  test("given an off switch when Space is pressed then it calls back as on", async () => {
+    // given
+    const onChange = jest.fn();
+
+    // when
+    render(<Switch ariaLabel="Force" checked={false} onChange={onChange} />);
+    screen.getByRole("switch", { name: "Force" }).focus();
+    await userEvent.keyboard("{Space}");
 
     // then
     expect(onChange).toHaveBeenCalledWith(true);

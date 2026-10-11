@@ -65,30 +65,21 @@
   text-align:    center;
 }
 
-/* Obsidian's app css styles input[type="checkbox"] with higher
-   specificity and loads after plugin styles, so the switch needs the
-   modal root in every selector to win both the base look and :checked. */
-.notepalace-note-transfer-wizard-modal .notepalace-switch {
-  appearance:        none;
-  -webkit-appearance: none;
-  position:          relative;
-  box-sizing:        border-box;
-  width:             var(--notepalace-switch-width);
-  height:            var(--notepalace-switch-height);
-  margin:            0;
-  padding:           0;
-  border:            none;
-  border-radius:     calc(var(--notepalace-switch-height) / 2);
-  background:        var(--notepalace-switch-track-off);
-  background-image:  none;
-  box-shadow:        none;
-  outline:           none;
-  cursor:            pointer;
-  vertical-align:    middle;
-  transition:        background var(--notepalace-switch-transition);
+.notepalace-switch {
+  position:      relative;
+  display:       inline-block;
+  box-sizing:    border-box;
+  width:         var(--notepalace-switch-width);
+  height:        var(--notepalace-switch-height);
+  margin:        0;
+  padding:       0;
+  border-radius: calc(var(--notepalace-switch-height) / 2);
+  background:    var(--notepalace-switch-track-off);
+  cursor:        pointer;
+  transition:    background var(--notepalace-switch-transition);
 }
 
-.notepalace-note-transfer-wizard-modal .notepalace-switch::before {
+.notepalace-switch::before {
   content:       "";
   position:      absolute;
   top:           var(--notepalace-switch-thumb-offset);
@@ -100,25 +91,26 @@
   transition:    transform var(--notepalace-switch-transition);
 }
 
-.notepalace-note-transfer-wizard-modal .notepalace-switch::after {
-  content: none;
-}
-
-.notepalace-note-transfer-wizard-modal .notepalace-switch:checked {
+.notepalace-switch[aria-checked="true"] {
   background: var(--notepalace-switch-track-on);
 }
 
-.notepalace-note-transfer-wizard-modal .notepalace-switch:checked::before {
+.notepalace-switch[aria-checked="true"]::before {
   transform: translateX(var(--notepalace-switch-travel));
 }
 
-.notepalace-note-transfer-wizard-modal .notepalace-switch:indeterminate::before {
+.notepalace-switch[aria-checked="mixed"]::before {
   transform: translateX(calc(var(--notepalace-switch-travel) / 2));
 }
 
-.notepalace-note-transfer-wizard-modal .notepalace-switch:disabled {
+.notepalace-switch[aria-disabled="true"] {
   cursor:  default;
   opacity: 0.5;
+}
+
+.notepalace-switch:focus-visible {
+  outline:       2px solid var(--interactive-accent);
+  outline-offset: 1px;
 }
 
 .modal:has(> .modal-content > .notepalace-note-transfer-wizard-modal) {
@@ -507,26 +499,34 @@
 }
 
 .notepalace-note-transfer-wizard-modal__list-row-details {
-  border-top:    var(--notepalace-note-transfer-wizard-modal__list-divider);
-  grid-column:   1 / -1;
-  margin-top:    0.25rem;
-  padding:       var(--notepalace-note-transfer-wizard-modal__row-padding);
+  border-top:          var(--notepalace-note-transfer-wizard-modal__list-divider);
+  display:             grid;
+  grid-column:         1 / -1;
+  grid-template-columns: subgrid;
+  margin-top:          0.25rem;
+  padding:             0.375rem 0;
 }
 
 .notepalace-note-details {
-  display: grid;
-  gap:     0.25rem;
-  margin:  0;
-}
-
-.notepalace-note-details__detail {
   display:              grid;
-  grid-template-columns: auto 1fr;
+  gap:                  0.25rem;
+  grid-column:          1 / -1;
+  grid-template-columns: subgrid;
   margin:               0;
 }
 
+.notepalace-note-details__detail {
+  display: contents;
+}
+
 .notepalace-note-details__detail-label {
-  color: var(--text-faint);
+  color:       var(--text-faint);
+  grid-column: 1 / 4;
+}
+
+.notepalace-note-details__detail-value {
+  grid-column: 4;
+  margin:      0;
 }
 
 .notepalace-chip {

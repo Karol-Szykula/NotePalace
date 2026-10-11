@@ -109,7 +109,6 @@ const en = {
     selectAllOnPage: "Select all notes on this page",
     forceAllOnPage: "Force all notes on this page",
     selectRow: "Select {summary}",
-    cardColumn: "Card",
     noteColumn: "Note",
     expandRow: "Expand {summary}",
     collapseRow: "Collapse {summary}",
