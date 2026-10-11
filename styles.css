@@ -44,16 +44,6 @@
   --notepalace-dev-reset-padding: 0.75rem;
 
   --notepalace-button-width: 5rem;
-
-  --notepalace-switch-width:         2rem;
-  --notepalace-switch-height:        1.125rem;
-  --notepalace-switch-thumb-size:    0.875rem;
-  --notepalace-switch-thumb-offset:  0.125rem;
-  --notepalace-switch-travel:        calc(var(--notepalace-switch-width) - var(--notepalace-switch-thumb-size) - 2 * var(--notepalace-switch-thumb-offset));
-  --notepalace-switch-transition:    0.15s ease;
-  --notepalace-switch-track-off:     var(--background-modifier-border);
-  --notepalace-switch-track-on:      var(--interactive-accent);
-  --notepalace-switch-thumb:         var(--text-on-accent);
 }
 
 .notepalace-button {
@@ -66,51 +56,73 @@
 }
 
 .notepalace-switch {
-  position:      relative;
-  display:       inline-block;
-  box-sizing:    border-box;
-  width:         var(--notepalace-switch-width);
-  height:        var(--notepalace-switch-height);
-  margin:        0;
-  padding:       0;
-  border-radius: calc(var(--notepalace-switch-height) / 2);
-  background:    var(--notepalace-switch-track-off);
-  cursor:        pointer;
-  transition:    background var(--notepalace-switch-transition);
+  -webkit-app-region: no-drag;
+  box-sizing:       border-box;
+  cursor:           pointer;
+  background-color: var(--background-modifier-border-hover);
+  border-radius:    var(--toggle-radius);
+  display:          inline-block;
+  flex-shrink:      0;
+  height:           calc(var(--toggle-thumb-height) + var(--toggle-border-width) * 2);
+  position:         relative;
+  user-select:      none;
+  width:            var(--toggle-width);
+  box-shadow:       inset 0 4px 10px rgba(0, 0, 0, 0.07),
+                    inset 0 0 1px rgba(0, 0, 0, 0.21);
+  transition:       box-shadow 0.15s ease-in-out, background-color 0.15s ease-in-out;
+  outline:          0 solid var(--background-modifier-border-focus);
 }
 
-.notepalace-switch::before {
-  content:       "";
-  position:      absolute;
-  top:           var(--notepalace-switch-thumb-offset);
-  left:          var(--notepalace-switch-thumb-offset);
-  width:         var(--notepalace-switch-thumb-size);
-  height:        var(--notepalace-switch-thumb-size);
-  border-radius: 50%;
-  background:    var(--notepalace-switch-thumb);
-  transition:    transform var(--notepalace-switch-transition);
+.notepalace-switch:focus-visible {
+  outline: var(--toggle-border-width) solid var(--background-modifier-border-focus);
+}
+
+@media (hover: hover) {
+  .notepalace-switch:hover {
+    box-shadow: inset 0 6px 20px rgba(0, 0, 0, 0.14),
+                inset 0 0 1px rgba(0, 0, 0, 0.28);
+  }
 }
 
 .notepalace-switch[aria-checked="true"] {
-  background: var(--notepalace-switch-track-on);
+  background-color: var(--interactive-accent);
 }
 
-.notepalace-switch[aria-checked="true"]::before {
-  transform: translateX(var(--notepalace-switch-travel));
+.notepalace-switch::after {
+  content:          '';
+  pointer-events:   none;
+  display:          block;
+  position:         absolute;
+  background-color: var(--toggle-thumb-color);
+  width:            var(--toggle-thumb-width);
+  height:           var(--toggle-thumb-height);
+  margin:           var(--toggle-border-width) 0 0 0;
+  border-radius:    var(--toggle-thumb-radius);
+  transition:       transform 0.15s ease-in-out;
+  left:             0;
+  transform:        translate3d(2px, 0, 0);
+  box-shadow:       0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.notepalace-switch[aria-checked="mixed"]::before {
-  transform: translateX(calc(var(--notepalace-switch-travel) / 2));
+.notepalace-switch[aria-checked="true"]::after {
+  transform: translate3d(
+    calc(var(--toggle-width) - var(--toggle-thumb-width) - var(--toggle-border-width)),
+    0,
+    0
+  );
+}
+
+.notepalace-switch[aria-checked="mixed"]::after {
+  transform: translate3d(
+    calc((var(--toggle-width) - var(--toggle-thumb-width) - var(--toggle-border-width)) / 2),
+    0,
+    0
+  );
 }
 
 .notepalace-switch[aria-disabled="true"] {
   cursor:  default;
   opacity: 0.5;
-}
-
-.notepalace-switch:focus-visible {
-  outline:       2px solid var(--interactive-accent);
-  outline-offset: 1px;
 }
 
 .modal:has(> .modal-content > .notepalace-note-transfer-wizard-modal) {
