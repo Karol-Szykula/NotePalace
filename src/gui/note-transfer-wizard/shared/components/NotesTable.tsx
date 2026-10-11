@@ -110,34 +110,36 @@ function NoteRow<T>({
             <path d="M6 3l5 5-5 5" />
           </svg>
         </button>,
-        <Checkbox
-          ariaLabel={getRowAriaLabel(item)}
-          checked={isSelected}
-          disabled={!isSelectable}
-          key="select"
-          onChange={(isNowSelected) =>
-            onSelectedChange(
-              setNoteSelected(notesSelectedToImport, noteId, isNowSelected),
-            )
-          }
-        />,
-        <Switch
-          ariaLabel={
-            forcedOutcomeText(getRow(item)) ?? t("preview.forceColumn")
-          }
-          checked={isForced}
-          key="force"
-          onChange={(isNowForced) => {
-            const next = setNoteForced(
-              forcedNoteIds,
-              notesSelectedToImport,
-              noteId,
-              isNowForced,
-              getDefaultSelected(item),
-            );
-            onForcedChange(next.forced, next.selected);
-          }}
-        />,
+        <span className={listClasses.listControlCell} key="select">
+          <Checkbox
+            ariaLabel={getRowAriaLabel(item)}
+            checked={isSelected}
+            disabled={!isSelectable}
+            onChange={(isNowSelected) =>
+              onSelectedChange(
+                setNoteSelected(notesSelectedToImport, noteId, isNowSelected),
+              )
+            }
+          />
+        </span>,
+        <span className={listClasses.listControlCell} key="force">
+          <Switch
+            ariaLabel={
+              forcedOutcomeText(getRow(item)) ?? t("preview.forceColumn")
+            }
+            checked={isForced}
+            onChange={(isNowForced) => {
+              const next = setNoteForced(
+                forcedNoteIds,
+                notesSelectedToImport,
+                noteId,
+                isNowForced,
+                getDefaultSelected(item),
+              );
+              onForcedChange(next.forced, next.selected);
+            }}
+          />
+        </span>,
         ...columns.map((col, colIndex) => (
           <div key={colIndex}>{col.render(item, index)}</div>
         )),

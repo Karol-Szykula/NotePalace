@@ -34,6 +34,7 @@ export const listClasses = {
   listRowToggleExpanded:
     "notepalace-note-transfer-wizard-modal__list-row-toggle--expanded",
   listCell: "notepalace-note-transfer-wizard-modal__list-cell",
+  listControlCell: "notepalace-note-transfer-wizard-modal__list-control-cell",
   listDividersTop: "notepalace-note-transfer-wizard-modal__list--dividers-top",
   listDividersBottom:
     "notepalace-note-transfer-wizard-modal__list--dividers-bottom",
