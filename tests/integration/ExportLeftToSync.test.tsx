@@ -95,6 +95,7 @@ describe("ExportLeftToSync", () => {
       await page.goToNotesPage(folderName);
       const preselected = await page.isNotePreselected();
       const importEnabled = await page.isExportButtonEnabled();
+      await page.expandFirstRow();
       const texts: HTMLElement[] = [];
       for (const loadText of loadTexts) {
         texts.push(await page.expectTextDisplayed(loadText));
@@ -122,7 +123,7 @@ describe("ExportLeftToSync", () => {
     await page.goToNotesPage(folderName);
     const forceAll = await page.forceAllSwitch();
     // then
-    expect(forceAll).toBeDisabled();
+    expect(forceAll).toHaveAttribute("aria-disabled", "true");
   });
 
   test("given a vaultOnly.ankiDeleted note when force is clicked on then the run re-creates the Anki note", async () => {

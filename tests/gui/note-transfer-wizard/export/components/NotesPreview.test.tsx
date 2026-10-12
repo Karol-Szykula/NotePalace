@@ -183,9 +183,9 @@ describe("NotesPreview", () => {
 
     // then
     expect(
-      within(row).getByText(
-        messagePattern("decision.synced.clean.export.rationale"),
-      ),
+      within(row).getByRole("group", {
+        name: messagePattern("decision.synced.clean.export.rationale"),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -199,9 +199,27 @@ describe("NotesPreview", () => {
 
     // then
     expect(
-      within(row).getByText(
-        messagePattern("decision.synced.vaultNewer.export.rationale"),
-      ),
+      within(row).getByRole("group", {
+        name: messagePattern("decision.synced.vaultNewer.export.rationale"),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  test("given a block when expanded then the details show its back and file path", async () => {
+    // given
+    await renderPreview();
+    await screen.findByText("Up to date card");
+
+    // when
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Expand Up to date card" }));
+
+    // then
+    const row = previewRow("Up to date card");
+    expect(within(row).getByText("B")).toBeInTheDocument();
+    expect(
+      within(row).getByText("Languages/Up to date-101.md"),
     ).toBeInTheDocument();
   });
 

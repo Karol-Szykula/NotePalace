@@ -1,4 +1,4 @@
-import { useEffect, useRef, type JSX } from "react";
+import type { JSX, KeyboardEvent } from "react";
 import { mergeClasses } from "src/gui/classes";
 
 const switchClasses = {
@@ -14,6 +14,10 @@ export interface SwitchProps {
   readonly onChange: (checked: boolean) => void;
 }
 
+function toggleOnKeys(key: string): boolean {
+  return key === " " || key === "Space" || key === "Enter";
+}
+
 export function Switch({
   ariaLabel,
   checked,
@@ -22,25 +26,26 @@ export function Switch({
   indeterminate = false,
   onChange,
 }: SwitchProps): JSX.Element {
-  const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (ref.current !== null) {
-      ref.current.indeterminate = indeterminate;
+  const toggle = (): void => {
+    if (!disabled) {
+      onChange(!checked);
     }
-  }, [indeterminate]);
-
+  };
   return (
-    <input
+    <span
       aria-checked={indeterminate ? "mixed" : checked}
+      aria-disabled={disabled || undefined}
       aria-label={ariaLabel}
-      checked={checked}
       className={mergeClasses(switchClasses.switch, className)}
-      disabled={disabled}
-      onChange={(event) => onChange(event.target.checked)}
-      ref={ref}
+      onClick={toggle}
+      onKeyDown={(event: KeyboardEvent<HTMLSpanElement>) => {
+        if (toggleOnKeys(event.key)) {
+          event.preventDefault();
+          toggle();
+        }
+      }}
       role="switch"
-      type="checkbox"
+      tabIndex={disabled ? -1 : 0}
     />
   );
 }

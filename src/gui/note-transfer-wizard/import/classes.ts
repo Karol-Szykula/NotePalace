@@ -17,14 +17,8 @@ export const transferNotesPreviewClasses = {
   previewRow: "notepalace-note-import-wizard-modal__preview-row",
   previewRowImported:
     "notepalace-note-import-wizard-modal__preview-row--imported",
-  previewBadge: "notepalace-note-import-wizard-modal__preview-badge",
-  previewBadgeNew: "notepalace-note-import-wizard-modal__preview-badge--new",
-  previewBadgeImported:
-    "notepalace-note-import-wizard-modal__preview-badge--imported",
-  previewBadgeOverwrite:
-    "notepalace-note-import-wizard-modal__preview-badge--overwrite",
-  previewBadgeSkipped:
-    "notepalace-note-import-wizard-modal__preview-badge--skipped",
+  previewTitle: "notepalace-note-import-wizard-modal__preview-title",
+  previewTitleText: "notepalace-note-import-wizard-modal__preview-title-text",
   previewPagination: "notepalace-note-import-wizard-modal__preview-pagination",
   noticeText: "notepalace-note-import-wizard-modal__preview-notice",
 } as const;

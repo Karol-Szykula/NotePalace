@@ -1,39 +1,23 @@
 import type { OutcomeKind } from "src/services/notes/decision-table";
 import type { NotePreviewStatus } from "src/services/notes/lifecycle";
+import type { MessageKey } from "src/i18n/messages";
 import { plural, t } from "src/i18n";
 
-export interface PreviewBadgeClasses {
-  readonly badgeImported: string;
-  readonly badgeNew: string;
-  readonly badgeOverwrite: string;
-  readonly badgeSkipped: string;
-}
+export const outcomeLabelKey: Record<OutcomeKind, MessageKey> = {
+  conflict: "preview.outcome.conflict",
+  create: "preview.outcome.create",
+  missing: "preview.outcome.missing",
+  overwrite: "preview.outcome.overwrite",
+  quiet: "preview.outcome.quiet",
+  skip: "preview.outcome.skip",
+};
 
-export function previewBadgeClass(
-  kind: OutcomeKind,
-  classes: PreviewBadgeClasses,
-): string {
-  if (kind === "create") {
-    return classes.badgeNew;
-  }
-  if (kind === "quiet") {
-    return classes.badgeImported;
-  }
-  if (kind === "skip" || kind === "conflict") {
-    return classes.badgeSkipped;
-  }
-  if (kind === "overwrite") {
-    return classes.badgeOverwrite;
-  }
-  return classes.badgeImported;
-}
-
-export function resolveBadgeText(
+export function rationaleText(
   isForced: boolean,
   forcedOutcome: string | undefined,
-  fallback: string,
+  rationale: string,
 ): string {
-  return isForced && forcedOutcome !== undefined ? forcedOutcome : fallback;
+  return isForced && forcedOutcome !== undefined ? forcedOutcome : rationale;
 }
 
 export function countNotes(count: number): string {

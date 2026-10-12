@@ -216,9 +216,9 @@ describe("NotesPreview", () => {
     const { onNotesSelectedToImportChange } = await renderPreview();
 
     // when
-    await screen.findByText(
-      messagePattern("decision.synced.vaultNewer.import.rationale"),
-    );
+    await screen.findByRole("group", {
+      name: messagePattern("decision.synced.vaultNewer.import.rationale"),
+    });
 
     // then
     expect(onNotesSelectedToImportChange).toHaveBeenCalledWith({
@@ -237,9 +237,9 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const warning = await screen.findByText(
-      messagePattern("decision.synced.ankiNewer.import.rationale"),
-    );
+    const warning = await screen.findByRole("group", {
+      name: messagePattern("decision.synced.ankiNewer.import.rationale"),
+    });
 
     // then
     expect(warning).not.toBeNull();
@@ -251,12 +251,13 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const badge = await screen.findByText(
-      messagePattern("decision.ankiOnly.neverImported.import.rationale"),
-    );
+    const chip = await screen.findByRole("group", {
+      name: messagePattern("decision.ankiOnly.neverImported.import.rationale"),
+    });
 
     // then
-    expect(badge).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
+    expect(chip).toHaveTextContent("Create");
   });
 
   test("given a note whose block has an id but no ledger record when preview renders then it says it enrols the block", async () => {
@@ -273,12 +274,12 @@ describe("NotesPreview", () => {
     });
 
     // when
-    const badge = await screen.findByText(
-      messagePattern("decision.linked.unenrolled.import.rationale"),
-    );
+    const chip = await screen.findByRole("group", {
+      name: messagePattern("decision.linked.unenrolled.import.rationale"),
+    });
 
     // then
-    expect(badge).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
   });
 
   test("given a note edited in both places when the preview renders then the row says Sync decides by newest", async () => {
@@ -287,28 +288,28 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const badge = await screen.findByText(
-      messagePattern("decision.synced.diverged.import.rationale"),
-    );
+    const chip = await screen.findByRole("group", {
+      name: messagePattern("decision.synced.diverged.import.rationale"),
+    });
 
     // then
-    expect(badge).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
   });
 
-  test("given a note already imported and unchanged when the preview renders then the row names the file it lives in", async () => {
+  test("given a note already imported and unchanged when the preview renders then the chip names the file it lives in", async () => {
     // given
     respondWithPreviewNotes();
     await renderPreview();
 
     // when
-    const badge = await screen.findByText(
-      new RegExp(
+    const chip = await screen.findByRole("group", {
+      name: new RegExp(
         `${messagePattern("decision.synced.clean.import.rationale").source} \\(Up to date-101\\.md\\)`,
       ),
-    );
+    });
 
     // then
-    expect(badge).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
   });
 
   test("given a note without a file when preview renders then leaves it to Sync", async () => {
@@ -317,9 +318,9 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const leftToSync = await screen.findByText(
-      messagePattern("preview.idNowhereInVault"),
-    );
+    const leftToSync = await screen.findByRole("group", {
+      name: messagePattern("preview.idNowhereInVault"),
+    });
 
     // then
     expect(leftToSync).not.toBeNull();
@@ -338,12 +339,12 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const badge = await screen.findByText(
-      messagePattern("preview.idNowhereInVault"),
-    );
+    const chip = await screen.findByRole("group", {
+      name: messagePattern("preview.idNowhereInVault"),
+    });
 
     // then
-    expect(badge).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
   });
 
   test("given a file with no readable block for the id when the preview renders then the row says the block is unreadable", async () => {
@@ -359,12 +360,12 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const badge = await screen.findByText(
-      messagePattern("preview.noReadableBlock"),
-    );
+    const chip = await screen.findByRole("group", {
+      name: messagePattern("preview.noReadableBlock"),
+    });
 
     // then
-    expect(badge).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
   });
 
   test("given only notes without files when preview renders then it points at the bulk force and names the resurrection", async () => {
@@ -420,10 +421,33 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const row = await screen.findByText(forcedFileDeleted);
+    const chip = await screen.findByRole("group", {
+      name: forcedFileDeleted,
+    });
 
     // then
-    expect(row).toBeInTheDocument();
+    expect(chip).toBeInTheDocument();
+  });
+
+  test("given a loaded row when expanded then the details name the vault file and the rationale", async () => {
+    // given
+    respondWithPreviewNotes();
+    await renderPreview();
+    await screen.findByText("Up to date card");
+
+    // when
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Expand Up to date card" }));
+
+    // then
+    const row = previewRow("Up to date card");
+    expect(within(row).getByText("Up to date-101.md")).toBeInTheDocument();
+    expect(
+      within(row).getByText(
+        messagePattern("decision.synced.clean.import.rationale"),
+      ),
+    ).toBeInTheDocument();
   });
 
   test("given a vault-newer note when force is clicked on then it is forced and selected", async () => {

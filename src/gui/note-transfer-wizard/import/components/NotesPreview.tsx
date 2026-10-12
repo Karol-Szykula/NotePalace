@@ -27,20 +27,19 @@ import { fetchDeckNotes } from "src/services/anki/read";
 import { normalizeNoteText } from "src/services/notes/text";
 import type { ClassifiedNote } from "src/services/commands/import-deck";
 import type { NotePreviewStatus } from "src/services/notes/lifecycle";
-import { transferNotesPreviewClasses } from "../classes";
+import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
 import { commonWizardClasses } from "@shared/classes";
-import { NotesTable, type ColumnDef } from "@shared/components";
+import { NotesTable, StatusChip, type ColumnDef } from "@shared/components";
+import { transferNotesPreviewClasses } from "../classes";
 import {
   comparePreviewRank,
   countNotes,
-  previewBadgeClass,
+  outcomeLabelKey,
   previewStatusOrder,
+  rationaleText,
   recreateWarning,
-  resolveBadgeText,
   selectionNoticeText,
-  type PreviewBadgeClasses,
 } from "@shared/utils/preview";
-import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
 
 export interface NotesPreviewProps {
   readonly anki: Anki;
@@ -69,10 +68,18 @@ export interface NotesPreviewProps {
 
 const previewPageSize = 100;
 
-function noteSummary(note: AnkiNoteInfo): string {
+function noteFront(note: AnkiNoteInfo): string {
   const front = note.fields["Front"]?.value;
   const firstField = Object.values(note.fields)[0]?.value ?? "";
-  return normalizeNoteText(front ?? firstField).slice(0, 80);
+  return normalizeNoteText(front ?? firstField);
+}
+
+function noteSummary(note: AnkiNoteInfo): string {
+  return noteFront(note).slice(0, 80);
+}
+
+function tagsText(tags: readonly string[]): string | undefined {
+  return tags.length > 0 ? tags.join(", ") : undefined;
 }
 
 function importRow(item: ClassifiedNote): SyncDecisionRow {
@@ -93,14 +100,7 @@ function isImportSelectedByDefault(status: NoteLifecycleStatus): boolean {
   );
 }
 
-const importBadgeClasses: PreviewBadgeClasses = {
-  badgeImported: transferNotesPreviewClasses.previewBadgeImported,
-  badgeNew: transferNotesPreviewClasses.previewBadgeNew,
-  badgeOverwrite: transferNotesPreviewClasses.previewBadgeOverwrite,
-  badgeSkipped: transferNotesPreviewClasses.previewBadgeSkipped,
-};
-
-function previewBadgeOutcome(item: ClassifiedNote): string {
+function rationaleOutcome(item: ClassifiedNote): string {
   const row = importRow(item);
   if (item.previewStatus === "noFile") {
     return item.isInVaultIndex
@@ -113,11 +113,11 @@ function previewBadgeOutcome(item: ClassifiedNote): string {
   return t(row.rationaleKey);
 }
 
-function previewBadgeText(item: ClassifiedNote, isForced: boolean): string {
-  return resolveBadgeText(
+function rowRationale(item: ClassifiedNote, isForced: boolean): string {
+  return rationaleText(
     isForced,
     ankiWinsStrategy.getForcedOutcome(importRow(item)),
-    previewBadgeOutcome(item),
+    rationaleOutcome(item),
   );
 }
 
@@ -166,20 +166,28 @@ function buildCardColumns(
 ): ColumnDef<ClassifiedNote>[] {
   return [
     {
-      header: t("preview.cardColumn"),
-      render: (item: ClassifiedNote) => (
-        <label>
-          <span>{noteSummary(item.note)}</span>
-          <span
-            className={mergeClasses(
-              transferNotesPreviewClasses.previewBadge,
-              previewBadgeClass(importRow(item).kind, importBadgeClasses),
-            )}
-          >
-            {previewBadgeText(item, forcedNoteIds[item.note.noteId] ?? false)}
-          </span>
-        </label>
-      ),
+      header: t("preview.noteColumn"),
+      render: (item: ClassifiedNote) => {
+        const row = importRow(item);
+        return (
+          <div className={transferNotesPreviewClasses.previewTitle}>
+            <span
+              className={transferNotesPreviewClasses.previewTitleText}
+              title={noteFront(item.note)}
+            >
+              {noteSummary(item.note)}
+            </span>
+            <StatusChip
+              kind={row.kind}
+              label={t(outcomeLabelKey[row.kind])}
+              tooltip={rowRationale(
+                item,
+                forcedNoteIds[item.note.noteId] ?? false,
+              )}
+            />
+          </div>
+        );
+      },
       width: "1fr",
     },
   ];
@@ -377,6 +385,17 @@ export function NotesPreview({
               : undefined,
           )
         }
+        getRowDetails={(item) => ({
+          back: item.note.fields["Back"]?.value,
+          model: item.note.modelName,
+          path: item.vaultPath,
+          rationale: rowRationale(
+            item,
+            forcedNoteIds[item.note.noteId] ?? false,
+          ),
+          tags: tagsText(item.note.tags),
+        })}
+        getRowTitle={(item) => noteSummary(item.note)}
         getStatus={(item) => item.status}
         isResurrectable={(item) => item.previewStatus === "noFile"}
         items={classified}

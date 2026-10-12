@@ -89,6 +89,7 @@ describe("ImportLeftToSync", () => {
       await page.goToCardsPage(deckName);
       const preselected = await page.isNotePreselected();
       const importEnabled = await page.isImportButtonEnabled();
+      await page.expandFirstRow();
       const texts: HTMLElement[] = [];
       for (const loadText of loadTexts) {
         texts.push(await page.expectTextDisplayed(loadText));
@@ -116,7 +117,7 @@ describe("ImportLeftToSync", () => {
     await page.goToCardsPage(deckName);
     const forceAll = await page.forceAllSwitch();
     // then
-    expect(forceAll).toBeDisabled();
+    expect(forceAll).toHaveAttribute("aria-disabled", "true");
   });
 
   test("given an ankiOnly.fileDeleted note when force is clicked on then the run re-creates the file", async () => {
