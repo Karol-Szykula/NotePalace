@@ -79,7 +79,7 @@ export function StatusChip({
         chipKindClass[kind],
         kind === "missing" ? chipClasses.chipDanger : undefined,
       )}
-      role="status"
+      role="group"
       title={tooltip}
     >
       <span aria-hidden="true" className={chipClasses.chipIcon}>

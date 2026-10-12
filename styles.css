@@ -44,6 +44,8 @@
   --notepalace-dev-reset-padding: 0.75rem;
 
   --notepalace-button-width: 5rem;
+
+  --notepalace-chip-icon-size: 1em;
 }
 
 .notepalace-button {
@@ -559,6 +561,8 @@
 
 .notepalace-chip__icon svg {
   display: block;
+  height:  var(--notepalace-chip-icon-size);
+  width:   var(--notepalace-chip-icon-size);
 }
 
 .notepalace-chip--create {

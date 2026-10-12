@@ -36,6 +36,7 @@ export function List({
   children,
 }: ListProps): JSX.Element {
   const headerRowRole = role === undefined ? undefined : "row";
+  const headerGroupRole = role === undefined ? undefined : "rowgroup";
   const columnRole = role === undefined ? undefined : "columnheader";
   const controlRole = role === undefined ? undefined : "gridcell";
   return (
@@ -50,7 +51,7 @@ export function List({
       style={columnWidths ? { gridTemplateColumns: columnWidths } : undefined}
     >
       {columns && columns.length > 0 && (
-        <div className={listClasses.listHeader}>
+        <div className={listClasses.listHeader} role={headerGroupRole}>
           <div className={listClasses.listHeaderRow} role={headerRowRole}>
             {columns.map((column) => (
               <span key={column} role={columnRole}>

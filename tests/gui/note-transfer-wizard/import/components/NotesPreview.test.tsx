@@ -216,7 +216,7 @@ describe("NotesPreview", () => {
     const { onNotesSelectedToImportChange } = await renderPreview();
 
     // when
-    await screen.findByRole("status", {
+    await screen.findByRole("group", {
       name: messagePattern("decision.synced.vaultNewer.import.rationale"),
     });
 
@@ -237,7 +237,7 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const warning = await screen.findByRole("status", {
+    const warning = await screen.findByRole("group", {
       name: messagePattern("decision.synced.ankiNewer.import.rationale"),
     });
 
@@ -251,7 +251,7 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: messagePattern("decision.ankiOnly.neverImported.import.rationale"),
     });
 
@@ -274,7 +274,7 @@ describe("NotesPreview", () => {
     });
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: messagePattern("decision.linked.unenrolled.import.rationale"),
     });
 
@@ -288,7 +288,7 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: messagePattern("decision.synced.diverged.import.rationale"),
     });
 
@@ -302,7 +302,7 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: new RegExp(
         `${messagePattern("decision.synced.clean.import.rationale").source} \\(Up to date-101\\.md\\)`,
       ),
@@ -318,7 +318,7 @@ describe("NotesPreview", () => {
     await renderPreview();
 
     // when
-    const leftToSync = await screen.findByRole("status", {
+    const leftToSync = await screen.findByRole("group", {
       name: messagePattern("preview.idNowhereInVault"),
     });
 
@@ -339,7 +339,7 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: messagePattern("preview.idNowhereInVault"),
     });
 
@@ -360,7 +360,7 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: messagePattern("preview.noReadableBlock"),
     });
 
@@ -421,7 +421,7 @@ describe("NotesPreview", () => {
     await renderPreview(scenario);
 
     // when
-    const chip = await screen.findByRole("status", {
+    const chip = await screen.findByRole("group", {
       name: forcedFileDeleted,
     });
 

@@ -18,7 +18,7 @@ describe("StatusChip", () => {
     );
 
     // when
-    const chip = screen.getByRole("status", { name: "It creates a file." });
+    const chip = screen.getByRole("group", { name: "It creates a file." });
 
     // then
     expect(chip).toHaveTextContent("Create");
@@ -32,7 +32,7 @@ describe("StatusChip", () => {
     render(<StatusChip kind="skip" label="Skip" tooltip={tooltip} />);
 
     // then
-    expect(screen.getByRole("status", { name: tooltip })).toHaveAttribute(
+    expect(screen.getByRole("group", { name: tooltip })).toHaveAttribute(
       "title",
       tooltip,
     );
@@ -45,7 +45,7 @@ describe("StatusChip", () => {
     );
 
     // when
-    const chip = screen.getByRole("status", { name: "Deleted in Anki." });
+    const chip = screen.getByRole("group", { name: "Deleted in Anki." });
 
     // then
     expect(chip).toHaveClass(chipClasses.chipDanger);

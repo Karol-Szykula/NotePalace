@@ -183,7 +183,7 @@ describe("NotesPreview", () => {
 
     // then
     expect(
-      within(row).getByRole("status", {
+      within(row).getByRole("group", {
         name: messagePattern("decision.synced.clean.export.rationale"),
       }),
     ).toBeInTheDocument();
@@ -199,7 +199,7 @@ describe("NotesPreview", () => {
 
     // then
     expect(
-      within(row).getByRole("status", {
+      within(row).getByRole("group", {
         name: messagePattern("decision.synced.vaultNewer.export.rationale"),
       }),
     ).toBeInTheDocument();
