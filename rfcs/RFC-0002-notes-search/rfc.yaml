@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: RFC-0002-notes-search
+type: feature
+status: accepted
+author: karol.szykula@engineeringtech.io
+createdAt: '2026-10-13T12:01:13.626Z'
+acceptance:
+  approver: karol.szykula@engineeringtech.io
+  approvedAt: '2026-10-13T12:25:28.801Z'
+  digest: efab2746c35ac4698c3b07015a143735a6bf663b2826dfa5e43a0d4f7bf4042c
