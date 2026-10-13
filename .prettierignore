@@ -7,7 +7,3 @@ node_modules/
 pnpm-lock.yaml
 *.md
 styles.css
-
-# corgi/openspec tool-owned artifacts (rewritten by corgispec in its own style)
-openspec/
-rfcs/

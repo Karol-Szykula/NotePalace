@@ -1,6 +1,0 @@
-schemaVersion: 1
-rfcId: RFC-0001-project-foundation
-revision: 1
-slices:
-  S-01-project-foundation:
-    status: unbound
