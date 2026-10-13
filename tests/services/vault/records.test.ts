@@ -84,6 +84,27 @@ describe("forgetRecordsWithoutFiles", () => {
     expect(settings.noteLifecycle).toEqual({});
   });
 
+  test("given a record with a deletion tombstone and no file when the ledger is purged then the tombstone is forgotten with it", async () => {
+    // given
+    const app = App.createConfigured__({ files: {} });
+    const settings = createSettings({
+      noteLifecycle: {
+        404: { ...syncedCleanRecord(100, "hash", 0), deletedAt: 50 },
+      },
+    });
+
+    // when
+    const report = await forgetRecordsWithoutFiles(
+      app.vault as unknown as ObsidianVault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report).toMatchObject({ forgotten: 1 });
+    expect(settings.noteLifecycle[404]).toBeUndefined();
+  });
+
   test("given a record whose block is gone from a living file when the ledger is purged then it is forgotten", async () => {
     // given
     const files = { "Languages/Other-203.md": `${formBlock("Kept", 203)}\n` };

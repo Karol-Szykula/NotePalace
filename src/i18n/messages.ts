@@ -193,7 +193,8 @@ const en = {
           forcedOutcome: "re-creates the file you deleted.",
         },
         sync: {
-          rationale: "No file: the purge path handles it outside this table.",
+          rationale:
+            "No file: Sync resurrects it when Anki changed after the deletion, otherwise forgets it.",
         },
       },
     },

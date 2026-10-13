@@ -8,7 +8,7 @@ import {
   noteLifecycleMachine,
   noteLifecycleMermaid,
   notePreviewStatusFor,
-  resolveMissingFile,
+  resolveDeletedFile,
   snapshotForStatus,
   statusOfSnapshot,
   transitionNoteLifecycle,
@@ -298,14 +298,17 @@ describe("FORCE_PUSH transitions", () => {
   );
 });
 
-describe("resolveMissingFile", () => {
-  test("given anki newer than the record when resolved then resurrects", () => {
-    expect(resolveMissingFile(200, 100)).toBe("RESURRECT");
+describe("resolveDeletedFile", () => {
+  test("given anki changed after the deletion when resolved then resurrects", () => {
+    expect(resolveDeletedFile(200, 100_000)).toBe("RESURRECT");
   });
 
-  test("given anki not newer than the record when resolved then purges", () => {
-    expect(resolveMissingFile(100, 100)).toBe("PURGE");
-    expect(resolveMissingFile(50, 100)).toBe("PURGE");
+  test("given anki changed before the deletion when resolved then purges", () => {
+    expect(resolveDeletedFile(100, 200_000)).toBe("PURGE");
+  });
+
+  test("given no recorded deletion when resolved then purges", () => {
+    expect(resolveDeletedFile(999, undefined)).toBe("PURGE");
   });
 });
 

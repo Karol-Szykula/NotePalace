@@ -207,6 +207,7 @@ export function statusOfSnapshot(snapshot: {
 }
 
 export interface NoteLifecycleRecord {
+  deletedAt?: number;
   lastHash: string;
   lastMod: number;
   status: NoteLifecycleStatus;
@@ -279,11 +280,14 @@ export function classifyNoteLifecycle(
   return "synced.clean";
 }
 
-export function resolveMissingFile(
+export function resolveDeletedFile(
   ankiMod: number | undefined,
-  recordLastMod: number,
+  deletedAt: number | undefined,
 ): "RESURRECT" | "PURGE" {
-  return (ankiMod ?? 0) > recordLastMod ? "RESURRECT" : "PURGE";
+  if (deletedAt === undefined) {
+    return "PURGE";
+  }
+  return (ankiMod ?? 0) * 1000 > deletedAt ? "RESURRECT" : "PURGE";
 }
 
 export type NotePreviewStatus =
