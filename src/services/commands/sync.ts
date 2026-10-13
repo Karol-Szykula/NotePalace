@@ -6,9 +6,11 @@ import type { AnkiNoteInfo } from "src/entities/anki-note";
 import type { DeckImportSnapshot, ISettings } from "src/conf/settings";
 import {
   classifyNoteLifecycle,
+  resolveDeletedFile,
   syncedCleanRecord,
   transitionNoteLifecycle,
   type NoteLifecycleEvent,
+  type NoteLifecycleRecord,
 } from "src/services/notes/lifecycle";
 import { decisionActFor, isInScope } from "src/services/notes/decision-table";
 import {
@@ -31,7 +33,7 @@ import {
   ankiContentHash,
   blockContentHash,
 } from "src/services/notes/content-hash";
-import { packForModel } from "src/services/notes/packs";
+import { packForModel, type NotePack } from "src/services/notes/packs";
 import {
   createNoteFencePattern,
   serializeYamlNote,
@@ -107,6 +109,114 @@ async function enrollLinkedNote(
 interface SyncDeckResult {
   deck: SyncDeckReport;
   enrolled: number;
+  purged: number;
+}
+
+function forgetRecord(settings: ISettings, noteId: number): void {
+  settings.noteLifecycle = Object.fromEntries(
+    Object.entries(settings.noteLifecycle).filter(
+      ([id]) => Number(id) !== noteId,
+    ),
+  );
+}
+
+function decideMissingFile(
+  settings: ISettings,
+  note: AnkiNoteInfo,
+  record: NoteLifecycleRecord | undefined,
+): "RESURRECT" | "PURGE" {
+  const outcome = resolveDeletedFile(note.mod, record?.deletedAt);
+  if (outcome === "PURGE") {
+    forgetRecord(settings, note.noteId);
+  }
+  return outcome;
+}
+
+interface SyncContext {
+  anki: Anki;
+  index: VaultNoteIndex;
+  pushes: PushedNote[];
+  settings: ISettings;
+  vault: Vault;
+  yaml: YamlEngine;
+}
+
+type PresentStep = "import" | "push" | "upToDate";
+
+async function stepForPresentNote(
+  context: SyncContext,
+  note: AnkiNoteInfo,
+  block: YamlNote,
+  file: TFile,
+  pack: NotePack,
+): Promise<PresentStep> {
+  const currentHash = await blockContentHash(block);
+  const record = context.settings.noteLifecycle[note.noteId];
+  const blockInput =
+    block.id === undefined
+      ? { hash: currentHash, id: undefined as number | undefined }
+      : { id: block.id, hash: currentHash };
+  const status = classifyNoteLifecycle({
+    anki: note,
+    block: blockInput,
+    record,
+  });
+  if (status === "synced.clean") {
+    return "upToDate";
+  }
+  const act = decisionActFor("sync", status);
+  if (!isInScope(act)) {
+    throw new Error(`Sync cannot handle ${status}`);
+  }
+  transitionNoteLifecycle(status, act);
+  if (act === "PUSH" || isVaultNewer(note, file, act)) {
+    context.pushes.push(
+      await buildPushedNote(
+        context.vault,
+        { block, deckName: deckForPath(file.path), file },
+        pack,
+        note,
+      ),
+    );
+    return "push";
+  }
+  return "import";
+}
+
+function collectStep(
+  counts: SyncDeckReport,
+  eligible: AnkiNoteInfo[],
+  decisions: Record<number, boolean>,
+  note: AnkiNoteInfo,
+  step: PresentStep,
+): void {
+  if (step === "upToDate") {
+    counts.upToDate += 1;
+  } else if (step === "import") {
+    eligible.push(note);
+    decisions[note.noteId] = true;
+  }
+}
+
+async function applyPushedNotes(
+  anki: Anki,
+  settings: ISettings,
+  snapshot: DeckImportSnapshot,
+  pushes: PushedNote[],
+): Promise<void> {
+  settings.deckImportSnapshots[snapshot.deckName] = {
+    ...snapshot,
+    importedAt: Date.now(),
+  };
+  await pushNotesToAnki(anki, pushes);
+  await recordSyncedBaselines(
+    anki,
+    settings,
+    pushes.map((pushed) => ({
+      hash: pushed.hash,
+      noteId: pushed.source.noteId,
+    })),
+  );
 }
 
 async function syncDeckNotes(
@@ -121,8 +231,16 @@ async function syncDeckNotes(
   const counts = emptyDeckReport(snapshot.deckName);
   const eligible: AnkiNoteInfo[] = [];
   const decisions: Record<number, boolean> = {};
-  const pushes: PushedNote[] = [];
+  const context: SyncContext = {
+    anki,
+    index,
+    pushes: [],
+    settings,
+    vault,
+    yaml,
+  };
   let enrolled = 0;
+  let purged = 0;
   for (const note of notes) {
     if (!isNoteTracked(settings, note.noteId)) {
       const linked = await findVaultNoteBlock(vault, index, note.noteId, yaml);
@@ -139,61 +257,32 @@ async function syncDeckNotes(
     }
     const block = await findVaultNoteBlock(vault, index, note.noteId, yaml);
     const file = noteFileAt(vault, index, note.noteId);
-    if (!block || !file) {
+    if (file === null) {
+      if (
+        decideMissingFile(
+          settings,
+          note,
+          settings.noteLifecycle[note.noteId],
+        ) === "RESURRECT"
+      ) {
+        eligible.push(note);
+        decisions[note.noteId] = true;
+      } else {
+        purged += 1;
+      }
+      continue;
+    }
+    if (!block) {
       counts.missing += 1;
       continue;
     }
-    const currentHash = await blockContentHash(block);
-    const record = settings.noteLifecycle[note.noteId];
-    const blockInput =
-      block.id !== undefined
-        ? { id: block.id, hash: currentHash }
-        : { hash: currentHash, id: undefined as number | undefined };
-    const status = classifyNoteLifecycle({
-      anki: note,
-      block: blockInput,
-      record,
-    });
-    if (status === "synced.clean") {
-      counts.upToDate += 1;
-      continue;
-    }
-    const act = decisionActFor("sync", status);
-    if (!isInScope(act)) {
-      throw new Error(`Sync cannot handle ${status}`);
-    }
-    transitionNoteLifecycle(status, act);
-    const isPushing = act === "PUSH" || isVaultNewer(note, file, act);
-    if (isPushing) {
-      pushes.push(
-        await buildPushedNote(
-          vault,
-          { block, deckName: deckForPath(file.path), file },
-          pack,
-          note,
-        ),
-      );
-      continue;
-    }
-    eligible.push(note);
-    decisions[note.noteId] = true;
+    const step = await stepForPresentNote(context, note, block, file, pack);
+    collectStep(counts, eligible, decisions, note, step);
   }
-  settings.deckImportSnapshots[snapshot.deckName] = {
-    ...snapshot,
-    importedAt: Date.now(),
-  };
-  counts.pushed = pushes.length;
-  await pushNotesToAnki(anki, pushes);
-  await recordSyncedBaselines(
-    anki,
-    settings,
-    pushes.map((pushed) => ({
-      hash: pushed.hash,
-      noteId: pushed.source.noteId,
-    })),
-  );
+  counts.pushed = context.pushes.length;
+  await applyPushedNotes(anki, settings, snapshot, context.pushes);
   if (eligible.length === 0) {
-    return { deck: counts, enrolled };
+    return { deck: counts, enrolled, purged };
   }
   const report = await executeImport(
     anki,
@@ -224,7 +313,7 @@ async function syncDeckNotes(
     importedAt: Date.now(),
   };
   counts.refreshed = eligible.length;
-  return { deck: counts, enrolled };
+  return { deck: counts, enrolled, purged };
 }
 
 async function removeNoteFromFile(
@@ -409,6 +498,7 @@ export async function executeSync(
   const liveIds = new Set<number>();
   const decks: SyncDeckReport[] = [];
   let enrolled = 0;
+  let purgedFromDeletions = 0;
   for (const deckName of deckNames) {
     const snapshot = snapshots[deckName];
     if (snapshot === undefined) {
@@ -429,6 +519,7 @@ export async function executeSync(
     );
     decks.push(refreshed.deck);
     enrolled += refreshed.enrolled;
+    purgedFromDeletions += refreshed.purged;
   }
   const purged = await purgeDeletedNotes(
     anki,
@@ -442,7 +533,7 @@ export async function executeSync(
     decks,
     deleted: purged.deleted,
     enrolled,
-    purgedRecords: purged.purgedRecords,
+    purgedRecords: purged.purgedRecords + purgedFromDeletions,
   };
 }
 

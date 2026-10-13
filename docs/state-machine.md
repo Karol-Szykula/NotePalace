@@ -198,7 +198,7 @@ flowchart TB
   Sync -->|start| START["[*]"]
 
   Sync -->|"—<br/>create · create-from-anki<br/>Untracked Anki note: counted as needing import."| ankiOnly_neverImported
-  Sync -->|"—<br/>missing · bidirectional-sync<br/>No file: the purge path handles it outside this table."| ankiOnly_fileDeleted
+  Sync -->|"RESURRECT<br/>missing · bidirectional-sync<br/>No file: Sync resurrects it when Anki changed after the deletion, otherwise forgets it."| ankiOnly_fileDeleted
   Sync -->|"CHECK<br/>quiet · bidirectional-sync<br/>Both sides match: nothing to do."| synced_clean
   Sync -->|"PULL<br/>overwrite · bidirectional-sync<br/>Newer in Anki: refreshes the vault file."| synced_ankiNewer
   Sync -->|"PUSH<br/>overwrite · create-in-anki<br/>Newer in Obsidian: pushes to Anki."| synced_vaultNewer
@@ -232,7 +232,7 @@ flowchart TB
 | State | Export (forced) | Import (forced) | Sync (no force) |
 |-------|--------------------|------------------------|-----------------|
 | `ankiOnly.neverImported` | `—`<br/>create · create-from-anki<br/>Anki only: the import wizard brings it in. | `IMPORT`<br/>create · create-from-anki<br/>Anki only: creates the file. | `—`<br/>create · create-from-anki<br/>Untracked Anki note: counted as needing import. |
-| `ankiOnly.fileDeleted` | `—`<br/>missing · bidirectional-sync<br/>File gone: Sync decides, nothing to push. | `—` / `RESURRECT` (force)<br/>missing · bidirectional-sync<br/>**Force:** RESURRECT<br/>File gone: Sync decides, forcing re-creates it. Forced: re-creates the file you deleted. | `—`<br/>missing · bidirectional-sync<br/>No file: the purge path handles it outside this table. |
+| `ankiOnly.fileDeleted` | `—`<br/>missing · bidirectional-sync<br/>File gone: Sync decides, nothing to push. | `—` / `RESURRECT` (force)<br/>missing · bidirectional-sync<br/>**Force:** RESURRECT<br/>File gone: Sync decides, forcing re-creates it. Forced: re-creates the file you deleted. | `RESURRECT`<br/>missing · bidirectional-sync<br/>No file: Sync resurrects it when Anki changed after the deletion, otherwise forgets it. |
 | `synced.clean` | `CHECK`<br/>quiet · bidirectional-sync<br/>Both sides match: nothing to write. | `CHECK`<br/>quiet · bidirectional-sync<br/>Both sides match: rewrites nothing. Forced: rewrites the same content. | `CHECK`<br/>quiet · bidirectional-sync<br/>Both sides match: nothing to do. |
 | `synced.ankiNewer` | `—` / `FORCE_PUSH` (force)<br/>skip · bidirectional-sync<br/>**Force:** FORCE_PUSH<br/>Newer in Anki: skipped, use Sync. Forced: overwrites Anki. | `PULL`<br/>overwrite · bidirectional-sync<br/>Newer in Anki: overwrites your file. | `PULL`<br/>overwrite · bidirectional-sync<br/>Newer in Anki: refreshes the vault file. |
 | `synced.vaultNewer` | `PUSH`<br/>overwrite · create-in-anki<br/>Newer in Obsidian: pushes to Anki. | `—` / `FORCE_PULL` (force)<br/>skip · create-in-anki<br/>**Force:** FORCE_PULL<br/>Newer in Obsidian: skipped, use Sync. Forced: overwrites your newer edits. | `PUSH`<br/>overwrite · create-in-anki<br/>Newer in Obsidian: pushes to Anki. |
@@ -283,7 +283,7 @@ flowchart TB
 | state | kind | default | forced | responsibleComponent | why |
 | --- | --- | --- | --- | --- | --- |
 | `ankiOnly.neverImported` | `create` | `—` | `—` | `create-from-anki` | Untracked Anki note: counted as needing import. |
-| `ankiOnly.fileDeleted` | `missing` | `—` | `—` | `bidirectional-sync` | No file: the purge path handles it outside this table. |
+| `ankiOnly.fileDeleted` | `missing` | `RESURRECT` | `—` | `bidirectional-sync` | No file: Sync resurrects it when Anki changed after the deletion, otherwise forgets it. |
 | `synced.clean` | `quiet` | `CHECK` | `—` | `bidirectional-sync` | Both sides match: nothing to do. |
 | `synced.ankiNewer` | `overwrite` | `PULL` | `—` | `bidirectional-sync` | Newer in Anki: refreshes the vault file. |
 | `synced.vaultNewer` | `overwrite` | `PUSH` | `—` | `create-in-anki` | Newer in Obsidian: pushes to Anki. |

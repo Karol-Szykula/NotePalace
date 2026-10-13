@@ -52,7 +52,7 @@ const cases: Case[] = [
   ["export", "vaultOnly.ankiDeleted", OUT_OF_SCOPE, "EXPORT"],
   ["export", "orphaned", OUT_OF_SCOPE],
   ["sync", "ankiOnly.neverImported", OUT_OF_SCOPE],
-  ["sync", "ankiOnly.fileDeleted", OUT_OF_SCOPE],
+  ["sync", "ankiOnly.fileDeleted", "RESURRECT"],
   ["sync", "synced.clean", "CHECK"],
   ["sync", "synced.ankiNewer", "PULL"],
   ["sync", "synced.vaultNewer", "PUSH"],
@@ -118,7 +118,15 @@ const confinement: Record<SyncCommand, readonly SyncDecisionAct[]> = {
     "CHECK",
     OUT_OF_SCOPE,
   ],
-  sync: ["PULL", "PUSH", "RESOLVE_NEWEST", "ENROLL", "CHECK", OUT_OF_SCOPE],
+  sync: [
+    "PULL",
+    "PUSH",
+    "RESOLVE_NEWEST",
+    "RESURRECT",
+    "ENROLL",
+    "CHECK",
+    OUT_OF_SCOPE,
+  ],
 };
 
 describe("the decision table is total", () => {
@@ -197,16 +205,17 @@ describe("the decision table is total", () => {
     }
   });
 
-  test("given the two states only Sync resolves when read then the rationale names the missing producer", () => {
-    for (const status of [
-      "ankiOnly.fileDeleted",
-      "vaultOnly.ankiDeleted",
-    ] as const) {
-      const row = syncDecisionFor("sync", status);
-      expect(row.act).toBe(OUT_OF_SCOPE);
-      expect(row.responsibleComponent).toBe("bidirectional-sync");
-      expect(resolveMessage("en", row.rationaleKey)).toMatch(/purge path/);
-    }
+  test("given the state only Sync resolves when read then the rationale names the missing producer", () => {
+    const row = syncDecisionFor("sync", "vaultOnly.ankiDeleted");
+    expect(row.act).toBe(OUT_OF_SCOPE);
+    expect(row.responsibleComponent).toBe("bidirectional-sync");
+    expect(resolveMessage("en", row.rationaleKey)).toMatch(/purge path/);
+  });
+
+  test("given a deleted vault file when Sync resolves then it resurrects the note", () => {
+    const row = syncDecisionFor("sync", "ankiOnly.fileDeleted");
+    expect(row.act).toBe("RESURRECT");
+    expect(row.responsibleComponent).toBe("bidirectional-sync");
   });
 });
 

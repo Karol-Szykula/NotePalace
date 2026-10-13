@@ -15,7 +15,7 @@ const unreachableInTheTable: Record<string, string> = {
   "ankiOnly.neverImported SKIP":
     "no command sends SKIP: a note the command leaves alone keeps its state without an event",
   "ankiOnly.fileDeleted PURGE":
-    "Purge ledger forgets the record outside the resolver, so no row emits it",
+    "Sync chooses PURGE at run time, when the deletion is newer than the Anki change, so no row emits it",
   "orphaned PURGE":
     "the purge path in Sync forgets the record outside the resolver",
   "vaultOnly.ankiDeleted DELETE_FILE":

@@ -444,7 +444,7 @@ describe("executeSync", () => {
     expect(await readPath(vault, "Languages/Q-101.md")).toBe(before);
   });
 
-  test("given a missing file when executed then skips without recreating", async () => {
+  test("given a tracked note whose file is gone and no deletion time when executed then forgets the record without recreating", async () => {
     // given
     const vault = vaultWith({});
     const settings = await snapshotSettings("Languages", {
@@ -461,8 +461,57 @@ describe("executeSync", () => {
     );
 
     // then
-    expect(report.decks[0]).toMatchObject({ missing: 1, refreshed: 0 });
+    expect(report).toMatchObject({ purgedRecords: 1 });
+    expect(report.decks[0]).toMatchObject({ missing: 0, refreshed: 0 });
     expect(vault.getMarkdownFiles()).toHaveLength(0);
+    expect(settings.noteLifecycle[101]).toBeUndefined();
+  });
+
+  test("given a deleted file with a newer Anki note when executed then resurrects it and clears the deletion", async () => {
+    // given
+    const vault = vaultWith({});
+    const settings = await snapshotSettings("Languages", {
+      101: { back: "A", front: "Q", mod: 100 },
+    });
+    required(settings.noteLifecycle[101], "record").deletedAt = 100_000;
+    respondWithDecks({ Languages: [basicAnkiNote(101, 200)] });
+
+    // when
+    const report: SyncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report.decks[0]).toMatchObject({ missing: 0, refreshed: 1 });
+    expect(vault.getMarkdownFiles()).toHaveLength(1);
+    expect(settings.noteLifecycle[101]?.deletedAt).toBeUndefined();
+  });
+
+  test("given a deleted file with an older Anki note when executed then forgets the record", async () => {
+    // given
+    const vault = vaultWith({});
+    const settings = await snapshotSettings("Languages", {
+      101: { back: "A", front: "Q", mod: 100 },
+    });
+    required(settings.noteLifecycle[101], "record").deletedAt = 300_000;
+    respondWithDecks({ Languages: [basicAnkiNote(101, 200)] });
+
+    // when
+    const report: SyncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report).toMatchObject({ purgedRecords: 1 });
+    expect(report.decks[0]).toMatchObject({ missing: 0, refreshed: 0 });
+    expect(vault.getMarkdownFiles()).toHaveLength(0);
+    expect(settings.noteLifecycle[101]).toBeUndefined();
   });
 
   test("given a note deleted in anki when executed then deletes its file and purges records", async () => {
@@ -618,12 +667,15 @@ describe("executeSync", () => {
     );
 
     // then
+    expect(report).toMatchObject({ purgedRecords: 1 });
     expect(report.decks[0]).toMatchObject({
-      missing: 1,
+      missing: 0,
       refreshed: 0,
       upToDate: 0,
     });
     expect(vault.getMarkdownFiles()).toHaveLength(0);
+    expect(settings.noteLifecycle[101]).toBeUndefined();
+    expect(settings.noteLifecycle[103]).toBeUndefined();
   });
 
   test("given a note moved between decks when executed then refreshes instead of deleting", async () => {
