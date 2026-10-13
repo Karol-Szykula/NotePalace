@@ -8,6 +8,7 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "esModuleInterop": true,
+    "isolatedModules": true,
     "target": "es2018",
     "skipLibCheck": true,
     "types": ["jest", "node"],

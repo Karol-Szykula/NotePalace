@@ -14,13 +14,13 @@ updated: 2026-10-12
 - **Issue**: 80 http://192.168.0.150:8929/ks/NotePalace/-/work_items/80
 - **Change**: notes-search
 - **Worktree**: /home/ksz/Projects/NotePalace
-- **Phase at Checkpoint**: applying
-- **Task Group at Checkpoint**: 4
-- **Observed Run Revision**: 5
-- **Last Verified HEAD**: b5884a9923a07cc9b10aec9fb331414315852419
+- **Phase at Checkpoint**: awaiting_verify
+- **Task Group at Checkpoint**: 5
+- **Observed Run Revision**: 6
+- **Last Verified HEAD**: 947da5d8894a7dfbfb1e4b56a5eca8748e221955
 
 ## Next Action
-- Start Task Group 5 (gate).
+- Run whole-change Verify with `--report`.
 
 ## Blockers
 - none

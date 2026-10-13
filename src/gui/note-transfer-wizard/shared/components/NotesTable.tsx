@@ -300,82 +300,6 @@ function TableNotices({
   );
 }
 
-interface TableRowsProps<T> {
-  readonly columns: ColumnDef<T>[];
-  readonly expandedIds: Set<number>;
-  readonly forcedNoteIds: Record<number, boolean>;
-  readonly getDefaultSelected: (item: T) => boolean;
-  readonly getNoteId: (item: T) => number;
-  readonly getRow: (item: T) => SyncDecisionRow;
-  readonly getRowAriaLabel: (item: T) => string;
-  readonly getRowClassName: (item: T) => string | undefined;
-  readonly getRowDetails: (item: T) => NoteDetailsData;
-  readonly getRowTitle: (item: T) => string;
-  readonly notesSelectedToImport: Record<number, boolean>;
-  readonly onExpandedChange: (noteId: number) => void;
-  readonly onForceChange: (
-    forced: Record<number, boolean>,
-    selected: Record<number, boolean>,
-  ) => void;
-  readonly onSelectionChange: (selected: Record<number, boolean>) => void;
-  readonly pageNotes: T[];
-  readonly pageRows: PageRowSelection[];
-}
-
-function TableRows<T>({
-  columns,
-  expandedIds,
-  forcedNoteIds,
-  getDefaultSelected,
-  getNoteId,
-  getRow,
-  getRowAriaLabel,
-  getRowClassName,
-  getRowDetails,
-  getRowTitle,
-  notesSelectedToImport,
-  onExpandedChange,
-  onForceChange,
-  onSelectionChange,
-  pageNotes,
-  pageRows,
-}: TableRowsProps<T>): JSX.Element {
-  return (
-    <>
-      {pageRows.map((row, index) => {
-        const item = pageNotes[index];
-        if (item === undefined) {
-          return null;
-        }
-        return (
-          <NoteRow
-            columns={columns}
-            forcedNoteIds={forcedNoteIds}
-            getDefaultSelected={getDefaultSelected}
-            getNoteId={getNoteId}
-            getRow={getRow}
-            getRowAriaLabel={getRowAriaLabel}
-            getRowClassName={getRowClassName}
-            getRowDetails={getRowDetails}
-            getRowTitle={getRowTitle}
-            index={index}
-            isExpanded={expandedIds.has(row.id)}
-            isForced={row.isForced}
-            isSelectable={isRowSelectable(row)}
-            isSelected={row.isSelected}
-            item={item}
-            key={row.id}
-            notesSelectedToImport={notesSelectedToImport}
-            onExpandedChange={onExpandedChange}
-            onForcedChange={onForceChange}
-            onSelectedChange={onSelectionChange}
-          />
-        );
-      })}
-    </>
-  );
-}
-
 interface TableGridProps<T> {
   readonly columns: ColumnDef<T>[];
   readonly expandedIds: Set<number>;
@@ -438,24 +362,36 @@ function TableGrid<T>({
       ]}
       role="grid"
     >
-      <TableRows
-        columns={columns}
-        expandedIds={expandedIds}
-        forcedNoteIds={forcedNoteIds}
-        getDefaultSelected={getDefaultSelected}
-        getNoteId={getNoteId}
-        getRow={getRow}
-        getRowAriaLabel={getRowAriaLabel}
-        getRowClassName={getRowClassName}
-        getRowDetails={getRowDetails}
-        getRowTitle={getRowTitle}
-        notesSelectedToImport={notesSelectedToImport}
-        onExpandedChange={onExpandedChange}
-        onForceChange={onForceChange}
-        onSelectionChange={onSelectionChange}
-        pageNotes={pageNotes}
-        pageRows={pageRows}
-      />
+      {pageRows.map((row, index) => {
+        const item = pageNotes[index];
+        if (item === undefined) {
+          return null;
+        }
+        return (
+          <NoteRow
+            columns={columns}
+            forcedNoteIds={forcedNoteIds}
+            getDefaultSelected={getDefaultSelected}
+            getNoteId={getNoteId}
+            getRow={getRow}
+            getRowAriaLabel={getRowAriaLabel}
+            getRowClassName={getRowClassName}
+            getRowDetails={getRowDetails}
+            getRowTitle={getRowTitle}
+            index={index}
+            isExpanded={expandedIds.has(row.id)}
+            isForced={row.isForced}
+            isSelectable={isRowSelectable(row)}
+            isSelected={row.isSelected}
+            item={item}
+            key={row.id}
+            notesSelectedToImport={notesSelectedToImport}
+            onExpandedChange={onExpandedChange}
+            onForcedChange={onForceChange}
+            onSelectedChange={onSelectionChange}
+          />
+        );
+      })}
     </List>
   );
 }
