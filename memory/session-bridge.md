@@ -15,12 +15,12 @@ updated: 2026-10-12
 - **Change**: notes-search
 - **Worktree**: /home/ksz/Projects/NotePalace
 - **Phase at Checkpoint**: applying
-- **Task Group at Checkpoint**: 1
-- **Observed Run Revision**: 2
-- **Last Verified HEAD**: 9667bbccd2fc75e80e6c761dcf6cb85994f671d5
+- **Task Group at Checkpoint**: 2
+- **Observed Run Revision**: 3
+- **Last Verified HEAD**: 2ba826329d801c0127aaccbafdaaa31a8d117046
 
 ## Next Action
-- Start Task Group 2 (notes table toolbar).
+- Start Task Group 3 (import side).
 
 ## Blockers
 - none

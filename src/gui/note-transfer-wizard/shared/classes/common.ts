@@ -45,6 +45,9 @@ export const listClasses = {
   listToolbarCount: "notepalace-note-transfer-wizard-modal__list-toolbar-count",
   listToolbarBanner:
     "notepalace-note-transfer-wizard-modal__list-toolbar-banner",
+  listToolbarSearch:
+    "notepalace-note-transfer-wizard-modal__list-toolbar-search",
+  listEmpty: "notepalace-note-transfer-wizard-modal__list-empty",
   labeledControl: "notepalace-note-transfer-wizard-modal__labeled-control",
   labeledControlDisabled:
     "notepalace-note-transfer-wizard-modal__labeled-control--disabled",
