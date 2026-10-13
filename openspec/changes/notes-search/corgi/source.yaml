@@ -1,0 +1,27 @@
+schemaVersion: 1
+kind: rfc-slice
+deliveryRef: RFC-0002-notes-search/S-01-notes-search
+rfc:
+  id: RFC-0002-notes-search
+  path: rfcs/RFC-0002-notes-search
+  acceptedCommit: 15e7eda136d26145815ddbb4f88d925f0bb04ba0
+  digest: sha256:efab2746c35ac4698c3b07015a143735a6bf663b2826dfa5e43a0d4f7bf4042c
+slice:
+  id: S-01-notes-search
+  digest: sha256:f5c0cf3869da099e2b2d970dd646a47d673b4a87a8657a1954744023102acf33
+acceptance:
+  - id: AC-001
+    evidence: automated
+  - id: AC-002
+    evidence: automated
+  - id: AC-003
+    evidence: automated
+  - id: AC-004
+    evidence: both
+deliveryBindingDigest: sha256:5a16ccbe75bcf8af6eef133d24c53e79efa76bb4c52d666483147ee55876f2f9
+tracker:
+  provider: gitlab
+  idempotencyKey: f268c1418e45c579dcc9f90132b66d0c5d8ef310ce858a08d11756ff15620a1f
+  issue:
+    id: '80'
+    url: http://192.168.0.150:8929/ks/NotePalace/-/work_items/80

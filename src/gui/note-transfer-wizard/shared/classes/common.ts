@@ -45,9 +45,18 @@ export const listClasses = {
   listToolbarCount: "notepalace-note-transfer-wizard-modal__list-toolbar-count",
   listToolbarBanner:
     "notepalace-note-transfer-wizard-modal__list-toolbar-banner",
+  listToolbarSearch:
+    "notepalace-note-transfer-wizard-modal__list-toolbar-search",
+  listEmpty: "notepalace-note-transfer-wizard-modal__list-empty",
   labeledControl: "notepalace-note-transfer-wizard-modal__labeled-control",
   labeledControlDisabled:
     "notepalace-note-transfer-wizard-modal__labeled-control--disabled",
+} as const;
+
+export const searchBoxClasses = {
+  searchBox: "notepalace-note-transfer-wizard-modal__search",
+  searchInput: "notepalace-note-transfer-wizard-modal__search-input",
+  searchClear: "notepalace-note-transfer-wizard-modal__search-clear",
 } as const;
 
 export const chipClasses = {

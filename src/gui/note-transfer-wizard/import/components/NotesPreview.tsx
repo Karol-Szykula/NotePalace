@@ -5,6 +5,7 @@ import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { ankiWinsStrategy } from "@shared/types/AnkiWinsStrategy";
 import type { Anki } from "src/services/anki/anki";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
+import type { NoteFormData } from "src/entities/note-form-data";
 import type { Vault } from "obsidian";
 import type { VaultNoteIndex } from "src/services/vault/vault";
 import { findVaultNoteBlock } from "src/services/vault/vault";
@@ -28,8 +29,10 @@ import { normalizeNoteText } from "src/services/notes/text";
 import type { ClassifiedNote } from "src/services/commands/import-deck";
 import type { NotePreviewStatus } from "src/services/notes/lifecycle";
 import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
+import { useDebouncedValue } from "@shared/hooks/useDebouncedValue";
 import { commonWizardClasses } from "@shared/classes";
 import { NotesTable, StatusChip, type ColumnDef } from "@shared/components";
+import { matchesSearch } from "@shared/utils/notes-search";
 import { transferNotesPreviewClasses } from "../classes";
 import {
   comparePreviewRank,
@@ -129,6 +132,14 @@ function classifiedDefaultSelected(item: ClassifiedNote): boolean {
   return isImportSelectedByDefault(item.status);
 }
 
+function importSearchableText(item: ClassifiedNote): string {
+  return [
+    ...Object.values(item.note.fields).map((field) => field.value),
+    ...item.note.tags,
+    item.note.modelName ?? "",
+  ].join(" ");
+}
+
 function previewReasonText(status: NotePreviewStatus): string {
   switch (status) {
     case "diverged":
@@ -193,6 +204,65 @@ function buildCardColumns(
   ];
 }
 
+function blockInputFor(
+  block: NoteFormData | null,
+  hash: string | undefined,
+): { id: number | undefined; hash?: string } | undefined {
+  if (block === null) {
+    return undefined;
+  }
+  return hash === undefined ? { id: block.id } : { id: block.id, hash };
+}
+
+async function contentHashFor(
+  block: NoteFormData | null,
+): Promise<string | undefined> {
+  if (block === null) {
+    return undefined;
+  }
+  return await computeContentHash(
+    block.front,
+    block.back,
+    block.tags,
+    block.model,
+  );
+}
+
+async function classifyNote(
+  note: AnkiNoteInfo,
+  vault: Vault,
+  vaultNoteIndex: VaultNoteIndex,
+  records: Record<number, NoteLifecycleRecord>,
+): Promise<ClassifiedNote> {
+  const isInVaultIndex = vaultNoteIndex.has(note.noteId);
+  const block = isInVaultIndex
+    ? await findVaultNoteBlock(vault, vaultNoteIndex, note.noteId)
+    : null;
+  const status = classifyNoteLifecycle({
+    anki: note,
+    block: blockInputFor(block, await contentHashFor(block)),
+    record: records[note.noteId],
+  });
+  return {
+    isInVaultIndex,
+    note,
+    previewStatus: notePreviewStatusFor(status),
+    status,
+    vaultPath: vaultNoteIndex.get(note.noteId),
+  };
+}
+
+async function classifyNotes(
+  rawNotes: AnkiNoteInfo[],
+  vault: Vault,
+  vaultNoteIndex: VaultNoteIndex,
+  records: Record<number, NoteLifecycleRecord>,
+): Promise<ClassifiedNote[]> {
+  return await Promise.all(
+    rawNotes.map((note) => classifyNote(note, vault, vaultNoteIndex, records)),
+  );
+}
+
 export function NotesPreview({
   anki,
   currentPage,
@@ -214,9 +284,12 @@ export function NotesPreview({
   const [classified, setClassified] = useState<ClassifiedNote[] | null>(null);
   const [progress, setProgress] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
 
   const loadPreviewNotes = (): (() => void) => {
     setRawNotes(null);
+    setQuery("");
     onPageChange(0);
     return startAsyncLoad(async (isLive) => {
       try {
@@ -246,44 +319,14 @@ export function NotesPreview({
       if (!rawNotes) {
         return;
       }
-      const items: ClassifiedNote[] = [];
-      for (const note of rawNotes) {
-        const isInVaultIndex = vaultNoteIndex.has(note.noteId);
-        const block = isInVaultIndex
-          ? await findVaultNoteBlock(vault, vaultNoteIndex, note.noteId)
-          : null;
-        const hash = block
-          ? await computeContentHash(
-              block.front,
-              block.back,
-              block.tags,
-              block.model,
-            )
-          : undefined;
-        let blockInput: { id: number | undefined; hash?: string } | undefined;
-        if (block !== null && hash !== undefined) {
-          blockInput = { id: block.id, hash };
-        } else if (block !== null) {
-          blockInput = { id: block.id };
-        } else {
-          blockInput = undefined;
-        }
-        const status = classifyNoteLifecycle({
-          anki: note,
-          block: blockInput,
-          record: noteLifecycle[note.noteId],
-        });
-        items.push({
-          isInVaultIndex,
-          note,
-          previewStatus: notePreviewStatusFor(status),
-          status,
-          vaultPath: vaultNoteIndex.get(note.noteId),
-        });
-      }
+      const items = await classifyNotes(
+        rawNotes,
+        vault,
+        vaultNoteIndex,
+        noteLifecycle,
+      );
       if (isLive()) {
-        const ordered = [...items].sort(comparePreviewRank);
-        setClassified(ordered);
+        setClassified([...items].sort(comparePreviewRank));
         onNotesLoaded(
           items.map((item) => item.note),
           Object.fromEntries(
@@ -309,15 +352,33 @@ export function NotesPreview({
     onNotesSelectedToImportChange,
   );
 
+  const filteredNotes = useMemo(
+    () =>
+      (classified ?? []).filter((item) =>
+        matchesSearch(importSearchableText(item), debouncedQuery),
+      ),
+    [classified, debouncedQuery],
+  );
+
+  const onQueryChange = (value: string): void => {
+    setQuery(value);
+    onPageChange(0);
+  };
+
+  const onQueryClear = (): void => {
+    setQuery("");
+    onPageChange(0);
+  };
+
   useEffect(() => {
     if (classified) {
       const pageCount = Math.max(
         1,
-        Math.ceil(classified.length / previewPageSize),
+        Math.ceil(filteredNotes.length / previewPageSize),
       );
       onTotalPagesChange(pageCount);
     }
-  }, [classified, onTotalPagesChange]);
+  }, [classified, filteredNotes.length, onTotalPagesChange]);
 
   const notesLeftToDecide = useMemo(
     () =>
@@ -367,8 +428,12 @@ export function NotesPreview({
   return (
     <div className={rootClassName}>
       <NotesTable
+        allItems={classified}
         columns={columns}
         currentPage={currentPage}
+        emptyMatchText={t("preview.noSearchMatches", {
+          query: debouncedQuery,
+        })}
         forcedNoteIds={forcedNoteIds}
         forceStrategy={ankiWinsStrategy}
         getDefaultSelected={(item) => isImportSelectedByDefault(item.status)}
@@ -398,12 +463,19 @@ export function NotesPreview({
         getRowTitle={(item) => noteSummary(item.note)}
         getStatus={(item) => item.status}
         isResurrectable={(item) => item.previewStatus === "noFile"}
-        items={classified}
+        items={filteredNotes}
         notesSelectedToImport={notesSelectedToImport}
         onForceChange={onForceChange}
         onSelectionChange={onSelectionChange}
         pageSize={previewPageSize}
         resurrectionWarning={resurrectionWarning(notesToResurrect)}
+        search={{
+          label: t("preview.searchLabel"),
+          onChange: onQueryChange,
+          onClear: onQueryClear,
+          placeholder: t("preview.searchPlaceholder"),
+          value: query,
+        }}
         selectionNotice={selectionNotice(classified)}
       />
     </div>

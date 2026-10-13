@@ -17,11 +17,13 @@ import {
   setNoteForced,
   setNoteSelected,
   setSelectableOnPage,
+  type PageRowSelection,
 } from "../utils/note-selection";
 import { Checkbox } from "./Checkbox";
 import { List } from "./List";
 import { ListRow } from "./ListRow";
 import { NoteDetails, type NoteDetailsData } from "./NoteDetails";
+import { SearchBox, type SearchBoxProps } from "./SearchBox";
 
 export interface ColumnDef<T> {
   readonly header: string;
@@ -154,10 +156,252 @@ function NoteRow<T>({
   );
 }
 
+interface SelectAllHeaderProps {
+  readonly notesSelectedToImport: Record<number, boolean>;
+  readonly onSelectionChange: (selected: Record<number, boolean>) => void;
+  readonly pageRows: PageRowSelection[];
+}
+
+function SelectAllHeader({
+  notesSelectedToImport,
+  onSelectionChange,
+  pageRows,
+}: SelectAllHeaderProps): JSX.Element {
+  const selectableRows = pageRows.filter(isRowSelectable);
+  const selectAllState = selectionCheckState(
+    selectableRows.filter((row) => row.isSelected).length,
+    selectableRows.length,
+  );
+  return (
+    <Checkbox
+      ariaLabel={t("preview.selectAllOnPage")}
+      checked={selectAllState.checked}
+      disabled={selectAllState.disabled}
+      indeterminate={selectAllState.indeterminate}
+      onChange={(isNowChecked) =>
+        onSelectionChange(
+          setSelectableOnPage(pageRows, notesSelectedToImport, isNowChecked),
+        )
+      }
+    />
+  );
+}
+
+interface ForceAllHeaderProps {
+  readonly forcedNoteIds: Record<number, boolean>;
+  readonly notesSelectedToImport: Record<number, boolean>;
+  readonly onForceChange: (
+    forced: Record<number, boolean>,
+    selected: Record<number, boolean>,
+  ) => void;
+  readonly pageRows: PageRowSelection[];
+}
+
+function ForceAllHeader({
+  forcedNoteIds,
+  notesSelectedToImport,
+  onForceChange,
+  pageRows,
+}: ForceAllHeaderProps): JSX.Element {
+  const forceableRows = pageRows.filter((row) => row.isForceable);
+  const forcedRows = forceableRows.filter((row) => row.isForced);
+  return (
+    <Switch
+      ariaLabel={t("preview.forceAllOnPage")}
+      checked={
+        forceableRows.length > 0 && forcedRows.length === forceableRows.length
+      }
+      disabled={forceableRows.length === 0}
+      indeterminate={
+        forcedRows.length > 0 && forcedRows.length < forceableRows.length
+      }
+      onChange={(isNowForced) => {
+        const next = isNowForced
+          ? forceAllOnPage(pageRows, forcedNoteIds, notesSelectedToImport)
+          : clearForceAllOnPage(pageRows, forcedNoteIds, notesSelectedToImport);
+        onForceChange(next.forced, next.selected);
+      }}
+    />
+  );
+}
+
+function gridHeaders<T>(columns: ColumnDef<T>[]): string[] {
+  return [
+    "",
+    t("preview.selectColumn"),
+    t("preview.forceColumn"),
+    ...columns.map((column) => column.header),
+  ];
+}
+
+function gridColumnWidths<T>(columns: ColumnDef<T>[]): string {
+  return [
+    "auto",
+    "auto",
+    "auto",
+    ...columns.map((column) => column.width),
+  ].join(" ");
+}
+
+interface TableToolbarProps {
+  readonly anyExpandedOnPage: boolean;
+  readonly count: string;
+  readonly onExpandAllToggle: () => void;
+  readonly search?: SearchBoxProps | undefined;
+}
+
+function TableToolbar({
+  anyExpandedOnPage,
+  count,
+  onExpandAllToggle,
+  search,
+}: TableToolbarProps): JSX.Element {
+  return (
+    <div className={listClasses.listToolbar}>
+      <p className={listClasses.listToolbarCount}>{count}</p>
+      {search && (
+        <div className={listClasses.listToolbarSearch}>
+          <SearchBox {...search} />
+        </div>
+      )}
+      <button
+        className={listClasses.listToolbarAction}
+        onClick={onExpandAllToggle}
+        type="button"
+      >
+        {anyExpandedOnPage ? t("preview.collapseAll") : t("preview.expandAll")}
+      </button>
+    </div>
+  );
+}
+
+interface TableNoticesProps {
+  readonly notesLeftToDecide: number;
+  readonly resurrectableLeft: boolean;
+  readonly resurrectionWarning?: string | undefined;
+  readonly selectionNotice?: string | undefined;
+}
+
+function TableNotices({
+  notesLeftToDecide,
+  resurrectableLeft,
+  resurrectionWarning,
+  selectionNotice,
+}: TableNoticesProps): JSX.Element {
+  return (
+    <>
+      {selectionNotice && notesLeftToDecide > 0 && (
+        <p className={listClasses.listToolbarBanner}>{selectionNotice}</p>
+      )}
+      {resurrectionWarning && resurrectableLeft && (
+        <p className={listClasses.listToolbarBanner}>{resurrectionWarning}</p>
+      )}
+    </>
+  );
+}
+
+interface TableGridProps<T> {
+  readonly columns: ColumnDef<T>[];
+  readonly expandedIds: Set<number>;
+  readonly forcedNoteIds: Record<number, boolean>;
+  readonly getDefaultSelected: (item: T) => boolean;
+  readonly getNoteId: (item: T) => number;
+  readonly getRow: (item: T) => SyncDecisionRow;
+  readonly getRowAriaLabel: (item: T) => string;
+  readonly getRowClassName: (item: T) => string | undefined;
+  readonly getRowDetails: (item: T) => NoteDetailsData;
+  readonly getRowTitle: (item: T) => string;
+  readonly notesSelectedToImport: Record<number, boolean>;
+  readonly onExpandedChange: (noteId: number) => void;
+  readonly onForceChange: (
+    forced: Record<number, boolean>,
+    selected: Record<number, boolean>,
+  ) => void;
+  readonly onSelectionChange: (selected: Record<number, boolean>) => void;
+  readonly pageNotes: T[];
+  readonly pageRows: PageRowSelection[];
+}
+
+function TableGrid<T>({
+  columns,
+  expandedIds,
+  forcedNoteIds,
+  getDefaultSelected,
+  getNoteId,
+  getRow,
+  getRowAriaLabel,
+  getRowClassName,
+  getRowDetails,
+  getRowTitle,
+  notesSelectedToImport,
+  onExpandedChange,
+  onForceChange,
+  onSelectionChange,
+  pageNotes,
+  pageRows,
+}: TableGridProps<T>): JSX.Element {
+  return (
+    <List
+      columns={gridHeaders(columns)}
+      columnWidths={gridColumnWidths(columns)}
+      headerControls={[
+        undefined,
+        <SelectAllHeader
+          key="select-all"
+          notesSelectedToImport={notesSelectedToImport}
+          onSelectionChange={onSelectionChange}
+          pageRows={pageRows}
+        />,
+        <ForceAllHeader
+          forcedNoteIds={forcedNoteIds}
+          key="force-all"
+          notesSelectedToImport={notesSelectedToImport}
+          onForceChange={onForceChange}
+          pageRows={pageRows}
+        />,
+      ]}
+      role="grid"
+    >
+      {pageRows.map((row, index) => {
+        const item = pageNotes[index];
+        if (item === undefined) {
+          return null;
+        }
+        return (
+          <NoteRow
+            columns={columns}
+            forcedNoteIds={forcedNoteIds}
+            getDefaultSelected={getDefaultSelected}
+            getNoteId={getNoteId}
+            getRow={getRow}
+            getRowAriaLabel={getRowAriaLabel}
+            getRowClassName={getRowClassName}
+            getRowDetails={getRowDetails}
+            getRowTitle={getRowTitle}
+            index={index}
+            isExpanded={expandedIds.has(row.id)}
+            isForced={row.isForced}
+            isSelectable={isRowSelectable(row)}
+            isSelected={row.isSelected}
+            item={item}
+            key={row.id}
+            notesSelectedToImport={notesSelectedToImport}
+            onExpandedChange={onExpandedChange}
+            onForcedChange={onForceChange}
+            onSelectedChange={onSelectionChange}
+          />
+        );
+      })}
+    </List>
+  );
+}
+
 export interface NotesTableProps<T> {
+  readonly allItems?: T[] | undefined;
   readonly columns: ColumnDef<T>[];
   readonly countText?: (selectedCount: number, total: number) => string;
   readonly currentPage: number;
+  readonly emptyMatchText?: string | undefined;
   readonly forcedNoteIds: Record<number, boolean>;
   readonly forceStrategy: ForceStrategy;
   readonly getDefaultSelected: (item: T) => boolean;
@@ -179,27 +423,31 @@ export interface NotesTableProps<T> {
   readonly onSelectionChange: (selected: Record<number, boolean>) => void;
   readonly pageSize: number;
   readonly resurrectionWarning?: string | undefined;
+  readonly search?: SearchBoxProps | undefined;
   readonly selectionNotice?: string | undefined;
 }
 
 export function NotesTable<T>({
   items,
+  allItems,
   currentPage,
   pageSize,
   columns,
   countText = (selectedCount: number, total: number) =>
     t("preview.notesToImport", { selected: selectedCount, total }),
+  emptyMatchText,
   getDefaultSelected,
   getNoteId,
   getRow,
   getRowAriaLabel,
-  getRowClassName,
+  getRowClassName = () => undefined,
   getRowDetails,
   getRowTitle,
   getStatus,
   isResurrectable,
   isSelectionLocked,
   forceStrategy,
+  search,
   selectionNotice,
   resurrectionWarning,
   forcedNoteIds,
@@ -207,6 +455,7 @@ export function NotesTable<T>({
   onSelectionChange,
   notesSelectedToImport,
 }: NotesTableProps<T>): JSX.Element {
+  const totalItems = allItems ?? items;
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const projection = useMemo(
     () => ({
@@ -226,8 +475,13 @@ export function NotesTable<T>({
   );
   const allRows = useMemo(
     () =>
-      pageSelection(items, notesSelectedToImport, forcedNoteIds, projection),
-    [items, notesSelectedToImport, forcedNoteIds, projection],
+      pageSelection(
+        totalItems,
+        notesSelectedToImport,
+        forcedNoteIds,
+        projection,
+      ),
+    [totalItems, notesSelectedToImport, forcedNoteIds, projection],
   );
   const pageNotes = useMemo(
     () =>
@@ -244,15 +498,8 @@ export function NotesTable<T>({
       ),
     [pageNotes, notesSelectedToImport, forcedNoteIds, projection],
   );
-  const selectableRows = pageRows.filter(isRowSelectable);
-  const selectAllState = selectionCheckState(
-    selectableRows.filter((row) => row.isSelected).length,
-    selectableRows.length,
-  );
-  const forceableRows = pageRows.filter((row) => row.isForceable);
-  const forcedRows = forceableRows.filter((row) => row.isForced);
   const notesLeftToDecide = leftToDecide(allRows);
-  const resurrectableLeft = items.some(
+  const resurrectableLeft = totalItems.some(
     (item) =>
       !getDefaultSelected(item) &&
       !forcedNoteIds[getNoteId(item)] &&
@@ -278,7 +525,7 @@ export function NotesTable<T>({
     );
   };
 
-  if (items.length === 0) {
+  if (totalItems.length === 0) {
     return (
       <div>
         <p>{t("preview.noNotes")}</p>
@@ -286,115 +533,47 @@ export function NotesTable<T>({
     );
   }
 
+  const hasQuery = (search?.value.trim().length ?? 0) > 0;
+
   return (
     <div>
-      <div className={listClasses.listToolbar}>
-        <p className={listClasses.listToolbarCount}>
-          {countText(selectedCount(allRows), items.length)}
+      <TableToolbar
+        anyExpandedOnPage={anyExpandedOnPage}
+        count={countText(selectedCount(allRows), totalItems.length)}
+        onExpandAllToggle={onExpandAllToggle}
+        search={search}
+      />
+      <TableNotices
+        notesLeftToDecide={notesLeftToDecide.length}
+        resurrectableLeft={resurrectableLeft}
+        resurrectionWarning={resurrectionWarning}
+        selectionNotice={selectionNotice}
+      />
+      {hasQuery && items.length === 0 ? (
+        <p className={listClasses.listEmpty}>
+          {emptyMatchText ??
+            t("preview.noSearchMatches", { query: search?.value ?? "" })}
         </p>
-        <button
-          className={listClasses.listToolbarAction}
-          onClick={onExpandAllToggle}
-          type="button"
-        >
-          {anyExpandedOnPage
-            ? t("preview.collapseAll")
-            : t("preview.expandAll")}
-        </button>
-      </div>
-      {selectionNotice && notesLeftToDecide.length > 0 && (
-        <p className={listClasses.listToolbarBanner}>{selectionNotice}</p>
+      ) : (
+        <TableGrid
+          columns={columns}
+          expandedIds={expandedIds}
+          forcedNoteIds={forcedNoteIds}
+          getDefaultSelected={getDefaultSelected}
+          getNoteId={getNoteId}
+          getRow={getRow}
+          getRowAriaLabel={getRowAriaLabel}
+          getRowClassName={getRowClassName}
+          getRowDetails={getRowDetails}
+          getRowTitle={getRowTitle}
+          notesSelectedToImport={notesSelectedToImport}
+          onExpandedChange={onExpandedToggle}
+          onForceChange={onForceChange}
+          onSelectionChange={onSelectionChange}
+          pageNotes={pageNotes}
+          pageRows={pageRows}
+        />
       )}
-      {resurrectionWarning && resurrectableLeft && (
-        <p className={listClasses.listToolbarBanner}>{resurrectionWarning}</p>
-      )}
-      <List
-        columns={[
-          "",
-          t("preview.selectColumn"),
-          t("preview.forceColumn"),
-          ...columns.map((column) => column.header),
-        ]}
-        columnWidths={[
-          "auto",
-          "auto",
-          "auto",
-          ...columns.map((column) => column.width),
-        ].join(" ")}
-        headerControls={[
-          undefined,
-          <Checkbox
-            ariaLabel={t("preview.selectAllOnPage")}
-            checked={selectAllState.checked}
-            disabled={selectAllState.disabled}
-            indeterminate={selectAllState.indeterminate}
-            key="select-all"
-            onChange={(isNowChecked) =>
-              onSelectionChange(
-                setSelectableOnPage(
-                  pageRows,
-                  notesSelectedToImport,
-                  isNowChecked,
-                ),
-              )
-            }
-          />,
-          <Switch
-            ariaLabel={t("preview.forceAllOnPage")}
-            checked={
-              forceableRows.length > 0 &&
-              forcedRows.length === forceableRows.length
-            }
-            disabled={forceableRows.length === 0}
-            indeterminate={
-              forcedRows.length > 0 && forcedRows.length < forceableRows.length
-            }
-            key="force-all"
-            onChange={(isNowForced) => {
-              const next = isNowForced
-                ? forceAllOnPage(pageRows, forcedNoteIds, notesSelectedToImport)
-                : clearForceAllOnPage(
-                    pageRows,
-                    forcedNoteIds,
-                    notesSelectedToImport,
-                  );
-              onForceChange(next.forced, next.selected);
-            }}
-          />,
-        ]}
-        role="grid"
-      >
-        {pageRows.map((row, index) => {
-          const item = pageNotes[index];
-          if (item === undefined) {
-            return null;
-          }
-          return (
-            <NoteRow
-              columns={columns}
-              forcedNoteIds={forcedNoteIds}
-              getDefaultSelected={getDefaultSelected}
-              getNoteId={getNoteId}
-              getRow={getRow}
-              getRowAriaLabel={getRowAriaLabel}
-              getRowClassName={getRowClassName ?? (() => undefined)}
-              getRowDetails={getRowDetails}
-              getRowTitle={getRowTitle}
-              index={index}
-              isExpanded={expandedIds.has(row.id)}
-              isForced={row.isForced}
-              isSelectable={isRowSelectable(row)}
-              isSelected={row.isSelected}
-              item={item}
-              key={row.id}
-              notesSelectedToImport={notesSelectedToImport}
-              onExpandedChange={onExpandedToggle}
-              onForcedChange={onForceChange}
-              onSelectedChange={onSelectionChange}
-            />
-          );
-        })}
-      </List>
     </div>
   );
 }

@@ -3,9 +3,11 @@ import { mergeClasses } from "src/gui/classes";
 import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
+import { useDebouncedValue } from "@shared/hooks/useDebouncedValue";
 import { obsidianWinsStrategy } from "@shared/types/ObsidianWinsStrategy";
 import type { Anki } from "src/services/anki/anki";
 import { fetchNotesByIdMap } from "src/services/anki/read";
+import type { AnkiNoteInfo } from "src/entities/anki-note";
 import type { Vault } from "obsidian";
 import {
   classifyVaultBlock,
@@ -29,6 +31,7 @@ import { normalizeNoteText } from "src/services/notes/text";
 import { exportNotesPreviewClasses } from "../classes";
 import { commonWizardClasses } from "@shared/classes";
 import { NotesTable, StatusChip, type ColumnDef } from "@shared/components";
+import { matchesSearch } from "@shared/utils/notes-search";
 import {
   comparePreviewRank,
   countNotes,
@@ -181,6 +184,46 @@ function exportableRowKey(blockId: number | undefined, index: number): number {
   return blockId ?? -(index + 1);
 }
 
+type VaultBlockLocation = Awaited<
+  ReturnType<typeof scanVaultBlocks>
+>["locations"][number];
+
+function blockSearchableText(item: ExportableBlock): string {
+  return [
+    item.block.front,
+    item.block.back,
+    item.block.tags,
+    item.block.model,
+  ].join(" ");
+}
+
+async function classifyBlocks(
+  inDeck: VaultBlockLocation[],
+  ankiNotes: Map<number, AnkiNoteInfo>,
+  noteLifecycle: Record<number, NoteLifecycleRecord>,
+  onProgress: (current: number, total: number) => void,
+): Promise<ExportableBlock[]> {
+  const items: ExportableBlock[] = [];
+  for (const [index, location] of inDeck.entries()) {
+    const id = location.block.id;
+    const status = await classifyVaultBlock(
+      location.block,
+      id === undefined ? undefined : ankiNotes.get(id),
+      id === undefined ? undefined : noteLifecycle[id],
+    );
+    items.push({
+      block: location.block,
+      deckName: location.deckName,
+      filePath: location.file.path,
+      previewStatus: notePreviewStatusFor(status),
+      rowKey: exportableRowKey(id, index),
+      status,
+    });
+    onProgress(index + 1, inDeck.length);
+  }
+  return items;
+}
+
 export function NotesPreview({
   anki,
   currentPage,
@@ -201,9 +244,12 @@ export function NotesPreview({
   const [classified, setClassified] = useState<ExportableBlock[] | null>(null);
   const [progress, setProgress] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query);
 
   const loadClassifiedBlocks = (): (() => void) => {
     setClassified(null);
+    setQuery("");
     onPageChange(0);
     return startAsyncLoad(async (isLive) => {
       try {
@@ -228,31 +274,16 @@ export function NotesPreview({
           ),
         ];
         const ankiNotes = await fetchNotesByIdMap(anki, ids);
-        const items: ExportableBlock[] = [];
-        for (const [index, location] of inDeck.entries()) {
-          const id = location.block.id;
-          const status = await classifyVaultBlock(
-            location.block,
-            id === undefined ? undefined : ankiNotes.get(id),
-            id === undefined ? undefined : noteLifecycle[id],
-          );
-          items.push({
-            block: location.block,
-            deckName: location.deckName,
-            filePath: location.file.path,
-            previewStatus: notePreviewStatusFor(status),
-            rowKey: exportableRowKey(id, index),
-            status,
-          });
-          if (isLive()) {
-            setProgress(
-              t("preview.loadingProgress", {
-                current: index + 1,
-                total: inDeck.length,
-              }),
-            );
-          }
-        }
+        const items = await classifyBlocks(
+          inDeck,
+          ankiNotes,
+          noteLifecycle,
+          (current, total) => {
+            if (isLive()) {
+              setProgress(t("preview.loadingProgress", { current, total }));
+            }
+          },
+        );
         if (isLive()) {
           const ordered = [...items].sort(comparePreviewRank);
           setClassified(ordered);
@@ -283,15 +314,33 @@ export function NotesPreview({
     onNotesSelectedToExportChange,
   );
 
+  const filteredBlocks = useMemo(
+    () =>
+      (classified ?? []).filter((item) =>
+        matchesSearch(blockSearchableText(item), debouncedQuery),
+      ),
+    [classified, debouncedQuery],
+  );
+
+  const onQueryChange = (value: string): void => {
+    setQuery(value);
+    onPageChange(0);
+  };
+
+  const onQueryClear = (): void => {
+    setQuery("");
+    onPageChange(0);
+  };
+
   useEffect(() => {
     if (classified) {
       const pageCount = Math.max(
         1,
-        Math.ceil(classified.length / previewPageSize),
+        Math.ceil(filteredBlocks.length / previewPageSize),
       );
       onTotalPagesChange(pageCount);
     }
-  }, [classified, onTotalPagesChange]);
+  }, [classified, filteredBlocks.length, onTotalPagesChange]);
 
   const notesLeftToDecide = useMemo(
     () =>
@@ -342,11 +391,15 @@ export function NotesPreview({
   return (
     <div className={rootClassName}>
       <NotesTable
+        allItems={classified}
         columns={columns}
         countText={(selectedCount, total) =>
           t("preview.notesToExport", { selected: selectedCount, total })
         }
         currentPage={currentPage}
+        emptyMatchText={t("preview.noSearchMatches", {
+          query: debouncedQuery,
+        })}
         forcedNoteIds={forcedNoteIds}
         forceStrategy={obsidianWinsStrategy}
         getDefaultSelected={(item) =>
@@ -376,12 +429,19 @@ export function NotesPreview({
         getStatus={(item) => item.status}
         isResurrectable={(item) => item.status === "vaultOnly.ankiDeleted"}
         isSelectionLocked={(item) => item.block.id === undefined}
-        items={classified}
+        items={filteredBlocks}
         notesSelectedToImport={notesSelectedToExport}
         onForceChange={onForceChange}
         onSelectionChange={onSelectionChange}
         pageSize={previewPageSize}
         resurrectionWarning={recreateWarning(notesToRecreate, "Anki")}
+        search={{
+          label: t("preview.searchLabel"),
+          onChange: onQueryChange,
+          onClear: onQueryClear,
+          placeholder: t("preview.searchPlaceholder"),
+          value: query,
+        }}
         selectionNotice={selectionNotice(classified)}
       />
     </div>
