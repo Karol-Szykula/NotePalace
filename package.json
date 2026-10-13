@@ -13,7 +13,7 @@
     "knip": "knip",
     "jscpd": "jscpd src --threshold 3",
     "depcruise": "depcruise src --config .dependency-cruiser.cjs",
-    "depcruise:graph": "depcruise src --config .dependency-cruiser.cjs --output-type mermaid --output-to docs/architecture.md",
+    "depcruise:graph": "esbuild src/dev/print-architecture.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/print-architecture.cjs --log-level=error && node node_modules/.cache/print-architecture.cjs",
     "depcruise:archi": "depcruise src --config .dependency-cruiser.cjs --output-type archi",
     "format": "prettier --write .",
     "doc:state-machine": "esbuild src/dev/print-state-machine.ts --bundle --platform=node --format=cjs --outfile=node_modules/.cache/state-machine.cjs --log-level=error && node node_modules/.cache/state-machine.cjs",
