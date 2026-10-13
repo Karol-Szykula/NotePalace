@@ -5,7 +5,7 @@ This plugin can be installed manually in Obsidian by building the plugin bundle 
 ## Requirements
 
 - Node.js
-- npm
+- pnpm
 - Anki with AnkiConnect installed if you want to sync cards
 
 ## Build from source
@@ -13,13 +13,13 @@ This plugin can be installed manually in Obsidian by building the plugin bundle 
 Install dependencies, including development dependencies:
 
 ```bash
-npm install --include=dev
+pnpm install
 ```
 
 Build the Obsidian plugin bundle:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 This creates `main.js` in the repository root. The plugin manifest is `manifest.json`.
@@ -28,8 +28,8 @@ This creates `main.js` in the repository root. The plugin manifest is `manifest.
 
 | Entry | Built by | Output | Contains the dev commands |
 | --- | --- | --- | --- |
-| `main.ts` | `npm run build` (esbuild) | `main.js` in the repository root, released | no |
-| `main.dev.ts` | `npm run dev` (rollup watcher) | `docs/test-vault/.obsidian/plugins/notepalace/main.js` | yes |
+| `main.ts` | `pnpm run build` (esbuild) | `main.js` in the repository root, released | no |
+| `main.dev.ts` | `pnpm run dev` (rollup watcher) | `docs/test-vault/.obsidian/plugins/notepalace/main.js` | yes |
 
 `main.dev.ts` is a subclass of the plugin class that registers the developer
 commands (`Dev: reset plugin data`) after the normal ones. The release build
@@ -37,7 +37,7 @@ starts from `main.ts`, which never imports that module, so the dev commands are
 not in the release bundle at all - not disabled, absent. Check it after a build:
 
 ```bash
-npm run build && grep -c "reset plugin data" main.js
+pnpm run build && grep -c "reset plugin data" main.js
 ```
 
 Zero means the dev code stayed out of the release bundle. The dev bundle always
@@ -49,7 +49,7 @@ though the entry is `main.dev.ts`.
 Run:
 
 ```bash
-npm run release
+pnpm run release
 ```
 
 The release folder will be created at:
@@ -63,11 +63,10 @@ It contains the files Obsidian needs:
 ```text
 main.js
 manifest.json
+styles.css
 ```
 
-If a future version adds `styles.css`, include that file in the release folder too.
-
-For a GitHub release, upload `main.js` and `manifest.json` as release assets. You can also zip the contents of `dist/notepalace/`, but the files should be at the top level of the zip.
+For a release, upload `main.js`, `manifest.json` and `styles.css` as release assets. You can also zip the contents of `dist/notepalace/`, but the files should be at the top level of the zip.
 
 ## Manual install in Obsidian
 
@@ -82,6 +81,7 @@ Copy the release files into it:
 ```text
 <your-vault>/.obsidian/plugins/notepalace/main.js
 <your-vault>/.obsidian/plugins/notepalace/manifest.json
+<your-vault>/.obsidian/plugins/notepalace/styles.css
 ```
 
 Then restart Obsidian and enable **NotePalace** under:

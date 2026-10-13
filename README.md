@@ -5,7 +5,7 @@
 | Command (id) | What it does |
 |---|---|
 | Import deck from Anki (`import-deck-from-anki`) | 4-page wizard (Deck → Fields → Cards → Save) bringing Anki notes into the vault |
-| Export to Anki (`export-to-anki`, ribbon) | Pushes vault notes to Anki, writes ids back |
+| Export to Anki (`export-deck-to-anki`, ribbon) | Pushes vault notes to Anki, writes ids back |
 | Sync (`sync-with-anki`) | Two-way sync of tracked notes; only command that updates on either side |
 | Purge ledger (`purge-ledger`) | Forgets lifecycle records without files |
 | Insert note form (`insert-note-form`) | Inserts a validated note block at the cursor |
