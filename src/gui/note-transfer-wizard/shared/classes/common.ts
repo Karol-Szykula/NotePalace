@@ -50,6 +50,12 @@ export const listClasses = {
     "notepalace-note-transfer-wizard-modal__labeled-control--disabled",
 } as const;
 
+export const searchBoxClasses = {
+  searchBox: "notepalace-note-transfer-wizard-modal__search",
+  searchInput: "notepalace-note-transfer-wizard-modal__search-input",
+  searchClear: "notepalace-note-transfer-wizard-modal__search-clear",
+} as const;
+
 export const chipClasses = {
   chip: "notepalace-chip",
   chipConflict: "notepalace-chip--conflict",

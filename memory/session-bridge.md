@@ -14,22 +14,23 @@ updated: 2026-10-12
 - **Issue**: 80 http://192.168.0.150:8929/ks/NotePalace/-/work_items/80
 - **Change**: notes-search
 - **Worktree**: /home/ksz/Projects/NotePalace
-- **Phase at Checkpoint**: planning_ready
+- **Phase at Checkpoint**: applying
 - **Task Group at Checkpoint**: 1
-- **Observed Run Revision**: none
-- **Last Verified HEAD**: 1759c820074b3060f28759be32397e04e9e8ef51
+- **Observed Run Revision**: 2
+- **Last Verified HEAD**: 9667bbccd2fc75e80e6c761dcf6cb85994f671d5
 
 ## Next Action
-- Start Apply for `notes-search` Task Group 1.
+- Start Task Group 2 (notes table toolbar).
 
 ## Blockers
-- Foundation RFC is not yet accepted and merged.
+- none
 
 ## Uncommitted Work
 - none
 
 ## Discoveries
-- none
+- `corgispec apply` requires HEAD unchanged from Propose and creates the planning-baseline commit itself; committing it manually breaks `PLANNING_HANDOFF_HEAD_CHANGED`.
 
 ## Promotion Queue
 - Review agent-configuration constraints before promoting any item to `memory/MEMORY.md`.
+- Consider `corgispec apply` planning-baseline ownership (apply creates the commit; do not create it by hand) for `memory/pitfalls.md`.
