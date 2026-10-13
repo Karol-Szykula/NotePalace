@@ -22,6 +22,7 @@ import {
   forgetRecordsWithoutFiles,
   formatPurgeLedgerReport,
 } from "src/services/vault/records";
+import { watchNoteDeletions } from "src/services/vault/deletions";
 
 export default class NotePalace extends Plugin {
   override settings!: ISettings;
@@ -37,6 +38,7 @@ export default class NotePalace extends Plugin {
     this.addSettingTab(new SettingsTab(this.app, this));
 
     this.registerNoteFormRendering();
+    this.registerDeletionTracking();
     this.registerImportCommand();
     this.registerExportCommand();
     this.registerSyncCommand();
@@ -55,6 +57,16 @@ export default class NotePalace extends Plugin {
       ),
     );
     registerNoteFormAutoPreview(this);
+  }
+
+  private registerDeletionTracking(): void {
+    const watch = watchNoteDeletions(this.app.vault, this.settings, () => {
+      void this.saveData(this.settings);
+    });
+    this.register(() => {
+      watch.dispose();
+    });
+    void watch.prime();
   }
 
   private registerImportCommand(): void {

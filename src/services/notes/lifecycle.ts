@@ -207,6 +207,7 @@ export function statusOfSnapshot(snapshot: {
 }
 
 export interface NoteLifecycleRecord {
+  deletedAt?: number;
   lastHash: string;
   lastMod: number;
   status: NoteLifecycleStatus;
