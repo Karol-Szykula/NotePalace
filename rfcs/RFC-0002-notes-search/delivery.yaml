@@ -1,6 +1,6 @@
 schemaVersion: 1
 rfcId: RFC-0002-notes-search
-revision: 0
+revision: 1
 slices:
   S-01-notes-search:
     status: unbound
