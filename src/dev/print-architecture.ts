@@ -19,11 +19,12 @@ interface Graph {
 const sourceDirectory = "src";
 const configFile = ".dependency-cruiser.cjs";
 const outputDocument = "docs/architecture.md";
+const subgraphAreas = ["gui", "services"];
 
 function groupOf(source: string): string {
   const segments = source.replace(/^src\//, "").split("/");
   const [first, second] = segments;
-  if (segments.length > 2 && (first === "gui" || first === "services")) {
+  if (segments.length > 2 && subgraphAreas.includes(first ?? "")) {
     return `${first}/${second ?? ""}`;
   }
   return first ?? source;
@@ -41,21 +42,29 @@ function readReport(): DependencyCruiserReport {
   return JSON.parse(run.stdout) as DependencyCruiserReport;
 }
 
+function srcDependencies(module: DependencyCruiserModule): string[] {
+  return (module.dependencies ?? [])
+    .map((dependency) => dependency.resolved)
+    .filter(
+      (resolved): resolved is string => resolved?.startsWith("src/") === true,
+    );
+}
+
+function edgeKey(from: string, to: string): string {
+  return `${from}\t${to}`;
+}
+
 function buildGraph(report: DependencyCruiserReport): Graph {
   const nodes = new Set<string>();
   const edges = new Set<string>();
   for (const module of report.modules) {
     const from = groupOf(module.source);
     nodes.add(from);
-    for (const dependency of module.dependencies ?? []) {
-      const resolved = dependency.resolved;
-      if (resolved === undefined || !resolved.startsWith("src/")) {
-        continue;
-      }
+    for (const resolved of srcDependencies(module)) {
       const to = groupOf(resolved);
       nodes.add(to);
       if (from !== to) {
-        edges.add(`${from}\t${to}`);
+        edges.add(edgeKey(from, to));
       }
     }
   }
@@ -66,33 +75,29 @@ function nodeId(group: string): string {
   return group.replace(/[^A-Za-z0-9]/g, "_");
 }
 
-function nodeLine(group: string): string {
-  return `    ${nodeId(group)}["${group}"]`;
+function nodeDeclaration(group: string, indent: string): string {
+  return `${indent}${nodeId(group)}["${group}"]`;
 }
 
 function inArea(group: string, area: string): boolean {
   return group === area || group.startsWith(`${area}/`);
 }
 
-function areaNodes(nodes: string[], area: string): string[] {
-  return nodes.filter((group) => inArea(group, area));
-}
-
-function subgraph(area: string, nodes: string[]): string[] {
-  const members = areaNodes(nodes, area);
+function subgraphBlock(area: string, nodes: string[]): string[] {
+  const members = nodes.filter((group) => inArea(group, area));
   if (members.length === 0) {
     return [];
   }
   return [
     `  subgraph ${area}_area["${area}"]`,
-    ...members.map(nodeLine),
+    ...members.map((group) => nodeDeclaration(group, "    ")),
     "  end",
   ];
 }
 
 function topLevelNodes(nodes: string[]): string[] {
   return nodes.filter(
-    (group) => !inArea(group, "gui") && !inArea(group, "services"),
+    (group) => !subgraphAreas.some((area) => inArea(group, area)),
   );
 }
 
@@ -103,18 +108,19 @@ function compareCodeUnits(left: string, right: string): number {
   return left < right ? -1 : 1;
 }
 
+function edgeDeclaration(edge: string): string {
+  const [from, to] = edge.split("\t");
+  return `  ${nodeId(from ?? "")} --> ${nodeId(to ?? "")}`;
+}
+
 function mermaidOf(graph: Graph): string {
   const nodes = [...graph.nodes].sort(compareCodeUnits);
   const edges = [...graph.edges].sort(compareCodeUnits);
   return [
     "flowchart LR",
-    ...subgraph("gui", nodes),
-    ...subgraph("services", nodes),
-    ...topLevelNodes(nodes).map((group) => `  ${nodeId(group)}["${group}"]`),
-    ...edges.map((edge) => {
-      const [from, to] = edge.split("\t");
-      return `  ${nodeId(from ?? "")} --> ${nodeId(to ?? "")}`;
-    }),
+    ...subgraphAreas.flatMap((area) => subgraphBlock(area, nodes)),
+    ...topLevelNodes(nodes).map((group) => nodeDeclaration(group, "  ")),
+    ...edges.map(edgeDeclaration),
   ].join("\n");
 }
 
