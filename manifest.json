@@ -1,7 +1,7 @@
 {
   "id": "notepalace",
   "name": "NotePalace",
-  "version": "1.0.2",
+  "version": "0.2.1",
   "minAppVersion": "1.0.0",
   "description": "Sync notes to Anki using tags, inline separators, and cloze syntax.",
   "author": "Karol Szykuła",
