@@ -49,6 +49,7 @@ docs/test-vault/.obsidian/themes/
 # CorgiSpec local runtime state
 .corgi/loop/
 .corgi/transactions/
+.worktrees/
 
 # one-time bootstrap safety backups
 openspec/.corgi-backups/
