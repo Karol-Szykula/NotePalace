@@ -1,0 +1,112 @@
+{
+  "version": 2,
+  "packageVersion": "4.0.0-rc2",
+  "installedAt": "2026-10-12T17:28:14.251Z",
+  "updatedAt": "2026-10-12T17:28:14.251Z",
+  "sourceRepo": "/home/ksz/.local/share/mise/installs/node/26.7.0/lib/node_modules/corgispec",
+  "schema": "gitlab-tracked",
+  "isolation": {
+    "mode": "none"
+  },
+  "files": {
+    ".opencode/commands/corgi-apply.md": {
+      "sha256": "424069f9f5fa993b03eb1a7463fc13a5ab8b2eaf6800583c05aabbac8840482a"
+    },
+    ".opencode/commands/corgi-archive.md": {
+      "sha256": "c806ff8752091b02d6f067591a95b26022fcea40e075b42bf2a58a9da221cd74"
+    },
+    ".opencode/commands/corgi-ask.md": {
+      "sha256": "abe199c9d3e01ceaa415f3f538f0bd09cc20ba0202db19f96cc1f564332d3600"
+    },
+    ".opencode/commands/corgi-explore.md": {
+      "sha256": "867a09f6c7781641486a329cd38de967b85c60763e3dd1de587d6a12f5321d7e"
+    },
+    ".opencode/commands/corgi-human-qa.md": {
+      "sha256": "5303350f57cfc770261f109064f7614ea05cccdaa5ebdd6011b7510f46826338"
+    },
+    ".opencode/commands/corgi-install.md": {
+      "sha256": "1732670447c0ffc96cf622e9f1d48d10e661e092bd709817463a10c0616d3840"
+    },
+    ".opencode/commands/corgi-lint.md": {
+      "sha256": "e05b9f431a63b21017efec063c7bebe8cc1ed1f0addd200ee9633bdf37fbd7c6"
+    },
+    ".opencode/commands/corgi-memory-init.md": {
+      "sha256": "d9aeecaba2f8c6b4b8b4a19aee008f6b44148175168747de2f72334c8958303b"
+    },
+    ".opencode/commands/corgi-migrate.md": {
+      "sha256": "964de7552031dedf9694199591c5a5da0cfc3ac133d1167853a9ba948d07cb12"
+    },
+    ".opencode/commands/corgi-propose.md": {
+      "sha256": "56c8d7a4c84829182e5fa16372dae6d8f1d45cafeae595f7c8183e56d32b98a9"
+    },
+    ".opencode/commands/corgi-ready.md": {
+      "sha256": "a419e583cb26c859f162150dec24f42fac28ce50de6908b9d2fad8f382c2f68d"
+    },
+    ".opencode/commands/corgi-review.md": {
+      "sha256": "e533f6eca35a4bc9a4fd9f61663b0a5bc8384aaeccfddb3c1c535a901ed20df9"
+    },
+    ".opencode/commands/corgi-rfc.md": {
+      "sha256": "026841b5c37d9d60e57148f01eddf44251dc55f4931793c29768e87f78822446"
+    },
+    ".opencode/commands/corgi-update.md": {
+      "sha256": "3fc0dc68c65415fdf87d55aa48bdabff43d29609db7935ec7132b0646b9c3889"
+    },
+    ".opencode/commands/corgi-verify.md": {
+      "sha256": "5507ca7e56ba789eecac9ab5a1284eac45510baff6eea7c03510a5552bb6cec6"
+    },
+    "openspec/schemas/gitlab-tracked/schema.yaml": {
+      "sha256": "dc2c963f91ac246adb2567e382f5c91bfe946ec480176857e6d6f23f719457ae"
+    },
+    "openspec/schemas/gitlab-tracked/templates/design.md": {
+      "sha256": "3395daa1c2f335aab03e4773a7d8a7d2c369579d153d359e7bb44420cacbd157"
+    },
+    "openspec/schemas/gitlab-tracked/templates/proposal.md": {
+      "sha256": "73356976ecff9e1fbf95af3d6276cc6a2f297bb5c51fc148b98c562dc9072038"
+    },
+    "openspec/schemas/gitlab-tracked/templates/spec.md": {
+      "sha256": "e025078f238dc6e4df552a1e0a140cf9efce0bbdecbeb9f45837d45ed91dca01"
+    },
+    "openspec/schemas/gitlab-tracked/templates/tasks.md": {
+      "sha256": "8f14d299d821c63dfad80c14748a29975f68dc94e6ccea2eacb073f4d8736a54"
+    }
+  },
+  "hooks": {},
+  "latestMigration": {
+    "fromManifestVersion": null,
+    "repaired": [
+      ".opencode/commands/corgi-apply.md",
+      ".opencode/commands/corgi-archive.md",
+      ".opencode/commands/corgi-ask.md",
+      ".opencode/commands/corgi-explore.md",
+      ".opencode/commands/corgi-human-qa.md",
+      ".opencode/commands/corgi-install.md",
+      ".opencode/commands/corgi-lint.md",
+      ".opencode/commands/corgi-memory-init.md",
+      ".opencode/commands/corgi-migrate.md",
+      ".opencode/commands/corgi-propose.md",
+      ".opencode/commands/corgi-ready.md",
+      ".opencode/commands/corgi-review.md",
+      ".opencode/commands/corgi-rfc.md",
+      ".opencode/commands/corgi-update.md",
+      ".opencode/commands/corgi-verify.md",
+      "openspec/schemas/gitlab-tracked/schema.yaml",
+      "openspec/schemas/gitlab-tracked/templates/design.md",
+      "openspec/schemas/gitlab-tracked/templates/proposal.md",
+      "openspec/schemas/gitlab-tracked/templates/spec.md",
+      "openspec/schemas/gitlab-tracked/templates/tasks.md"
+    ],
+    "updated": [],
+    "removed": [],
+    "preserved": [
+      "hooks:claude:not-installed",
+      "hooks:codex:not-installed",
+      "hooks:opencode:not-installed"
+    ],
+    "conflicts": [],
+    "backups": [
+      "/home/ksz/Projects/NotePalace/openspec/.corgi-backups/2026-10-12T17-28-14-251Z/project/.gitignore",
+      "/home/ksz/Projects/NotePalace/openspec/.corgi-backups/2026-10-12T17-28-14-251Z/project/AGENTS.md",
+      "/home/ksz/Projects/NotePalace/openspec/.corgi-backups/2026-10-12T17-28-14-251Z/project/openspec/config.yaml"
+    ]
+  }
+}

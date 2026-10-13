@@ -1,0 +1,10 @@
+schemaVersion: 1
+id: RFC-0001-project-foundation
+type: foundation
+status: accepted
+author: karol.szykula@engineeringtech.io
+createdAt: '2026-10-12T17:28:15.404Z'
+acceptance:
+  approver: karol.szykula@engineeringtech.io
+  approvedAt: '2026-10-12T18:08:00.239Z'
+  digest: d9d9a7a26c2458c121a149a7125d85da6a8cece0f600e5e47d7cabfd37061182
