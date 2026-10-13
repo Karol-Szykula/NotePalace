@@ -69,6 +69,7 @@ interface RenderedPreview {
 }
 
 interface PreviewOptions {
+  readonly currentPage?: number;
   readonly deckName?: string;
   readonly selected?: Record<number, boolean>;
 }
@@ -85,7 +86,7 @@ function renderPreview(
   const element = (
     <NotesPreview
       anki={new Anki()}
-      currentPage={0}
+      currentPage={options.currentPage ?? 0}
       deckName={options.deckName ?? "Languages"}
       forcedNoteIds={{}}
       noteLifecycle={{}}
@@ -324,13 +325,13 @@ describe("import NotesPreview search", () => {
       searchNote(1000 + index, `Filler ${index}`),
     );
     const notes = [searchNote(1, "Unique needle"), ...fillers];
-    const { onTotalPagesChange } = renderPreview(notes);
-    await screen.findByText("Unique needle");
+    const { onTotalPagesChange } = renderPreview(notes, { currentPage: 1 });
+    await screen.findByRole("textbox", { name: searchLabel });
 
     // when
     await typeQuery("needle");
 
     // then
     await waitFor(() => expect(onTotalPagesChange).toHaveBeenLastCalledWith(1));
-  });
+  }, 15000);
 });

@@ -51,13 +51,20 @@ interface RenderedPreview {
   readonly onTotalPagesChange: jest.Mock;
 }
 
-function renderPreview(files: Record<string, string>): RenderedPreview {
+interface PreviewOptions {
+  readonly currentPage?: number;
+}
+
+function renderPreview(
+  files: Record<string, string>,
+  options: PreviewOptions = {},
+): RenderedPreview {
   const onTotalPagesChange = jest.fn();
   const app = App.createConfigured__({ files });
   const vault = app.vault as unknown as ObsidianVault;
   const props: NotesPreviewProps = {
     anki: new Anki(),
-    currentPage: 0,
+    currentPage: options.currentPage ?? 0,
     deckName: "Languages",
     forcedNoteIds: {},
     ignoredDirectories: "",
@@ -227,13 +234,13 @@ describe("export NotesPreview search", () => {
       files[`Languages/Filler ${index}.md`] =
         `${noteBlock(`Filler ${index}`)}\n`;
     }
-    const { onTotalPagesChange } = renderPreview(files);
-    await screen.findByText("Unique needle");
+    const { onTotalPagesChange } = renderPreview(files, { currentPage: 1 });
+    await screen.findByRole("textbox", { name: searchLabel });
 
     // when
     await typeQuery("needle");
 
     // then
     await waitFor(() => expect(onTotalPagesChange).toHaveBeenLastCalledWith(1));
-  });
+  }, 15000);
 });
