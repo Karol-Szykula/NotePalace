@@ -192,10 +192,10 @@ function mappingAvailability(
   return async (note) => {
     const modelName = note.modelName ?? "Unknown";
     const mapping = request.fieldMappings[modelName];
-    if (mapping !== undefined) {
-      return buildYamlNoteFields(note, mapping) !== null;
+    if (mapping === undefined) {
+      return (await packFor(note)) !== undefined;
     }
-    return (await packFor(note)) !== undefined;
+    return buildYamlNoteFields(note, mapping) !== null;
   };
 }
 
