@@ -12,6 +12,7 @@ import {
   assignFieldTarget,
   fieldTargets,
   resolveFieldMapping,
+  skippedTarget,
 } from "src/entities/field-mapping";
 import { isKnownModel } from "src/services/anki/anki-models";
 import { discoverDeckModels } from "src/services/notes/fields";
@@ -151,7 +152,7 @@ export function FieldMapping({
                       setMappings(next);
                       onMappingsChange(next);
                     }}
-                    value={mappings[model.modelName]?.[field] ?? "Skip"}
+                    value={mappings[model.modelName]?.[field] ?? skippedTarget}
                   >
                     {fieldTargets.map((target) => (
                       <option key={target} value={target}>

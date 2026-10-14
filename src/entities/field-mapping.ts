@@ -10,12 +10,15 @@ export const fieldTargets = [
 
 export type FieldTarget = (typeof fieldTargets)[number];
 
+export const skippedTarget: FieldTarget = "Skip";
+
 export type FieldMapping = Record<string, FieldTarget>;
 
 export function presetFieldMapping(fields: string[]): FieldMapping {
   const mapping: FieldMapping = {};
   for (const field of fields) {
-    mapping[field] = fieldTargets.find((target) => target === field) ?? "Skip";
+    mapping[field] =
+      fieldTargets.find((target) => target === field) ?? skippedTarget;
   }
   return mapping;
 }
@@ -38,15 +41,23 @@ export function assignFieldTarget(
   field: string,
   target: FieldTarget,
 ): FieldMapping {
-  const next: FieldMapping = { ...mapping, [field]: target };
-  if (target !== "Skip") {
-    for (const [name, held] of Object.entries(next)) {
-      if (name !== field && held === target) {
-        next[name] = "Skip";
-      }
-    }
+  const assigned: FieldMapping = { ...mapping, [field]: target };
+  return target === skippedTarget
+    ? assigned
+    : releaseTargetFromOthers(assigned, field, target);
+}
+
+function releaseTargetFromOthers(
+  mapping: FieldMapping,
+  holder: string,
+  target: FieldTarget,
+): FieldMapping {
+  const released: FieldMapping = {};
+  for (const [name, held] of Object.entries(mapping)) {
+    const heldByAnother = held === target && name !== holder;
+    released[name] = heldByAnother ? skippedTarget : held;
   }
-  return next;
+  return released;
 }
 
 export function mergeFieldMappings(
