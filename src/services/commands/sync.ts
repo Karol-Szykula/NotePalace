@@ -112,12 +112,16 @@ interface SyncDeckResult {
   purged: number;
 }
 
-function forgetRecord(settings: ISettings, noteId: number): void {
+function forgetRecords(settings: ISettings, noteIds: readonly number[]): void {
   settings.noteLifecycle = Object.fromEntries(
     Object.entries(settings.noteLifecycle).filter(
-      ([id]) => Number(id) !== noteId,
+      ([id]) => !noteIds.includes(Number(id)),
     ),
   );
+}
+
+function forgetRecord(settings: ISettings, noteId: number): void {
+  forgetRecords(settings, [noteId]);
 }
 
 function decideMissingFile(
@@ -378,7 +382,31 @@ async function liveNoteIds(
   return stillLive;
 }
 
-async function purgeDeletedNotes(
+async function deleteVaultBlockFor(
+  record: NoteLifecycleRecord,
+  noteId: number,
+  index: VaultNoteIndex,
+  vault: Vault,
+  yaml: YamlEngine,
+): Promise<boolean> {
+  const path = index.get(noteId);
+  if (path === undefined) {
+    return false;
+  }
+  const status = classifyNoteLifecycle({
+    anki: undefined,
+    block: { id: noteId },
+    record,
+  });
+  const act = decisionActFor("sync", status);
+  if (!isInScope(act)) {
+    throw new Error(`Sync cannot handle ${status}`);
+  }
+  transitionNoteLifecycle(status, act);
+  return removeNoteFromFile(vault, path, noteId, yaml);
+}
+
+async function applyAnkiDeletions(
   anki: Anki,
   vault: Vault,
   settings: ISettings,
@@ -386,30 +414,30 @@ async function purgeDeletedNotes(
   index: VaultNoteIndex,
   yaml: YamlEngine,
 ): Promise<{ deleted: number; purgedRecords: number }> {
-  let deleted = 0;
   const records = settings.noteLifecycle;
   const existingIds = await liveNoteIds(anki, liveIds, records);
-  const purgedNoteIds: number[] = [];
+  const forgotten: number[] = [];
+  let deleted = 0;
   for (const key of Object.keys(records)) {
     const noteId = Number(key);
-    if (existingIds.has(noteId)) {
+    const record = records[noteId];
+    if (record === undefined || existingIds.has(noteId)) {
       continue;
     }
-    const path = index.get(noteId);
-    if (path) {
-      const removed = await removeNoteFromFile(vault, path, noteId, yaml);
-      if (removed) {
-        deleted += 1;
-      }
+    forgotten.push(noteId);
+    const removed = await deleteVaultBlockFor(
+      record,
+      noteId,
+      index,
+      vault,
+      yaml,
+    );
+    if (removed) {
+      deleted += 1;
     }
-    purgedNoteIds.push(noteId);
   }
-  settings.noteLifecycle = Object.fromEntries(
-    Object.entries(records).filter(
-      ([noteId]) => !purgedNoteIds.includes(Number(noteId)),
-    ),
-  );
-  return { deleted, purgedRecords: purgedNoteIds.length };
+  forgetRecords(settings, forgotten);
+  return { deleted, purgedRecords: forgotten.length };
 }
 
 function hashCandidates(settings: ISettings): Map<string, number[]> {
@@ -521,7 +549,7 @@ export async function executeSync(
     enrolled += refreshed.enrolled;
     purgedFromDeletions += refreshed.purged;
   }
-  const purged = await purgeDeletedNotes(
+  const purged = await applyAnkiDeletions(
     anki,
     vault,
     settings,
