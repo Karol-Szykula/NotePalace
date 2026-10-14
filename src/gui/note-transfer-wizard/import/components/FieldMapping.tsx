@@ -1,4 +1,10 @@
-import { useEffect, useState, type ChangeEvent, type JSX } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type JSX,
+  type ReactNode,
+} from "react";
 import { mergeClasses } from "src/gui/classes";
 import { t, type MessageKey } from "src/i18n";
 import type { Anki } from "src/services/anki/anki";
@@ -37,17 +43,44 @@ const fieldTargetLabels: Record<FieldTarget, MessageKey> = {
   Text: "fieldMapping.targets.text",
 };
 
-export function FieldMapping({
-  anki,
-  deckName,
-  savedMappings,
-  onMappingsChange,
-  className,
-}: FieldMappingProps): JSX.Element {
-  const rootClassName = mergeClasses(commonWizardClasses.pageView, className);
+interface FieldMappingState {
+  readonly loadError: string;
+  readonly mappings: Record<string, FieldMap>;
+  readonly models: DeckModel[] | null;
+  readonly updateMappings: (mappings: Record<string, FieldMap>) => void;
+}
+
+function buildInitialMappings(
+  models: DeckModel[],
+  savedMappings: Record<string, Record<string, string>>,
+): Record<string, FieldMap> {
+  const initial: Record<string, FieldMap> = {};
+  for (const model of models) {
+    const saved = savedMappings[model.modelName];
+    const pack =
+      saved === undefined ? builtInPackFor(model.modelName) : undefined;
+    initial[model.modelName] = resolveFieldMapping(
+      model.fields,
+      pack?.mapping ?? saved,
+    );
+  }
+  return initial;
+}
+
+function useFieldMappings(
+  anki: Anki,
+  deckName: string,
+  savedMappings: Record<string, Record<string, string>>,
+  onMappingsChange: (mappings: Record<string, FieldMap>) => void,
+): FieldMappingState {
   const [models, setModels] = useState<DeckModel[] | null>(null);
   const [mappings, setMappings] = useState<Record<string, FieldMap>>({});
   const [loadError, setLoadError] = useState("");
+
+  const updateMappings = (next: Record<string, FieldMap>): void => {
+    setMappings(next);
+    onMappingsChange(next);
+  };
 
   const loadFieldMappings = (): (() => void) =>
     startAsyncLoad(async (isLive) => {
@@ -56,16 +89,7 @@ export function FieldMapping({
         if (!isLive()) {
           return;
         }
-        const initial: Record<string, FieldMap> = {};
-        for (const model of discovered) {
-          const saved = savedMappings[model.modelName];
-          const pack =
-            saved === undefined ? builtInPackFor(model.modelName) : undefined;
-          initial[model.modelName] = resolveFieldMapping(
-            model.fields,
-            pack?.mapping ?? saved,
-          );
-        }
+        const initial = buildInitialMappings(discovered, savedMappings);
         setModels(discovered);
         setMappings(initial);
         onMappingsChange(initial);
@@ -78,96 +102,189 @@ export function FieldMapping({
 
   useEffect(loadFieldMappings, [anki, deckName]);
 
+  return { loadError, mappings, models, updateMappings };
+}
+
+interface MessageViewProps {
+  readonly children: ReactNode;
+  readonly className?: string | undefined;
+}
+
+function MessageView({ children, className }: MessageViewProps): JSX.Element {
+  return (
+    <div className={className}>
+      <p>{children}</p>
+    </div>
+  );
+}
+
+interface FieldMappingContentProps {
+  readonly className: string;
+  readonly deckName: string;
+  readonly mappings: Record<string, FieldMap>;
+  readonly models: DeckModel[];
+  readonly onMappingsChange: (mappings: Record<string, FieldMap>) => void;
+}
+
+function FieldMappingContent({
+  className,
+  deckName,
+  mappings,
+  models,
+  onMappingsChange,
+}: FieldMappingContentProps): JSX.Element {
+  return (
+    <div className={className}>
+      <p>{t("fieldMapping.title", { deckName })}</p>
+      {models.map((model) => (
+        <ModelSection
+          key={model.modelName}
+          mappings={mappings}
+          model={model}
+          onMappingsChange={onMappingsChange}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface ModelSectionProps {
+  readonly mappings: Record<string, FieldMap>;
+  readonly model: DeckModel;
+  readonly onMappingsChange: (mappings: Record<string, FieldMap>) => void;
+}
+
+function ModelSection({
+  mappings,
+  model,
+  onMappingsChange,
+}: ModelSectionProps): JSX.Element {
+  const mapping = mappings[model.modelName] ?? {};
+  const updateTarget = (field: string, target: FieldTarget): void => {
+    const next = {
+      ...mappings,
+      [model.modelName]: assignFieldTarget(mapping, field, target),
+    };
+    onMappingsChange(next);
+  };
+  return (
+    <div className={transferFieldMappingClasses.modelSection}>
+      <h4>
+        {model.modelName}
+        {isKnownModel(model.modelName) && (
+          <span className={transferFieldMappingClasses.modelRecognized}>
+            {" "}
+            {t("fieldMapping.recognized")}
+          </span>
+        )}
+      </h4>
+      <List
+        columns={[
+          t("fieldMapping.columns.field"),
+          t("fieldMapping.columns.sample"),
+          t("fieldMapping.columns.target"),
+        ]}
+        columnWidths="auto 1fr auto"
+      >
+        {model.fields.map((field) => (
+          <FieldRow
+            field={field}
+            key={field}
+            mapping={mapping}
+            onTargetChange={updateTarget}
+            sampleValue={model.sampleValues[field]}
+          />
+        ))}
+      </List>
+    </div>
+  );
+}
+
+interface FieldRowProps {
+  readonly field: string;
+  readonly mapping: FieldMap;
+  readonly onTargetChange: (field: string, target: FieldTarget) => void;
+  readonly sampleValue: string | undefined;
+}
+
+function FieldRow({
+  field,
+  mapping,
+  onTargetChange,
+  sampleValue,
+}: FieldRowProps): JSX.Element {
+  return (
+    <ListRow
+      cells={[
+        <strong key="name">{field}</strong>,
+        sampleValue ? (
+          <small
+            className={transferFieldMappingClasses.fieldSample}
+            key="sample"
+          >
+            {sampleValue.slice(0, 60)}
+          </small>
+        ) : (
+          <span key="sample" />
+        ),
+        <select
+          key="target"
+          onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+            onTargetChange(field, event.target.value as FieldTarget);
+          }}
+          value={mapping[field] ?? skippedTarget}
+        >
+          {fieldTargets.map((target) => (
+            <option key={target} value={target}>
+              {t(fieldTargetLabels[target])}
+            </option>
+          ))}
+        </select>,
+      ]}
+      className={transferFieldMappingClasses.fieldRow}
+    />
+  );
+}
+
+export function FieldMapping({
+  anki,
+  deckName,
+  savedMappings,
+  onMappingsChange,
+  className,
+}: FieldMappingProps): JSX.Element {
+  const rootClassName = mergeClasses(commonWizardClasses.pageView, className);
+  const { loadError, mappings, models, updateMappings } = useFieldMappings(
+    anki,
+    deckName,
+    savedMappings,
+    onMappingsChange,
+  );
+
   if (loadError) {
-    return (
-      <div className={rootClassName}>
-        <p>{loadError}</p>
-      </div>
-    );
+    return <MessageView className={rootClassName}>{loadError}</MessageView>;
   }
   if (models === null) {
     return (
-      <div className={rootClassName}>
-        <p>{t("fieldMapping.loading")}</p>
-      </div>
+      <MessageView className={rootClassName}>
+        {t("fieldMapping.loading")}
+      </MessageView>
     );
   }
   if (!models.length) {
     return (
-      <div className={rootClassName}>
-        <p>{t("fieldMapping.noNotes")}</p>
-      </div>
+      <MessageView className={rootClassName}>
+        {t("fieldMapping.noNotes")}
+      </MessageView>
     );
   }
   return (
-    <div className={rootClassName}>
-      <p>{t("fieldMapping.title", { deckName })}</p>
-      {models.map((model) => (
-        <div
-          className={transferFieldMappingClasses.modelSection}
-          key={model.modelName}
-        >
-          <h4>
-            {model.modelName}
-            {isKnownModel(model.modelName) && (
-              <span className={transferFieldMappingClasses.modelRecognized}>
-                {" "}
-                {t("fieldMapping.recognized")}
-              </span>
-            )}
-          </h4>
-          <List
-            columns={[
-              t("fieldMapping.columns.field"),
-              t("fieldMapping.columns.sample"),
-              t("fieldMapping.columns.target"),
-            ]}
-            columnWidths="auto 1fr auto"
-          >
-            {model.fields.map((field) => (
-              <ListRow
-                cells={[
-                  <strong key="name">{field}</strong>,
-                  model.sampleValues[field] ? (
-                    <small
-                      className={transferFieldMappingClasses.fieldSample}
-                      key="sample"
-                    >
-                      {model.sampleValues[field].slice(0, 60)}
-                    </small>
-                  ) : (
-                    <span key="sample" />
-                  ),
-                  <select
-                    key="target"
-                    onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-                      const next = {
-                        ...mappings,
-                        [model.modelName]: assignFieldTarget(
-                          mappings[model.modelName] ?? {},
-                          field,
-                          event.target.value as FieldTarget,
-                        ),
-                      };
-                      setMappings(next);
-                      onMappingsChange(next);
-                    }}
-                    value={mappings[model.modelName]?.[field] ?? skippedTarget}
-                  >
-                    {fieldTargets.map((target) => (
-                      <option key={target} value={target}>
-                        {t(fieldTargetLabels[target])}
-                      </option>
-                    ))}
-                  </select>,
-                ]}
-                className={transferFieldMappingClasses.fieldRow}
-                key={field}
-              />
-            ))}
-          </List>
-        </div>
-      ))}
-    </div>
+    <FieldMappingContent
+      className={rootClassName}
+      deckName={deckName}
+      mappings={mappings}
+      models={models}
+      onMappingsChange={updateMappings}
+    />
   );
 }

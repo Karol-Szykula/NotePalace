@@ -162,15 +162,15 @@ export async function buildPushedNote(
   source: AnkiNoteInfo,
 ): Promise<PushedNote> {
   const media = await mediaAwareBlock(vault, target);
-  const note = new CustomMappedNote(
-    source.noteId,
-    target.deckName,
-    ankiFieldsFor(media.block, pack),
-    false,
-    noteTags(target.block.tags),
-    media.mediaNames,
-    pack.modelName,
-  );
+  const note = new CustomMappedNote({
+    deckName: target.deckName,
+    fields: ankiFieldsFor(media.block, pack),
+    mediaNames: media.mediaNames,
+    modelName: pack.modelName,
+    noteId: source.noteId,
+    reversed: false,
+    tags: noteTags(target.block.tags),
+  });
   note.mediaBase64Encoded = media.encoded;
   note.oldTags = source.tags;
   return { hash: await blockContentHash(target.block), note, source };
@@ -182,15 +182,14 @@ export async function buildCreatedNote(
   pack: NotePack,
 ): Promise<{ hash: string; note: AnkiNote }> {
   const media = await mediaAwareBlock(vault, target);
-  const note = new CustomMappedNote(
-    -1,
-    target.deckName,
-    ankiFieldsFor(media.block, pack),
-    false,
-    noteTags(target.block.tags),
-    media.mediaNames,
-    pack.modelName,
-  );
+  const note = new CustomMappedNote({
+    deckName: target.deckName,
+    fields: ankiFieldsFor(media.block, pack),
+    mediaNames: media.mediaNames,
+    modelName: pack.modelName,
+    reversed: false,
+    tags: noteTags(target.block.tags),
+  });
   note.mediaBase64Encoded = media.encoded;
   return { hash: await blockContentHash(target.block), note };
 }

@@ -75,11 +75,15 @@ export default [
       ],
       "max-depth": ["error", 2],
       "max-nested-callbacks": ["error", 3],
+      "max-lines": [
+        "error",
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
       "max-lines-per-function": [
         "error",
-        { max: 225, skipBlankLines: true, skipComments: true },
+        { max: 60, skipBlankLines: true, skipComments: true },
       ],
-      "max-params": ["error", 7],
+      "max-params": ["error", 5],
       "max-statements": ["error", 40],
       "@typescript-eslint/no-confusing-void-expression": [
         "error",
@@ -119,7 +123,14 @@ export default [
   {
     files: ["src/i18n/**"],
     rules: {
+      "max-lines": "off",
       "notepalace/no-visible-literals": "off",
+    },
+  },
+  {
+    files: ["src/services/notes/decision-table.ts"],
+    rules: {
+      "max-lines": "off",
     },
   },
   {

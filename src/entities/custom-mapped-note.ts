@@ -1,17 +1,17 @@
-import { AnkiNote, type AnkiNotePayload } from "src/entities/anki-note";
+import {
+  AnkiNote,
+  type AnkiNoteInit,
+  type AnkiNotePayload,
+} from "src/entities/anki-note";
+
+export interface CustomMappedNoteInit extends AnkiNoteInit {
+  modelName: string;
+}
 
 export class CustomMappedNote extends AnkiNote {
-  constructor(
-    noteId = -1,
-    deckName: string,
-    fields: Record<string, string>,
-    reversed: boolean,
-    tags: string[] = [],
-    mediaNames: string[] = [],
-    modelName: string,
-  ) {
-    super(noteId, deckName, fields, reversed, tags, mediaNames);
-    this.modelName = modelName;
+  constructor(init: CustomMappedNoteInit) {
+    super(init);
+    this.modelName = init.modelName;
   }
 
   public toPayload(update = false): AnkiNotePayload {

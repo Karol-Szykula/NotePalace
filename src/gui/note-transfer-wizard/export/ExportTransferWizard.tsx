@@ -50,6 +50,41 @@ interface ExportWizardPageDeps {
   readonly vault: Vault;
 }
 
+interface ExportWizardShellProps {
+  readonly notesSelectedToExportCount: number;
+  readonly onCancel: () => void;
+  readonly onPreviewPageChange: (page: number) => void;
+  readonly onPreviewReset: () => void;
+  readonly pages: WizardPage<ExportWizardContext>[];
+  readonly previewPage: number;
+  readonly previewTotalPages: number;
+  readonly selectedDeckName: string;
+}
+
+interface ExportWizardState {
+  readonly forcedNoteIds: Record<number, boolean>;
+  readonly handleNotesPreviewPageChange: (page: number) => void;
+  readonly handleNotesPreviewTotalPagesChange: (totalPages: number) => void;
+  readonly handleStatusesLoaded: (
+    statuses: Record<number, NoteLifecycleStatus>,
+  ) => void;
+  readonly notesPreviewPage: number;
+  readonly notesPreviewTotalPages: number;
+  readonly notesSelectedToExport: Record<number, boolean>;
+  readonly previewStatuses: Record<number, NoteLifecycleStatus>;
+  readonly reset: () => void;
+  readonly selectDeckName: (deckName: string) => void;
+  readonly selectedDeckName: string;
+  readonly setForcedNoteIds: (ids: Record<number, boolean>) => void;
+  readonly setNotesSelectedToExport: (
+    selected: Record<number, boolean>,
+  ) => void;
+}
+
+function countSelected(selected: Record<number, boolean>): number {
+  return Object.values(selected).filter(Boolean).length;
+}
+
 function buildExportWizardPages(
   deps: ExportWizardPageDeps,
 ): WizardPage<ExportWizardContext>[] {
@@ -111,13 +146,7 @@ function buildExportWizardPages(
   ];
 }
 
-export function ExportTransferWizard({
-  onCancel,
-  saveSettings,
-  settings,
-  vault,
-}: ExportTransferWizardProps): JSX.Element {
-  const [anki] = useState(() => new Anki());
+function useExportWizardState(): ExportWizardState {
   const [selectedDeckName, setSelectedDeckName] = useState("");
   const [notesSelectedToExport, setNotesSelectedToExport] = useState<
     Record<number, boolean>
@@ -138,67 +167,79 @@ export function ExportTransferWizard({
     setPreviewStatuses({});
   };
 
-  const finishExport = () => {
-    void saveSettings();
-  };
-
-  const handleNotesPreviewPageChange = (page: number) => {
+  const handleNotesPreviewPageChange = (page: number): void => {
     setNotesPreviewPage(page);
   };
 
-  const handleNotesPreviewTotalPagesChange = (totalPages: number) => {
+  const handleNotesPreviewTotalPagesChange = (totalPages: number): void => {
     setNotesPreviewTotalPages(totalPages);
   };
 
   const handleStatusesLoaded = (
     statuses: Record<number, NoteLifecycleStatus>,
-  ) => {
+  ): void => {
     setPreviewStatuses(statuses);
   };
 
-  const notesSelectedToExportCount = Object.values(
-    notesSelectedToExport,
-  ).filter(Boolean).length;
+  const reset = (): void => {
+    setNotesPreviewPage(0);
+    setNotesPreviewTotalPages(1);
+  };
 
-  const pages = useMemo(
-    () =>
-      buildExportWizardPages({
-        anki,
-        finishExport,
-        forcedNoteIds,
-        handleNotesPreviewPageChange,
-        handleNotesPreviewTotalPagesChange,
-        handleStatusesLoaded,
-        ignoredDirectories: settings.ignoredDirectories,
-        notesPreviewPage,
-        notesPreviewTotalPages,
-        notesSelectedToExport,
-        previewStatuses,
-        selectDeckName,
-        selectedDeckName,
-        setForcedNoteIds,
-        setNotesSelectedToExport,
-        settings,
-        vault,
-      }),
+  return {
+    forcedNoteIds,
+    handleNotesPreviewPageChange,
+    handleNotesPreviewTotalPagesChange,
+    handleStatusesLoaded,
+    notesPreviewPage,
+    notesPreviewTotalPages,
+    notesSelectedToExport,
+    previewStatuses,
+    reset,
+    selectDeckName,
+    selectedDeckName,
+    setForcedNoteIds,
+    setNotesSelectedToExport,
+  };
+}
+
+function useExportWizardPages(
+  deps: ExportWizardPageDeps,
+): WizardPage<ExportWizardContext>[] {
+  return useMemo(
+    () => buildExportWizardPages(deps),
     [
-      anki,
-      finishExport,
-      forcedNoteIds,
-      handleNotesPreviewPageChange,
-      handleNotesPreviewTotalPagesChange,
-      handleStatusesLoaded,
-      notesPreviewPage,
-      notesPreviewTotalPages,
-      notesSelectedToExport,
-      previewStatuses,
-      selectDeckName,
-      selectedDeckName,
-      settings,
-      vault,
+      deps.anki,
+      deps.finishExport,
+      deps.forcedNoteIds,
+      deps.handleNotesPreviewPageChange,
+      deps.handleNotesPreviewTotalPagesChange,
+      deps.handleStatusesLoaded,
+      deps.ignoredDirectories,
+      deps.notesPreviewPage,
+      deps.notesPreviewTotalPages,
+      deps.notesSelectedToExport,
+      deps.previewStatuses,
+      deps.selectDeckName,
+      deps.selectedDeckName,
+      deps.setForcedNoteIds,
+      deps.setNotesSelectedToExport,
+      deps.settings,
+      deps.vault,
     ],
   );
+}
 
+function ExportWizardShell({
+  notesSelectedToExportCount,
+  onCancel,
+  onPreviewPageChange,
+  onPreviewReset,
+  pages,
+  previewPage,
+  previewTotalPages,
+  selectedDeckName,
+}: ExportWizardShellProps): JSX.Element {
   return (
     <WizardShell
       className={noteTransferWizardClasses.modal}
@@ -210,21 +251,58 @@ export function ExportTransferWizard({
       getPagination={(page) =>
         page === 2
           ? {
-              currentPage: notesPreviewPage,
-              onPageChange: handleNotesPreviewPageChange,
-              totalPages: notesPreviewTotalPages,
+              currentPage: previewPage,
+              onPageChange: onPreviewPageChange,
+              totalPages: previewTotalPages,
             }
           : undefined
       }
       initialPage={1}
       onBeforeAdvance={(fromPage) => {
         if (fromPage === 2) {
-          setNotesPreviewPage(0);
-          setNotesPreviewTotalPages(1);
+          onPreviewReset();
         }
       }}
       onCancel={onCancel}
       pages={pages}
+    />
+  );
+}
+
+export function ExportTransferWizard({
+  onCancel,
+  saveSettings,
+  settings,
+  vault,
+}: ExportTransferWizardProps): JSX.Element {
+  const [anki] = useState(() => new Anki());
+  const state = useExportWizardState();
+
+  const finishExport = (): void => {
+    void saveSettings();
+  };
+
+  const pages = useExportWizardPages({
+    ...state,
+    anki,
+    finishExport,
+    ignoredDirectories: settings.ignoredDirectories,
+    settings,
+    vault,
+  });
+
+  const notesSelectedToExportCount = countSelected(state.notesSelectedToExport);
+
+  return (
+    <ExportWizardShell
+      notesSelectedToExportCount={notesSelectedToExportCount}
+      onCancel={onCancel}
+      onPreviewPageChange={state.handleNotesPreviewPageChange}
+      onPreviewReset={state.reset}
+      pages={pages}
+      previewPage={state.notesPreviewPage}
+      previewTotalPages={state.notesPreviewTotalPages}
+      selectedDeckName={state.selectedDeckName}
     />
   );
 }

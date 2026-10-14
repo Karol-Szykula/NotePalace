@@ -35,13 +35,13 @@ function multiSubActions(): SubAction[] {
 }
 
 function createNote(): BasicNote {
-  return new BasicNote(
-    5,
-    "Test deck",
-    { Front: "Question", Back: "Answer" },
-    false,
-    ["b", "c"],
-  );
+  return new BasicNote({
+    deckName: "Test deck",
+    fields: { Front: "Question", Back: "Answer" },
+    noteId: 5,
+    reversed: false,
+    tags: ["b", "c"],
+  });
 }
 
 function multiActions(): { action: string; modelName: string | undefined }[] {

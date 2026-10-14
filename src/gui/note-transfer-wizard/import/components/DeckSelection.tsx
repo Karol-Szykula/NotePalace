@@ -108,6 +108,59 @@ function toDeckItem(
   };
 }
 
+function toDeckItems(
+  decks: DeckWithNotes[],
+  vaultNoteIndex: VaultNoteIndex,
+): DeckItem[] {
+  return decks.map(({ deckName, noteIds, updatedCount }) =>
+    toDeckItem(deckName, noteIds, updatedCount, vaultNoteIndex),
+  );
+}
+
+interface StatusMessageProps {
+  readonly className: string;
+  readonly message: string;
+}
+
+function StatusMessage({
+  className,
+  message,
+}: StatusMessageProps): JSX.Element {
+  return (
+    <div className={className}>
+      <p>{message}</p>
+    </div>
+  );
+}
+
+function useDeckList(
+  anki: Anki,
+  syncState: NoteSyncState,
+  vaultNoteIndex: VaultNoteIndex,
+): { decks: DeckWithNotes[] | null; loadError: string } {
+  const [decks, setDecks] = useState<DeckWithNotes[] | null>(null);
+  const [loadError, setLoadError] = useState("");
+  const loadDeckList = (): (() => void) =>
+    startAsyncLoad(async (isLive) => {
+      try {
+        const found = await fetchDecksWithNotes(
+          anki,
+          vaultNoteIndex,
+          syncState,
+        );
+        if (isLive()) {
+          setDecks(found);
+        }
+      } catch {
+        if (isLive()) {
+          setLoadError(t("errors.ankiNotConnected"));
+        }
+      }
+    });
+  useEffect(loadDeckList, [anki, vaultNoteIndex, syncState]);
+  return { decks, loadError };
+}
+
 export function DeckSelection({
   anki,
   syncState,
@@ -116,50 +169,23 @@ export function DeckSelection({
   onSelectDeckName,
   className,
 }: DeckSelectionProps): JSX.Element {
-  const [decks, setDecks] = useState<DeckWithNotes[] | null>(null);
-  const [loadError, setLoadError] = useState("");
-
-  const loadDeckList = (): (() => void) =>
-    startAsyncLoad(async (isLive) => {
-      try {
-        const decksWithNotes = await fetchDecksWithNotes(
-          anki,
-          vaultNoteIndex,
-          syncState,
-        );
-        if (isLive()) {
-          setDecks(decksWithNotes);
-        }
-      } catch {
-        if (isLive()) {
-          setLoadError(t("errors.ankiNotConnected"));
-        }
-      }
-    });
-
-  useEffect(loadDeckList, [anki, vaultNoteIndex, syncState]);
-
+  const { decks, loadError } = useDeckList(anki, syncState, vaultNoteIndex);
   const rootClassName = mergeClasses(commonWizardClasses.pageView, className);
 
   if (loadError) {
-    return (
-      <div className={rootClassName}>
-        <p>{loadError}</p>
-      </div>
-    );
+    return <StatusMessage className={rootClassName} message={loadError} />;
   }
   if (decks === null) {
     return (
-      <div className={rootClassName}>
-        <p>{t("deck.connecting")}</p>
-      </div>
+      <StatusMessage className={rootClassName} message={t("deck.connecting")} />
     );
   }
   if (!decks.length) {
     return (
-      <div className={rootClassName}>
-        <p>{t("deck.noDecksInAnki")}</p>
-      </div>
+      <StatusMessage
+        className={rootClassName}
+        message={t("deck.noDecksInAnki")}
+      />
     );
   }
   return (
@@ -174,9 +200,7 @@ export function DeckSelection({
         }
         inputClassName={scopeSelectionClasses.scopeRadio}
         inputName="notepalace-note-import-wizard-modal-scope"
-        items={decks.map(({ deckName, noteIds, updatedCount }) =>
-          toDeckItem(deckName, noteIds, updatedCount, vaultNoteIndex),
-        )}
+        items={toDeckItems(decks, vaultNoteIndex)}
         labelClassName={scopeSelectionClasses.scopeLabelText}
         onSelect={onSelectDeckName}
         prompt={t("deck.selectImportPrompt")}

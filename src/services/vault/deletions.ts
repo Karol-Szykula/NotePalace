@@ -41,6 +41,23 @@ function markRecordsDeleted(
   return changed;
 }
 
+async function primeNoteIds(
+  vault: Vault,
+  idsByPath: Map<string, Set<number>>,
+): Promise<void> {
+  idsByPath.clear();
+  for (const file of vault.getMarkdownFiles()) {
+    idsByPath.set(file.path, await readNoteIds(vault, file));
+  }
+}
+
+function releaseWatchers(vault: Vault, refs: EventRef[]): void {
+  for (const ref of refs) {
+    vault.offref(ref);
+  }
+  refs.length = 0;
+}
+
 /**
  * Remembers when a tracked note's block leaves the vault (its file deleted or
  * the block removed from a living file) by stamping `deletedAt` on the record.
@@ -105,16 +122,10 @@ export function watchNoteDeletions(
 
   return {
     async prime(): Promise<void> {
-      idsByPath.clear();
-      for (const file of vault.getMarkdownFiles()) {
-        idsByPath.set(file.path, await readNoteIds(vault, file));
-      }
+      await primeNoteIds(vault, idsByPath);
     },
     dispose(): void {
-      for (const ref of refs) {
-        vault.offref(ref);
-      }
-      refs.length = 0;
+      releaseWatchers(vault, refs);
     },
   };
 }

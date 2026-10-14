@@ -12,6 +12,51 @@ export interface NoteFormFieldsProps {
   readonly shape: NoteShape;
 }
 
+interface NoteFormFieldProps {
+  readonly id: string;
+  readonly isMultiline: boolean;
+  readonly label: string;
+  readonly onBlur: () => void;
+  readonly onChange: (value: string) => void;
+  readonly value: string;
+}
+
+function NoteFormField({
+  id,
+  isMultiline,
+  label,
+  onBlur,
+  onChange,
+  value,
+}: NoteFormFieldProps): JSX.Element {
+  return (
+    <div className={noteFormClasses.field}>
+      <label className={noteFormClasses.label} htmlFor={id}>
+        {label}
+      </label>
+      {isMultiline ? (
+        <textarea
+          className={noteFormClasses.input}
+          id={id}
+          onBlur={onBlur}
+          onChange={(event) => onChange(event.target.value)}
+          rows={3}
+          value={value}
+        />
+      ) : (
+        <input
+          className={noteFormClasses.input}
+          id={id}
+          onBlur={onBlur}
+          onChange={(event) => onChange(event.target.value)}
+          type="text"
+          value={value}
+        />
+      )}
+    </div>
+  );
+}
+
 export function NoteFormFields({
   className,
   data,
@@ -28,51 +73,30 @@ export function NoteFormFields({
 
   return (
     <div className={mergeClasses(noteFormClasses.form, className)}>
-      <div className={noteFormClasses.field}>
-        <label
-          className={noteFormClasses.label}
-          htmlFor={`note-form-${shape.primaryKey}`}
-        >
-          {t(shape.primaryLabelKey)}
-        </label>
-        <textarea
-          className={noteFormClasses.input}
-          id={`note-form-${shape.primaryKey}`}
-          onBlur={reportEdit}
-          onChange={(event) => setPrimary(event.target.value)}
-          rows={3}
-          value={primary}
-        />
-      </div>
-      <div className={noteFormClasses.field}>
-        <label
-          className={noteFormClasses.label}
-          htmlFor={`note-form-${shape.secondaryKey}`}
-        >
-          {t(shape.secondaryLabelKey)}
-        </label>
-        <textarea
-          className={noteFormClasses.input}
-          id={`note-form-${shape.secondaryKey}`}
-          onBlur={reportEdit}
-          onChange={(event) => setSecondary(event.target.value)}
-          rows={3}
-          value={secondary}
-        />
-      </div>
-      <div className={noteFormClasses.field}>
-        <label className={noteFormClasses.label} htmlFor="note-form-tags">
-          {t("noteForm.tags")}
-        </label>
-        <input
-          className={noteFormClasses.input}
-          id="note-form-tags"
-          onBlur={reportEdit}
-          onChange={(event) => setTags(event.target.value)}
-          type="text"
-          value={tags}
-        />
-      </div>
+      <NoteFormField
+        id={`note-form-${shape.primaryKey}`}
+        isMultiline
+        label={t(shape.primaryLabelKey)}
+        onBlur={reportEdit}
+        onChange={setPrimary}
+        value={primary}
+      />
+      <NoteFormField
+        id={`note-form-${shape.secondaryKey}`}
+        isMultiline
+        label={t(shape.secondaryLabelKey)}
+        onBlur={reportEdit}
+        onChange={setSecondary}
+        value={secondary}
+      />
+      <NoteFormField
+        id="note-form-tags"
+        isMultiline={false}
+        label={t("noteForm.tags")}
+        onBlur={reportEdit}
+        onChange={setTags}
+        value={tags}
+      />
     </div>
   );
 }

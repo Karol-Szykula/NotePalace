@@ -1,16 +1,13 @@
 import { basicModelName, basicReversedModelName } from "src/conf/constants";
-import { AnkiNote, type AnkiNotePayload } from "src/entities/anki-note";
+import {
+  AnkiNote,
+  type AnkiNoteInit,
+  type AnkiNotePayload,
+} from "src/entities/anki-note";
 
 export class BasicNote extends AnkiNote {
-  constructor(
-    noteId = -1,
-    deckName: string,
-    fields: Record<string, string>,
-    reversed: boolean,
-    tags: string[] = [],
-    mediaNames: string[] = [],
-  ) {
-    super(noteId, deckName, fields, reversed, tags, mediaNames);
+  constructor(init: AnkiNoteInit) {
+    super(init);
     this.modelName = this.reversed ? basicReversedModelName : basicModelName;
   }
 
