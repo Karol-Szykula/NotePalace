@@ -6,6 +6,9 @@ and issues, never in source prose.
 
 ## Tests
 
+- The `tests/` root holds only the suites' homes and the shared support:
+  `unit/` (mirroring `src/`), `integration/`, `helpers/`, `mocks/` and
+  `setup.ts`. Every unit suite lives under `tests/unit/`.
 - Structure every test as `// given`, `// when`, `// then` sections.
 - Name all input data in `given` (`const fields = [...]`, `const file = ...`).
   Never pass literals directly into the exercised call in `when`.
@@ -73,7 +76,7 @@ and issues, never in source prose.
   (`anki/`, `notes/`, `vault/`, `commands/`), never loose in `services/` and
   never in `commands/` unless it is one of the three user commands. A helper
   three modules share belongs to whichever folder owns the question it
-  answers. Mirrored in `tests/services/`.
+  answers. Mirrored in `tests/unit/services/`.
 - Formatting: Prettier owns it (.prettierrc, 2 spaces, 80 columns, double
   quotes, trailing commas). Run `pnpm run format` and never hand-format; lint
   autofixes run after it, so `pnpm run format && pnpm run lint:fix` leaves a
