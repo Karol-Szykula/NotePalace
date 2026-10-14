@@ -181,3 +181,54 @@ describe("the export command stays inside its confinement", () => {
     expect(content).toMatch(/"id":\s*\d+/);
   });
 });
+
+describe("export media naming", () => {
+  test("given two media files sharing a basename when exported then both get distinct Anki names", async () => {
+    // given
+    responder.respondWith();
+    const block = [
+      "```note-form",
+      "{",
+      '"front": "Q",',
+      '"back": "![[a/img.png]] ![[b/img.png]]",',
+      '"tags": ""',
+      "}",
+      "```",
+    ].join("\n");
+    const app = App.createConfigured__({
+      files: { "Languages/note.md": block },
+    });
+    await app.vault.createBinary(
+      "Languages/a/img.png",
+      new Uint8Array([1, 2, 3]).buffer,
+    );
+    await app.vault.createBinary(
+      "Languages/b/img.png",
+      new Uint8Array([4, 5, 6]).buffer,
+    );
+    const vault = app.vault as unknown as ObsidianVault;
+
+    // when
+    await executeExport(
+      new Anki(),
+      vault,
+      createSettings(),
+      { ignoredDirectories: "", previewStatuses: undefined },
+      jsonEngine,
+    );
+
+    // then
+    const stored = responder
+      .multiActions("storeMediaFile")
+      .map((action) => action.params["filename"]);
+    expect(stored.sort()).toEqual(["img-1.png", "img.png"]);
+    const addNotes = responder.state.requests.find(
+      (request) => request.action === "addNotes",
+    );
+    const payloads = addNotes?.params["notes"] as {
+      fields: Record<string, string>;
+    }[];
+    expect(payloads[0]?.fields["Back"]).toContain('src="img.png"');
+    expect(payloads[0]?.fields["Back"]).toContain('src="img-1.png"');
+  });
+});

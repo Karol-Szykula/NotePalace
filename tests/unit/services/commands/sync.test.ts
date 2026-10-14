@@ -354,6 +354,57 @@ describe("executeSync", () => {
     expect(changeDeck?.params["deck"]).toBe(realDeck);
   });
 
+  test("given a pushed note with two files sharing a basename then stores them under distinct names", async () => {
+    // given
+    const block = [
+      "```note-form",
+      "{",
+      '"front": "Mine",',
+      '"back": "![[a/img.png]] ![[b/img.png]]",',
+      '"tags": "math",',
+      '"id": 101',
+      "}",
+      "```",
+    ].join("\n");
+    const app = App.createConfigured__({
+      files: { "Languages/Q-101.md": `${block}\n` },
+    });
+    await app.vault.createBinary(
+      "Languages/a/img.png",
+      new Uint8Array([1]).buffer,
+    );
+    await app.vault.createBinary(
+      "Languages/b/img.png",
+      new Uint8Array([2]).buffer,
+    );
+    const vault = app.vault as unknown as ObsidianVault;
+    const settings = createSettings({
+      deckImportSnapshots: {
+        Languages: {
+          deckName: "Languages",
+          fieldMappings: { Basic: { Back: "Back", Front: "Front" } },
+          importedAt: 0,
+        },
+      },
+    });
+    respondWithDecks({
+      Languages: [basicAnkiNote(101, 100, "Q", "A", ["math"])],
+    });
+
+    // when
+    await executeSync(new Anki(), vault, settings, jsonEngine);
+
+    // then
+    const stored = recordedRequests
+      .flatMap(
+        (request) =>
+          (request.params["actions"] as RecordedRequest[] | undefined) ?? [],
+      )
+      .filter((action) => action.action === "storeMediaFile")
+      .map((action) => action.params["filename"]);
+    expect(stored.sort()).toEqual(["img-1.png", "img.png"]);
+  });
+
   test("given an untracked note without any block when executed then still skips it", async () => {
     // given
     const vault = vaultWith({});

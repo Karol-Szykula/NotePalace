@@ -59,6 +59,7 @@ function createDeckScan(input: DeckScanInput): DeckScan {
       anki: input.anki,
       deckIndex: input.deckIndex,
       index: input.index,
+      mediaAllocator: input.mediaAllocator,
       pushes: [],
       settings: input.settings,
       vault: input.vault,

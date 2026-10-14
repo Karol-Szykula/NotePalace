@@ -124,6 +124,7 @@ export async function stepForPresentNote(
         },
         pack,
         note,
+        context.mediaAllocator,
       ),
     );
     return "push";
