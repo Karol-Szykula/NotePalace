@@ -72,7 +72,7 @@ export class Anki {
     }
 
     if (actions.length) {
-      return this.invoke<unknown>("multi", 6, { actions: actions });
+      return this.invoke<unknown>("multi", 6, { actions });
     } else {
       return {};
     }

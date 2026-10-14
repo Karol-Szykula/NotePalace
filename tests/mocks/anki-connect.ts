@@ -68,9 +68,7 @@ class MockXMLHttpRequest {
   private listeners: Record<string, Array<() => void>> = {};
 
   public addEventListener(type: string, listener: () => void): void {
-    if (!this.listeners[type]) {
-      this.listeners[type] = [];
-    }
+    this.listeners[type] ??= [];
     this.listeners[type].push(listener);
   }
 

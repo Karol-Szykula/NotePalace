@@ -31,7 +31,7 @@ async function autoPreviewNoteForm(
   plugin: Plugin,
   file: TFile | null,
 ): Promise<void> {
-  if (!file || file.extension !== "md") {
+  if (file?.extension !== "md") {
     return;
   }
   const content = await plugin.app.vault.cachedRead(file);
