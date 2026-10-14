@@ -198,4 +198,25 @@ describe("export then import round trip", () => {
     expect(ankiState.notes).toHaveLength(1);
     expect(vault.getMarkdownFiles()).toHaveLength(1);
   });
+
+  test("given a forced import when the deck is imported again then the file and note stay put", async () => {
+    // given
+    responder.respondWith();
+    const vault = vaultWith({
+      "Languages/What-is-2-2.md": `${formBlock("What is 2+2?", "4", null)}\n`,
+    });
+    const settings = createSettings();
+    const noteId = await exportOneNote(vault, settings);
+    await importDeck(vault, settings, { [noteId]: true }, [noteId]);
+    const path = `Languages/What-is-2-2-${noteId}.md`;
+    const afterForce = await readPath(vault, path);
+
+    // when
+    await importDeck(vault, settings, { [noteId]: true });
+
+    // then
+    expect(vault.getMarkdownFiles()).toHaveLength(1);
+    expect(ankiState.notes).toHaveLength(1);
+    expect(await readPath(vault, path)).toBe(afterForce);
+  });
 });

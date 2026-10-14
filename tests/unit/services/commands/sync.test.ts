@@ -316,6 +316,37 @@ describe("executeSync", () => {
     );
   });
 
+  test("given a pushed note when sync runs again then the second run is up to date", async () => {
+    // given
+    const vault = vaultWith({
+      "Languages/Q-101.md": `${formBlock("Mine", "A", 101)}\n`,
+    });
+    const settings = createSettings({
+      deckImportSnapshots: {
+        Languages: {
+          deckName: "Languages",
+          fieldMappings: { Basic: { Back: "Back", Front: "Front" } },
+          importedAt: 0,
+        },
+      },
+    });
+    respondWithDecks({
+      Languages: [basicAnkiNote(101, 100, "Q", "A", ["math"])],
+    });
+    const first = await executeSync(new Anki(), vault, settings, jsonEngine);
+
+    // when
+    const second = await executeSync(new Anki(), vault, settings, jsonEngine);
+
+    // then
+    expect(first.decks[0]).toMatchObject({ pushed: 1 });
+    expect(second.decks[0]).toMatchObject({
+      pushed: 0,
+      refreshed: 0,
+      upToDate: 1,
+    });
+  });
+
   test("given a note in a sanitized deck folder when pushed then targets the real deck", async () => {
     // given
     const realDeck = "CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite";
