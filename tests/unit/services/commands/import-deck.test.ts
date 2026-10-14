@@ -1024,13 +1024,13 @@ describe("executeImport", () => {
     expect(written).not.toContain("<!--");
   });
 
-  test("given only skipped fields when executed then writes a file with empty fields", async () => {
+  test("given only skipped fields when executed then writes no note", async () => {
     // given
     const { vault } = executeWith({});
     const notes = [basicImportNote(107, 70)];
 
     // when
-    await executeImport(
+    const report = await executeImport(
       new Anki(),
       vault,
       {
@@ -1046,13 +1046,8 @@ describe("executeImport", () => {
     );
 
     // then
-    const written = await vault.read(
-      vault.getAbstractFileByPath(
-        "Languages/Languages-107.md",
-      ) as unknown as ObsidianTFile,
-    );
-    expect(written).toContain('"front":""');
-    expect(written).toContain('"back":""');
+    expect(vault.getMarkdownFiles()).toHaveLength(0);
+    expect(report).toMatchObject({ created: 0, skippedUnmapped: 1 });
   });
 
   test("given a sound reference when executed then imports the sound file", async () => {
