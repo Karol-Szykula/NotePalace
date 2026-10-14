@@ -11,6 +11,8 @@ import {
   buildCreatedNote,
   buildPushedNote,
   mediaFileCount,
+  mediaNameAllocator,
+  type MediaNameAllocator,
   type PushedNote,
   type SyncedBaseline,
 } from "src/services/commands/push";
@@ -69,6 +71,7 @@ interface BlockAction {
 
 interface BlockPlanContext {
   ankiNotes: Map<number, AnkiNoteInfo>;
+  mediaAllocator: MediaNameAllocator;
   packFor: PackResolver;
   settings: ISettings;
   vault: Vault;
@@ -231,12 +234,23 @@ async function applyBlockDecision(
   }
   if (isPushAct(act) && anki !== undefined) {
     plan.pushes.push(
-      await buildPushedNote(context.vault, location, pack, anki),
+      await buildPushedNote(
+        context.vault,
+        location,
+        pack,
+        anki,
+        context.mediaAllocator,
+      ),
     );
     return;
   }
   if (act === "EXPORT") {
-    const created = await buildCreatedNote(context.vault, location, pack);
+    const created = await buildCreatedNote(
+      context.vault,
+      location,
+      pack,
+      context.mediaAllocator,
+    );
     plan.creates.push({ location, ...created });
   }
 }
@@ -261,6 +275,7 @@ export async function planExport(
   };
   const context: BlockPlanContext = {
     ankiNotes: await fetchNotesByIdMap(anki, indexedBlockIds(scan.locations)),
+    mediaAllocator: mediaNameAllocator(),
     packFor: packResolverFor(vault),
     settings,
     vault,

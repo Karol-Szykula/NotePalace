@@ -68,6 +68,43 @@ function isAudio(filename: string): boolean {
   return audioExtensions.includes(extension);
 }
 
+export interface MediaNameAllocator {
+  allocate(sourcePath: string, basename: string): string;
+}
+
+function uniqueMediaName(basename: string, taken: Set<string>): string {
+  if (!taken.has(basename)) {
+    return basename;
+  }
+  const dot = basename.lastIndexOf(".");
+  const stem = dot <= 0 ? basename : basename.slice(0, dot);
+  const extension = dot <= 0 ? "" : basename.slice(dot);
+  let suffix = 1;
+  let candidate = `${stem}-${suffix}${extension}`;
+  while (taken.has(candidate)) {
+    suffix += 1;
+    candidate = `${stem}-${suffix}${extension}`;
+  }
+  return candidate;
+}
+
+export function mediaNameAllocator(): MediaNameAllocator {
+  const bySource = new Map<string, string>();
+  const taken = new Set<string>();
+  return {
+    allocate(sourcePath, basename) {
+      const existing = bySource.get(sourcePath);
+      if (existing !== undefined) {
+        return existing;
+      }
+      const name = uniqueMediaName(basename, taken);
+      bySource.set(sourcePath, name);
+      taken.add(name);
+      return name;
+    },
+  };
+}
+
 function resolveReferenceFile(
   vault: Vault,
   file: TFile,
@@ -87,12 +124,17 @@ function resolveReferenceFile(
   return vault.getFiles().find((candidate) => candidate.name === name) ?? null;
 }
 
+interface MediaCollector {
+  allocator: MediaNameAllocator;
+  encoded: string[];
+  file: TFile;
+  mediaNames: string[];
+  vault: Vault;
+}
+
 async function applyVaultMedia(
-  vault: Vault,
-  file: TFile,
+  collector: MediaCollector,
   text: string,
-  mediaNames: string[],
-  encoded: string[],
 ): Promise<string> {
   const pattern = /!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g;
   const referenced = new Set<string>();
@@ -105,18 +147,25 @@ async function applyVaultMedia(
   }
   let rewritten = text;
   for (const reference of referenced) {
-    const media = resolveReferenceFile(vault, file, reference);
+    const media = resolveReferenceFile(
+      collector.vault,
+      collector.file,
+      reference,
+    );
     if (media === null) {
       continue;
     }
-    const filename = fileNameOf(reference);
-    if (!mediaNames.includes(filename)) {
-      mediaNames.push(filename);
-      encoded.push(encodeBase64(await vault.readBinary(media)));
+    const name = collector.allocator.allocate(
+      media.path,
+      fileNameOf(reference),
+    );
+    if (!collector.mediaNames.includes(name)) {
+      collector.mediaNames.push(name);
+      collector.encoded.push(
+        encodeBase64(await collector.vault.readBinary(media)),
+      );
     }
-    const tag = isAudio(filename)
-      ? `[sound:${filename}]`
-      : `<img src="${filename}">`;
+    const tag = isAudio(name) ? `[sound:${name}]` : `<img src="${name}">`;
     rewritten = rewritten
       .split(`![[${reference}]]`)
       .join(tag)
@@ -131,27 +180,21 @@ async function applyVaultMedia(
 async function mediaAwareBlock(
   vault: Vault,
   target: PushTarget,
+  allocator: MediaNameAllocator,
 ): Promise<{ block: YamlNote; encoded: string[]; mediaNames: string[] }> {
-  const mediaNames: string[] = [];
-  const encoded: string[] = [];
-  const front = await applyVaultMedia(
+  const collector: MediaCollector = {
+    allocator,
+    encoded: [],
+    file: target.file,
+    mediaNames: [],
     vault,
-    target.file,
-    target.block.front,
-    mediaNames,
-    encoded,
-  );
-  const back = await applyVaultMedia(
-    vault,
-    target.file,
-    target.block.back,
-    mediaNames,
-    encoded,
-  );
+  };
+  const front = await applyVaultMedia(collector, target.block.front);
+  const back = await applyVaultMedia(collector, target.block.back);
   return {
     block: { ...target.block, back, front },
-    encoded,
-    mediaNames,
+    encoded: collector.encoded,
+    mediaNames: collector.mediaNames,
   };
 }
 
@@ -160,8 +203,9 @@ export async function buildPushedNote(
   target: PushTarget,
   pack: NotePack,
   source: AnkiNoteInfo,
+  allocator: MediaNameAllocator,
 ): Promise<PushedNote> {
-  const media = await mediaAwareBlock(vault, target);
+  const media = await mediaAwareBlock(vault, target, allocator);
   const note = new CustomMappedNote({
     deckName: target.deckName,
     fields: ankiFieldsFor(media.block, pack),
@@ -180,8 +224,9 @@ export async function buildCreatedNote(
   vault: Vault,
   target: PushTarget,
   pack: NotePack,
+  allocator: MediaNameAllocator,
 ): Promise<{ hash: string; note: AnkiNote }> {
-  const media = await mediaAwareBlock(vault, target);
+  const media = await mediaAwareBlock(vault, target, allocator);
   const note = new CustomMappedNote({
     deckName: target.deckName,
     fields: ankiFieldsFor(media.block, pack),

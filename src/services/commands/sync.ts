@@ -10,6 +10,7 @@ import {
   fillMissingBlockIds,
 } from "src/services/commands/sync-apply";
 import { syncOneDeck } from "src/services/commands/sync-deck";
+import { mediaNameAllocator } from "src/services/commands/push";
 import type { SyncScope } from "src/services/commands/sync-scan";
 import {
   formatSyncReport,
@@ -35,6 +36,7 @@ export async function executeSync(
     anki,
     deckIndex: deckNameIndex(await anki.getDeckNames()),
     index: await collectVaultNoteIndex(vault),
+    mediaAllocator: mediaNameAllocator(),
     settings,
     vault,
     yaml,
