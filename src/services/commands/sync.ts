@@ -11,6 +11,7 @@ import {
   transitionNoteLifecycle,
   type NoteLifecycleEvent,
   type NoteLifecycleRecord,
+  type NoteLifecycleStatus,
 } from "src/services/notes/lifecycle";
 import { decisionActFor, isInScope } from "src/services/notes/decision-table";
 import {
@@ -112,6 +113,20 @@ interface SyncDeckResult {
   purged: number;
 }
 
+interface DeckScan {
+  context: SyncContext;
+  counts: SyncDeckReport;
+  decisions: Record<number, boolean>;
+  eligible: AnkiNoteInfo[];
+  enrolled: number;
+  purged: number;
+}
+
+interface SyncedDeck {
+  liveIds: number[];
+  result: SyncDeckResult;
+}
+
 function forgetRecords(settings: ISettings, noteIds: readonly number[]): void {
   settings.noteLifecycle = Object.fromEntries(
     Object.entries(settings.noteLifecycle).filter(
@@ -147,6 +162,19 @@ interface SyncContext {
 
 type PresentStep = "import" | "push" | "upToDate";
 
+async function presentStatus(
+  note: AnkiNoteInfo,
+  block: YamlNote,
+  record: NoteLifecycleRecord | undefined,
+): Promise<NoteLifecycleStatus> {
+  const hash = await blockContentHash(block);
+  const blockInput =
+    block.id === undefined
+      ? { hash, id: undefined as number | undefined }
+      : { id: block.id, hash };
+  return classifyNoteLifecycle({ anki: note, block: blockInput, record });
+}
+
 async function stepForPresentNote(
   context: SyncContext,
   note: AnkiNoteInfo,
@@ -154,17 +182,8 @@ async function stepForPresentNote(
   file: TFile,
   pack: NotePack,
 ): Promise<PresentStep> {
-  const currentHash = await blockContentHash(block);
   const record = context.settings.noteLifecycle[note.noteId];
-  const blockInput =
-    block.id === undefined
-      ? { hash: currentHash, id: undefined as number | undefined }
-      : { id: block.id, hash: currentHash };
-  const status = classifyNoteLifecycle({
-    anki: note,
-    block: blockInput,
-    record,
-  });
+  const status = await presentStatus(note, block, record);
   if (status === "synced.clean") {
     return "upToDate";
   }
@@ -223,6 +242,33 @@ async function applyPushedNotes(
   );
 }
 
+interface DeckScanInput {
+  anki: Anki;
+  index: VaultNoteIndex;
+  settings: ISettings;
+  snapshot: DeckImportSnapshot;
+  vault: Vault;
+  yaml: YamlEngine;
+}
+
+function createDeckScan(input: DeckScanInput): DeckScan {
+  return {
+    context: {
+      anki: input.anki,
+      index: input.index,
+      pushes: [],
+      settings: input.settings,
+      vault: input.vault,
+      yaml: input.yaml,
+    },
+    counts: emptyDeckReport(input.snapshot.deckName),
+    decisions: {},
+    eligible: [],
+    enrolled: 0,
+    purged: 0,
+  };
+}
+
 async function syncDeckNotes(
   anki: Anki,
   vault: Vault,
@@ -232,74 +278,89 @@ async function syncDeckNotes(
   index: VaultNoteIndex,
   yaml: YamlEngine,
 ): Promise<SyncDeckResult> {
-  const counts = emptyDeckReport(snapshot.deckName);
-  const eligible: AnkiNoteInfo[] = [];
-  const decisions: Record<number, boolean> = {};
-  const context: SyncContext = {
-    anki,
-    index,
-    pushes: [],
-    settings,
-    vault,
-    yaml,
-  };
-  let enrolled = 0;
-  let purged = 0;
+  const scan = createDeckScan({ anki, index, settings, snapshot, vault, yaml });
   for (const note of notes) {
-    if (!isNoteTracked(settings, note.noteId)) {
-      const linked = await findVaultNoteBlock(vault, index, note.noteId, yaml);
-      if (!linked) {
-        continue;
-      }
-      await enrollLinkedNote(settings, snapshot, note, linked);
-      enrolled += 1;
-    }
-    const pack = await packForModel(vault, note.modelName ?? "Unknown");
-    if (!pack) {
-      counts.skippedUnmapped += 1;
-      continue;
-    }
-    const block = await findVaultNoteBlock(vault, index, note.noteId, yaml);
-    const file = noteFileAt(vault, index, note.noteId);
-    if (file === null) {
-      if (
-        decideMissingFile(
-          settings,
-          note,
-          settings.noteLifecycle[note.noteId],
-        ) === "RESURRECT"
-      ) {
-        eligible.push(note);
-        decisions[note.noteId] = true;
-      } else {
-        purged += 1;
-      }
-      continue;
-    }
-    if (!block) {
-      counts.missing += 1;
-      continue;
-    }
-    const step = await stepForPresentNote(context, note, block, file, pack);
-    collectStep(counts, eligible, decisions, note, step);
+    await scanDeckNote(scan, snapshot, note, index);
   }
-  counts.pushed = context.pushes.length;
-  await applyPushedNotes(anki, settings, snapshot, context.pushes);
-  if (eligible.length === 0) {
-    return { deck: counts, enrolled, purged };
+  scan.counts.pushed = scan.context.pushes.length;
+  await applyPushedNotes(anki, settings, snapshot, scan.context.pushes);
+  if (scan.eligible.length > 0) {
+    scan.counts.refreshed = await importEligibleNotes(
+      anki,
+      vault,
+      settings,
+      snapshot,
+      scan,
+      yaml,
+    );
   }
+  return { deck: scan.counts, enrolled: scan.enrolled, purged: scan.purged };
+}
+
+async function scanDeckNote(
+  scan: DeckScan,
+  snapshot: DeckImportSnapshot,
+  note: AnkiNoteInfo,
+  index: VaultNoteIndex,
+): Promise<void> {
+  const { settings, vault, yaml } = scan.context;
+  if (!isNoteTracked(settings, note.noteId)) {
+    const linked = await findVaultNoteBlock(vault, index, note.noteId, yaml);
+    if (linked === null) {
+      return;
+    }
+    await enrollLinkedNote(settings, snapshot, note, linked);
+    scan.enrolled += 1;
+  }
+  const pack = await packForModel(vault, note.modelName ?? "Unknown");
+  if (pack === undefined) {
+    scan.counts.skippedUnmapped += 1;
+    return;
+  }
+  const block = await findVaultNoteBlock(vault, index, note.noteId, yaml);
+  const file = noteFileAt(vault, index, note.noteId);
+  if (file === null) {
+    scanMissingFile(scan, note);
+    return;
+  }
+  if (block === null) {
+    scan.counts.missing += 1;
+    return;
+  }
+  const step = await stepForPresentNote(scan.context, note, block, file, pack);
+  collectStep(scan.counts, scan.eligible, scan.decisions, note, step);
+}
+
+function scanMissingFile(scan: DeckScan, note: AnkiNoteInfo): void {
+  const record = scan.context.settings.noteLifecycle[note.noteId];
+  if (decideMissingFile(scan.context.settings, note, record) === "RESURRECT") {
+    scan.eligible.push(note);
+    scan.decisions[note.noteId] = true;
+    return;
+  }
+  scan.purged += 1;
+}
+
+async function importEligibleNotes(
+  anki: Anki,
+  vault: Vault,
+  settings: ISettings,
+  snapshot: DeckImportSnapshot,
+  scan: DeckScan,
+  yaml: YamlEngine,
+): Promise<number> {
   const report = await executeImport(
     anki,
     vault,
     {
-      ankiWinsNoteIds: eligible.map((note) => note.noteId),
-      decisions,
+      ankiWinsNoteIds: scan.eligible.map((note) => note.noteId),
+      decisions: scan.decisions,
       deckName: snapshot.deckName,
       fieldMappings: snapshot.fieldMappings,
       noteLifecycle: settings.noteLifecycle,
-      notes: eligible,
+      notes: scan.eligible,
       targetFolder: "",
-      vaultNoteIndex: index,
+      vaultNoteIndex: scan.context.index,
       previewStatuses: undefined,
     },
     yaml,
@@ -316,8 +377,43 @@ async function syncDeckNotes(
     ...snapshot,
     importedAt: Date.now(),
   };
-  counts.refreshed = eligible.length;
-  return { deck: counts, enrolled, purged };
+  return scan.eligible.length;
+}
+
+function parseNoteSafely(content: string, yaml: YamlEngine): YamlNote | null {
+  try {
+    return parseNoteForm(content, yaml);
+  } catch {
+    return null;
+  }
+}
+
+interface NoteFence {
+  end: number;
+  start: number;
+}
+
+function findNoteFence(
+  content: string,
+  noteId: number,
+  yaml: YamlEngine,
+): NoteFence | null {
+  const pattern = createNoteFencePattern();
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(content)) !== null) {
+    const note = parseNoteSafely(match[1] ?? "", yaml);
+    if (note?.id === noteId) {
+      return { end: match.index + match[0].length, start: match.index };
+    }
+  }
+  return null;
+}
+
+function withoutFence(content: string, fence: NoteFence): string {
+  return (content.slice(0, fence.start) + content.slice(fence.end)).replace(
+    /\n{3,}/g,
+    "\n\n",
+  );
 }
 
 async function removeNoteFromFile(
@@ -331,30 +427,17 @@ async function removeNoteFromFile(
     return false;
   }
   const content = await vault.read(file);
-  const pattern = createNoteFencePattern();
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(content)) !== null) {
-    let block;
-    try {
-      block = parseNoteForm(match[1] ?? "", yaml);
-    } catch {
-      continue;
-    }
-    if (block.id !== noteId) {
-      continue;
-    }
-    const updated = (
-      content.slice(0, match.index) +
-      content.slice(match.index + match[0].length)
-    ).replace(/\n{3,}/g, "\n\n");
-    if (updated.trim() === "") {
-      await vault.delete(file);
-    } else {
-      await vault.modify(file, updated);
-    }
-    return true;
+  const fence = findNoteFence(content, noteId, yaml);
+  if (fence === null) {
+    return false;
   }
-  return false;
+  const updated = withoutFence(content, fence);
+  if (updated.trim() === "") {
+    await vault.delete(file);
+  } else {
+    await vault.modify(file, updated);
+  }
+  return true;
 }
 
 async function liveNoteIds(
@@ -450,6 +533,18 @@ function hashCandidates(settings: ISettings): Map<string, number[]> {
   return candidates;
 }
 
+async function claimBlockId(
+  note: YamlNote,
+  candidates: Map<string, number[]>,
+): Promise<YamlNote | null> {
+  const hash = await blockContentHash(note);
+  const queue = candidates.get(hash);
+  if (queue === undefined || queue.length === 0) {
+    return null;
+  }
+  return { ...note, id: queue.shift() as number };
+}
+
 async function fillBlockIdsInContent(
   content: string,
   yaml: YamlEngine,
@@ -462,23 +557,16 @@ async function fillBlockIdsInContent(
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(content)) !== null) {
     const end = pattern.lastIndex;
-    let note: YamlNote;
-    try {
-      note = parseNoteForm(match[1] ?? "", yaml);
-    } catch {
+    const note = parseNoteSafely(match[1] ?? "", yaml);
+    if (note === null || note.id !== undefined) {
       continue;
     }
-    if (note.id !== undefined) {
+    const claimed = await claimBlockId(note, candidates);
+    if (claimed === null) {
       continue;
     }
-    const hash = await blockContentHash(note);
-    const queue = candidates.get(hash);
-    if (queue === undefined || queue.length === 0) {
-      continue;
-    }
-    const noteId = queue.shift() as number;
     segments.push(content.slice(cursor, match.index));
-    segments.push(serializeYamlNote({ ...note, id: noteId }, yaml));
+    segments.push(serializeYamlNote(claimed, yaml));
     cursor = end;
     filled += 1;
   }
@@ -510,15 +598,35 @@ export async function fillMissingBlockIds(
   return filled;
 }
 
+async function syncOneDeck(
+  anki: Anki,
+  vault: Vault,
+  settings: ISettings,
+  index: VaultNoteIndex,
+  yaml: YamlEngine,
+  snapshot: DeckImportSnapshot,
+): Promise<SyncedDeck> {
+  const notes = await fetchDeckNotes(anki, snapshot.deckName);
+  const result = await syncDeckNotes(
+    anki,
+    vault,
+    settings,
+    snapshot,
+    notes,
+    index,
+    yaml,
+  );
+  return { liveIds: notes.map((note) => note.noteId), result };
+}
+
 export async function executeSync(
   anki: Anki,
   vault: Vault,
   settings: ISettings,
   yaml: YamlEngine = obsidianYamlEngine,
 ): Promise<SyncReport> {
-  const snapshots = settings.deckImportSnapshots;
-  const deckNames = Object.keys(snapshots);
-  if (deckNames.length === 0) {
+  const snapshots = Object.values(settings.deckImportSnapshots);
+  if (snapshots.length === 0) {
     throw new Error(t("notice.noImportYet"));
   }
   await fillMissingBlockIds(vault, settings, yaml);
@@ -527,27 +635,21 @@ export async function executeSync(
   const decks: SyncDeckReport[] = [];
   let enrolled = 0;
   let purgedFromDeletions = 0;
-  for (const deckName of deckNames) {
-    const snapshot = snapshots[deckName];
-    if (snapshot === undefined) {
-      continue;
-    }
-    const notes = await fetchDeckNotes(anki, deckName);
-    for (const note of notes) {
-      liveIds.add(note.noteId);
-    }
-    const refreshed = await syncDeckNotes(
+  for (const snapshot of snapshots) {
+    const synced = await syncOneDeck(
       anki,
       vault,
       settings,
-      snapshot,
-      notes,
       index,
       yaml,
+      snapshot,
     );
-    decks.push(refreshed.deck);
-    enrolled += refreshed.enrolled;
-    purgedFromDeletions += refreshed.purged;
+    for (const noteId of synced.liveIds) {
+      liveIds.add(noteId);
+    }
+    decks.push(synced.result.deck);
+    enrolled += synced.result.enrolled;
+    purgedFromDeletions += synced.result.purged;
   }
   const purged = await applyAnkiDeletions(
     anki,
