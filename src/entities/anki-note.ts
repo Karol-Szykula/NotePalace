@@ -50,7 +50,20 @@ export abstract class AnkiNote {
     this.modelName = "";
   }
 
-  abstract toPayload(update: boolean): AnkiNotePayload;
+  public toPayload(update = false): AnkiNotePayload {
+    const payload: AnkiNotePayload = {
+      deckName: this.deckName,
+      modelName: this.modelName,
+      fields: this.fields,
+      tags: this.tags,
+    };
+
+    if (update) {
+      payload["id"] = this.noteId;
+    }
+
+    return payload;
+  }
 
   public getFormTemplate(): NoteShape {
     return noteShapeFor(this.modelName);
