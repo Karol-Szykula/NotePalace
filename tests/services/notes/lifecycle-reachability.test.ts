@@ -18,8 +18,6 @@ const unreachableInTheTable: Record<string, string> = {
     "Sync chooses PURGE at run time, when the deletion is newer than the Anki change, so no row emits it",
   "orphaned PURGE":
     "the purge path in Sync forgets the record outside the resolver",
-  "vaultOnly.ankiDeleted DELETE_FILE":
-    "no producer exists: Sync does not handle this state yet",
 };
 
 function emittedEvents(): Set<string> {

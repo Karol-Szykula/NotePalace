@@ -542,6 +542,55 @@ describe("executeSync", () => {
     expect(settings.noteLifecycle[102]?.lastMod).toBe(100);
   });
 
+  test("given an Anki-deleted note whose block changed in the vault when executed then removes the block anyway", async () => {
+    // given
+    const vault = vaultWith({
+      "Languages/Q-101.md": `${formBlock("Q", "A", 101)}\n`,
+    });
+    const settings = await snapshotSettings("Languages", {
+      101: { back: "A", front: "Q", mod: 100 },
+    });
+    required(settings.noteLifecycle[101], "record").lastHash = "stale";
+    respondWithDecks({ Languages: [] });
+
+    // when
+    const report: SyncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report.deleted).toBe(1);
+    expect(vault.getAbstractFileByPath("Languages/Q-101.md")).toBeNull();
+    expect(settings.noteLifecycle[101]).toBeUndefined();
+  });
+
+  test("given an Anki-deleted note with a tombstone when executed then forgets the record", async () => {
+    // given
+    const vault = vaultWith({
+      "Languages/Q-101.md": `${formBlock("Q", "A", 101)}\n`,
+    });
+    const settings = await snapshotSettings("Languages", {
+      101: { back: "A", front: "Q", mod: 100 },
+    });
+    required(settings.noteLifecycle[101], "record").deletedAt = 100_000;
+    respondWithDecks({ Languages: [] });
+
+    // when
+    const report: SyncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report.purgedRecords).toBe(1);
+    expect(settings.noteLifecycle[101]).toBeUndefined();
+  });
+
   test("given an unreadable block when its note is gone then the record is forgotten and the block is kept", async () => {
     // given
     const brokenBlock = [

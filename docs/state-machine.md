@@ -206,7 +206,7 @@ flowchart TB
   Sync -->|"—<br/>quiet · enroll-in-anki<br/>Enrolling is the wizards' job."| linked_unenrolled
   Sync -->|"—<br/>create · create-in-anki<br/>Vault only: the export wizard creates it."| vaultOnly_unexported
   Sync -->|"—<br/>quiet · enroll-in-anki<br/>Enrolling is the wizards' job."| vaultOnly_unenrolled
-  Sync -->|"—<br/>missing · bidirectional-sync<br/>Gone from Anki: the purge path handles it."| vaultOnly_ankiDeleted
+  Sync -->|"DELETE_FILE<br/>missing · bidirectional-sync<br/>Gone from Anki: Sync removes the block from the vault."| vaultOnly_ankiDeleted
   Sync -->|"—<br/>missing · cleanup-vault<br/>Only a stale record left: Purge ledger forgets it."| orphaned
 
   Sync -->|end| END["[*]"]
@@ -240,7 +240,7 @@ flowchart TB
 | `linked.unenrolled` | `ENROLL`<br/>quiet · enroll-in-anki<br/>Has an id but no record: enrols it, writes nothing. | `ENROLL`<br/>quiet · enroll-in-anki<br/>Has an id but no record: enrols it, rewrites the same file. | `—`<br/>quiet · enroll-in-anki<br/>Enrolling is the wizards' job. |
 | `vaultOnly.unexported` | `EXPORT`<br/>create · create-in-anki<br/>Vault only: creates the Anki note, writes the id back. | `—`<br/>create · create-in-anki<br/>Vault only: the export wizard creates it. | `—`<br/>create · create-in-anki<br/>Vault only: the export wizard creates it. |
 | `vaultOnly.unenrolled` | `ENROLL`<br/>quiet · enroll-in-anki<br/>Has an id but no record: enrols it, writes nothing. | `ENROLL`<br/>quiet · enroll-in-anki<br/>Has an id but no record: enrols it, rewrites the same file. | `—`<br/>quiet · enroll-in-anki<br/>Enrolling is the wizards' job. |
-| `vaultOnly.ankiDeleted` | `—` / `EXPORT` (force)<br/>missing · bidirectional-sync<br/>**Force:** EXPORT<br/>Gone from Anki: Sync applies the deletion. Forced: re-creates it in Anki. | `—`<br/>missing · bidirectional-sync<br/>Gone from Anki: Sync deletes the file. | `—`<br/>missing · bidirectional-sync<br/>Gone from Anki: the purge path handles it. |
+| `vaultOnly.ankiDeleted` | `—` / `EXPORT` (force)<br/>missing · bidirectional-sync<br/>**Force:** EXPORT<br/>Gone from Anki: Sync applies the deletion. Forced: re-creates it in Anki. | `—`<br/>missing · bidirectional-sync<br/>Gone from Anki: Sync deletes the file. | `DELETE_FILE`<br/>missing · bidirectional-sync<br/>Gone from Anki: Sync removes the block from the vault. |
 | `orphaned` | `—`<br/>missing · cleanup-vault<br/>Only a stale record left: Purge ledger forgets it. | `—`<br/>missing · cleanup-vault<br/>Only a stale record left: Purge ledger forgets it. | `—`<br/>missing · cleanup-vault<br/>Only a stale record left: Purge ledger forgets it. |
 
 <details>
@@ -291,7 +291,7 @@ flowchart TB
 | `linked.unenrolled` | `quiet` | `—` | `—` | `enroll-in-anki` | Enrolling is the wizards' job. |
 | `vaultOnly.unexported` | `create` | `—` | `—` | `create-in-anki` | Vault only: the export wizard creates it. |
 | `vaultOnly.unenrolled` | `quiet` | `—` | `—` | `enroll-in-anki` | Enrolling is the wizards' job. |
-| `vaultOnly.ankiDeleted` | `missing` | `—` | `—` | `bidirectional-sync` | Gone from Anki: the purge path handles it. |
+| `vaultOnly.ankiDeleted` | `missing` | `DELETE_FILE` | `—` | `bidirectional-sync` | Gone from Anki: Sync removes the block from the vault. |
 | `orphaned` | `missing` | `—` | `—` | `cleanup-vault` | Only a stale record left: Purge ledger forgets it. |
 
 
