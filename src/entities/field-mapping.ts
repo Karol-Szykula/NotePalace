@@ -33,6 +33,22 @@ export function resolveFieldMapping(
   return mapping;
 }
 
+export function assignFieldTarget(
+  mapping: FieldMapping,
+  field: string,
+  target: FieldTarget,
+): FieldMapping {
+  const next: FieldMapping = { ...mapping, [field]: target };
+  if (target !== "Skip") {
+    for (const [name, held] of Object.entries(next)) {
+      if (name !== field && held === target) {
+        next[name] = "Skip";
+      }
+    }
+  }
+  return next;
+}
+
 export function mergeFieldMappings(
   stored: Record<string, Record<string, string>>,
   incoming: Record<string, FieldMapping>,

@@ -1,4 +1,6 @@
+import type { FieldMapping } from "src/entities/field-mapping";
 import {
+  assignFieldTarget,
   mergeFieldMappings,
   presetFieldMapping,
   resolveFieldMapping,
@@ -57,6 +59,41 @@ describe("resolveFieldMapping", () => {
     expect(mapping).toEqual({
       Front: "Front",
     });
+  });
+});
+
+describe("assignFieldTarget", () => {
+  test("given a target held by another field when assigned then clears the other field", () => {
+    // given
+    const mapping: FieldMapping = { Back: "Back", Front: "Front" };
+
+    // when
+    const next = assignFieldTarget(mapping, "Back", "Front");
+
+    // then
+    expect(next).toEqual({ Back: "Front", Front: "Skip" });
+  });
+
+  test("given a skipped target when assigned then leaves the other fields alone", () => {
+    // given
+    const mapping: FieldMapping = { Back: "Back", Front: "Front" };
+
+    // when
+    const next = assignFieldTarget(mapping, "Back", "Skip");
+
+    // then
+    expect(next).toEqual({ Back: "Skip", Front: "Front" });
+  });
+
+  test("given a free target when assigned then only sets that field", () => {
+    // given
+    const mapping: FieldMapping = { Front: "Front" };
+
+    // when
+    const next = assignFieldTarget(mapping, "Back", "Text");
+
+    // then
+    expect(next).toEqual({ Back: "Text", Front: "Front" });
   });
 });
 

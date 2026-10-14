@@ -8,7 +8,11 @@ import type {
   FieldMapping as FieldMap,
   FieldTarget,
 } from "src/entities/field-mapping";
-import { fieldTargets, resolveFieldMapping } from "src/entities/field-mapping";
+import {
+  assignFieldTarget,
+  fieldTargets,
+  resolveFieldMapping,
+} from "src/entities/field-mapping";
 import { isKnownModel } from "src/services/anki/anki-models";
 import { discoverDeckModels } from "src/services/notes/fields";
 import { builtInPackFor } from "src/services/notes/packs";
@@ -138,10 +142,11 @@ export function FieldMapping({
                     onChange={(event: ChangeEvent<HTMLSelectElement>) => {
                       const next = {
                         ...mappings,
-                        [model.modelName]: {
-                          ...mappings[model.modelName],
-                          [field]: event.target.value as FieldTarget,
-                        },
+                        [model.modelName]: assignFieldTarget(
+                          mappings[model.modelName] ?? {},
+                          field,
+                          event.target.value as FieldTarget,
+                        ),
                       };
                       setMappings(next);
                       onMappingsChange(next);

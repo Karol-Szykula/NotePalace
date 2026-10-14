@@ -20,6 +20,7 @@ import {
   mappedFieldsPattern,
 } from "src/gui/note-transfer-wizard/shared/utils/summary-patterns";
 import { ankiResponder } from "../../../../../helpers/anki-responder";
+import { required } from "../../../../../helpers/required";
 import { createSettings } from "../../../../../helpers/settings";
 import { AnkiConnectMock } from "../../../../../mocks/anki-connect";
 
@@ -78,6 +79,34 @@ test("given a cloze deck when the fields page loads then preselects the pack map
   const selects = screen.getAllByRole("combobox") as HTMLSelectElement[];
   // then
   expect(selects.some((select) => select.value === "Extra")).toBe(true);
+});
+
+test("given two fields when both claim the same target then only the last keeps it", async () => {
+  // given
+  responder.respondWith({
+    decks: { [deckName]: [customModelNote.noteId] },
+    notes: [customModelNote],
+  });
+  render(
+    <FieldMapping
+      anki={new Anki()}
+      deckName={deckName}
+      onMappingsChange={jest.fn()}
+      savedMappings={{}}
+    />,
+  );
+  await screen.findByText(mappedFieldsPattern);
+  const selects = screen.getAllByRole("combobox") as HTMLSelectElement[];
+  const first = required(selects[0], "first field select");
+  const second = required(selects[1], "second field select");
+  const user = userEvent.setup();
+  // when
+  await user.selectOptions(first, "Front");
+  await user.selectOptions(second, "Front");
+  // then
+  const fronts = selects.filter((select) => select.value === "Front");
+  expect(fronts).toHaveLength(1);
+  expect(required(fronts[0], "front holder")).toBe(second);
 });
 
 test("given a custom model when advancing past fields then no pack is written", async () => {
