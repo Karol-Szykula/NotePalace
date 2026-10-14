@@ -29,7 +29,11 @@ import {
   type VaultNoteIndex,
 } from "src/services/vault/vault";
 import { executeImport } from "src/services/commands/import-deck";
-import { resolveDeckName } from "src/services/vault/paths";
+import {
+  deckNameIndex,
+  resolveDeckName,
+  type DeckNameIndex,
+} from "src/services/vault/paths";
 import { fetchDeckNotes } from "src/services/anki/read";
 import {
   ankiContentHash,
@@ -154,7 +158,7 @@ function decideMissingFile(
 
 interface SyncContext {
   anki: Anki;
-  deckNames: string[];
+  deckIndex: DeckNameIndex;
   index: VaultNoteIndex;
   pushes: PushedNote[];
   settings: ISettings;
@@ -200,7 +204,7 @@ async function stepForPresentNote(
         context.vault,
         {
           block,
-          deckName: resolveDeckName(context.deckNames, deckForPath(file.path)),
+          deckName: resolveDeckName(context.deckIndex, deckForPath(file.path)),
           file,
         },
         pack,
@@ -250,7 +254,7 @@ async function applyPushedNotes(
 
 interface SyncScope {
   anki: Anki;
-  deckNames: string[];
+  deckIndex: DeckNameIndex;
   index: VaultNoteIndex;
   settings: ISettings;
   vault: Vault;
@@ -265,7 +269,7 @@ function createDeckScan(input: DeckScanInput): DeckScan {
   return {
     context: {
       anki: input.anki,
-      deckNames: input.deckNames,
+      deckIndex: input.deckIndex,
       index: input.index,
       pushes: [],
       settings: input.settings,
@@ -632,7 +636,7 @@ export async function executeSync(
   await fillMissingBlockIds(vault, settings, yaml);
   const scope: SyncScope = {
     anki,
-    deckNames: await anki.getDeckNames(),
+    deckIndex: deckNameIndex(await anki.getDeckNames()),
     index: await collectVaultNoteIndex(vault),
     settings,
     vault,

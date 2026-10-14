@@ -33,7 +33,7 @@ import {
   resolveCommandDecision,
 } from "src/services/notes/decision-table";
 import { deckForPath, isIgnoredPath } from "src/services/vault/vault";
-import { resolveDeckName } from "src/services/vault/paths";
+import { deckNameIndex, resolveDeckName } from "src/services/vault/paths";
 import { parseNoteForm } from "src/services/notes/document";
 import { obsidianYamlEngine, type YamlEngine } from "src/services/yaml-engine";
 import {
@@ -116,11 +116,9 @@ export async function scanVaultBlocks(
 async function ensurePlannedDecks(anki: Anki, plan: ExportPlan): Promise<void> {
   const knownNames = await anki.getDeckNames();
   const known = new Set(knownNames);
+  const index = deckNameIndex(knownNames);
   for (const candidate of plan.creates) {
-    candidate.note.deckName = resolveDeckName(
-      knownNames,
-      candidate.note.deckName,
-    );
+    candidate.note.deckName = resolveDeckName(index, candidate.note.deckName);
   }
   for (const deckName of decksForCreates(plan)) {
     if (known.has(deckName)) {

@@ -7,6 +7,7 @@
 import "obsidian-test-mocks/jest-setup";
 import {
   deckFolder,
+  deckNameIndex,
   resolveDeckName,
   sanitizeDeckName,
 } from "src/services/vault/paths";
@@ -62,11 +63,13 @@ describe("sanitizeDeckName", () => {
 describe("resolveDeckName", () => {
   test("given a known deck matching after sanitizing when resolved then returns the known name", () => {
     // given
-    const known = ["CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite"];
+    const index = deckNameIndex([
+      "CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite",
+    ]);
     const derived = "CCNA::Day 03 Flashcards - OSI Model, TCP-IP Suite";
 
     // when
-    const resolved = resolveDeckName(known, derived);
+    const resolved = resolveDeckName(index, derived);
 
     // then
     expect(resolved).toBe("CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite");
@@ -74,11 +77,11 @@ describe("resolveDeckName", () => {
 
   test("given no known deck matching when resolved then returns the derived name", () => {
     // given
-    const known = ["Other"];
+    const index = deckNameIndex(["Other"]);
     const derived = "A::B-C";
 
     // when
-    const resolved = resolveDeckName(known, derived);
+    const resolved = resolveDeckName(index, derived);
 
     // then
     expect(resolved).toBe("A::B-C");
@@ -96,6 +99,6 @@ describe("deck path round trip", () => {
 
     // then
     expect(derived).toBe(sanitizeDeckName(deckName));
-    expect(resolveDeckName([deckName], derived)).toBe(deckName);
+    expect(resolveDeckName(deckNameIndex([deckName]), derived)).toBe(deckName);
   });
 });

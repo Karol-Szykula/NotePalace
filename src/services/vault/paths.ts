@@ -74,14 +74,17 @@ export function sanitizeDeckName(deckName: string): string {
   return deckSegments(deckName).join("::");
 }
 
+export type DeckNameIndex = Map<string, string>;
+
+export function deckNameIndex(knownNames: string[]): DeckNameIndex {
+  return new Map(knownNames.map((known) => [sanitizeDeckName(known), known]));
+}
+
 export function resolveDeckName(
-  knownNames: string[],
+  index: DeckNameIndex,
   derivedName: string,
 ): string {
-  return (
-    knownNames.find((known) => sanitizeDeckName(known) === derivedName) ??
-    derivedName
-  );
+  return index.get(sanitizeDeckName(derivedName)) ?? derivedName;
 }
 
 function markdownFileName(title: string): {
