@@ -59,7 +59,7 @@ export abstract class AnkiNote {
     this.mediaBase64Encoded.forEach((data, index) => {
       medias.push({
         filename: this.mediaNames[index],
-        data: data,
+        data,
       });
     });
 

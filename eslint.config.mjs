@@ -96,6 +96,17 @@ export default [
     },
   },
   {
+    files: [...productionFiles, "tests/**/*"],
+    rules: {
+      "@typescript-eslint/prefer-nullish-coalescing": "error",
+      "@typescript-eslint/prefer-optional-chain": "error",
+      "object-shorthand": "error",
+      "prefer-arrow-callback": "error",
+      "prefer-object-spread": "error",
+      "prefer-template": "error",
+    },
+  },
+  {
     files: ["src/services/logger.ts"],
     rules: {
       "no-console": "off",
