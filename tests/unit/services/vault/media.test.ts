@@ -304,6 +304,25 @@ describe("importDeckMedia", () => {
     const untouched = storedFile(app, "Medicine/attachments/a.png");
     expect(await app.vault.read(untouched)).toBe("old");
   });
+
+  test("given the same media imported twice when imported then reuses the existing file", async () => {
+    // given
+    const app = App.createConfigured__({ files: {} });
+    respondWithMedia({ "a.png": sampleBase64 });
+    const vault = app.vault as unknown as ObsidianVault;
+    await importDeckMedia(new Anki(), vault, "Medicine", ["a.png"]);
+
+    // when
+    const again = await importDeckMedia(new Anki(), vault, "Medicine", [
+      "a.png",
+    ]);
+
+    // then
+    expect(again.written).toEqual({ "a.png": "Medicine/attachments/a.png" });
+    expect(
+      app.vault.getAbstractFileByPath("Medicine/attachments/a-1.png"),
+    ).toBeNull();
+  });
 });
 
 describe("rewriteMediaReferences", () => {

@@ -1,3 +1,4 @@
+import { TFile } from "obsidian";
 import type { Vault } from "obsidian";
 import type { Anki } from "src/services/anki/anki";
 import { escapeRegExp } from "src/utils";
@@ -77,6 +78,28 @@ export function encodeBase64(data: ArrayBuffer): string {
   return btoa(binary);
 }
 
+async function matchesExisting(
+  vault: Vault,
+  path: string,
+  bytes: ArrayBuffer,
+): Promise<boolean> {
+  const file = vault.getAbstractFileByPath(path);
+  if (!(file instanceof TFile)) {
+    return false;
+  }
+  try {
+    return sameBytes(await vault.readBinary(file), bytes);
+  } catch {
+    return false;
+  }
+}
+
+function sameBytes(first: ArrayBuffer, second: ArrayBuffer): boolean {
+  const a = new Uint8Array(first);
+  const b = new Uint8Array(second);
+  return a.length === b.length && a.every((byte, index) => byte === b[index]);
+}
+
 export async function importDeckMedia(
   anki: Anki,
   vault: Vault,
@@ -86,6 +109,7 @@ export async function importDeckMedia(
   const notImported: string[] = [];
   const written: MediaPathMap = {};
   const takenPaths = new Set<string>();
+  const folder = deckAttachmentsFolder(deckName);
   let folderReady = false;
   for (const filename of filenames) {
     if (written[filename]) {
@@ -96,17 +120,24 @@ export async function importDeckMedia(
       notImported.push(filename);
       continue;
     }
+    const bytes = decodeBase64(data);
+    const existingPath = `${folder}/${filename}`;
+    if (await matchesExisting(vault, existingPath, bytes)) {
+      takenPaths.add(existingPath);
+      written[filename] = existingPath;
+      continue;
+    }
     if (!folderReady) {
-      await ensureFolderExists(vault, deckAttachmentsFolder(deckName));
+      await ensureFolderExists(vault, folder);
       folderReady = true;
     }
     const targetPath = await uniquePath(
-      deckAttachmentsFolder(deckName),
+      folder,
       filename,
       takenPaths,
       (candidate) => vault.getAbstractFileByPath(candidate) !== null,
     );
-    await vault.createBinary(targetPath, decodeBase64(data));
+    await vault.createBinary(targetPath, bytes);
     written[filename] = targetPath;
   }
   return { notImported, written };
