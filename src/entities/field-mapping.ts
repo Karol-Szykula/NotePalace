@@ -50,14 +50,23 @@ export function assignFieldTarget(
 function releaseTargetFromOthers(
   mapping: FieldMapping,
   holder: string,
-  target: FieldTarget,
+  claimedTarget: FieldTarget,
 ): FieldMapping {
   const released: FieldMapping = {};
   for (const [name, held] of Object.entries(mapping)) {
-    const heldByAnother = held === target && name !== holder;
-    released[name] = heldByAnother ? skippedTarget : held;
+    released[name] = releasedTargetFor(name, held, holder, claimedTarget);
   }
   return released;
+}
+
+function releasedTargetFor(
+  fieldName: string,
+  heldTarget: FieldTarget,
+  holder: string,
+  claimedTarget: FieldTarget,
+): FieldTarget {
+  const heldByAnother = heldTarget === claimedTarget && fieldName !== holder;
+  return heldByAnother ? skippedTarget : heldTarget;
 }
 
 export function mergeFieldMappings(
