@@ -63,16 +63,12 @@ function toDeckItem(folder: FolderWithBlocks): DeckItem {
   };
 }
 
-export function DeckSelection({
-  ignoredDirectories,
-  selectedDeckName,
-  onSelectDeckName,
-  className,
-  vault,
-}: DeckSelectionProps): JSX.Element {
+function useFolderList(
+  vault: Vault,
+  ignoredDirectories: string,
+): { folders: FolderWithBlocks[] | null; loadError: string } {
   const [folders, setFolders] = useState<FolderWithBlocks[] | null>(null);
   const [loadError, setLoadError] = useState("");
-
   const loadFolderList = (): (() => void) =>
     startAsyncLoad(async (isLive) => {
       try {
@@ -86,30 +82,53 @@ export function DeckSelection({
         }
       }
     });
-
   useEffect(loadFolderList, [vault, ignoredDirectories]);
+  return { folders, loadError };
+}
 
+interface StatusMessageProps {
+  readonly className: string;
+  readonly message: string;
+}
+
+function StatusMessage({
+  className,
+  message,
+}: StatusMessageProps): JSX.Element {
+  return (
+    <div className={className}>
+      <p>{message}</p>
+    </div>
+  );
+}
+
+export function DeckSelection({
+  ignoredDirectories,
+  selectedDeckName,
+  onSelectDeckName,
+  className,
+  vault,
+}: DeckSelectionProps): JSX.Element {
+  const { folders, loadError } = useFolderList(vault, ignoredDirectories);
   const rootClassName = mergeClasses(commonWizardClasses.pageView, className);
 
   if (loadError) {
-    return (
-      <div className={rootClassName}>
-        <p>{loadError}</p>
-      </div>
-    );
+    return <StatusMessage className={rootClassName} message={loadError} />;
   }
   if (folders === null) {
     return (
-      <div className={rootClassName}>
-        <p>{t("deck.readingVault")}</p>
-      </div>
+      <StatusMessage
+        className={rootClassName}
+        message={t("deck.readingVault")}
+      />
     );
   }
   if (!folders.length) {
     return (
-      <div className={rootClassName}>
-        <p>{t("deck.noExportableNotes")}</p>
-      </div>
+      <StatusMessage
+        className={rootClassName}
+        message={t("deck.noExportableNotes")}
+      />
     );
   }
   return (
@@ -124,7 +143,7 @@ export function DeckSelection({
         }
         inputClassName={exportScopeClasses.scopeRadio}
         inputName="notepalace-note-export-wizard-modal-scope"
-        items={folders.map(toDeckItem)}
+        items={folders.map((folder) => toDeckItem(folder))}
         labelClassName={exportScopeClasses.scopeLabelText}
         onSelect={onSelectDeckName}
         prompt={t("deck.selectExportPrompt")}

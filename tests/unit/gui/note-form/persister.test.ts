@@ -117,10 +117,12 @@ describe("saveNoteFormEdit", () => {
 
     // when
     const saved = await saveNoteFormEdit(
-      vault,
-      ctx,
-      document.createElement("div"),
-      blockSource,
+      {
+        ctx,
+        el: document.createElement("div"),
+        expectedSource: blockSource,
+        vault,
+      },
       formData(),
       jsonEngine,
     );
@@ -141,10 +143,12 @@ describe("saveNoteFormEdit", () => {
 
     // when
     const saved = await saveNoteFormEdit(
-      vault,
-      ctx,
-      document.createElement("div"),
-      staleSource,
+      {
+        ctx,
+        el: document.createElement("div"),
+        expectedSource: staleSource,
+        vault,
+      },
       formData(),
       jsonEngine,
     );
@@ -162,10 +166,12 @@ describe("saveNoteFormEdit", () => {
 
     // when
     const saved = await saveNoteFormEdit(
-      vault,
-      ctx,
-      document.createElement("div"),
-      blockSource,
+      {
+        ctx,
+        el: document.createElement("div"),
+        expectedSource: blockSource,
+        vault,
+      },
       formData(),
       jsonEngine,
     );

@@ -76,7 +76,14 @@ export function createNoteFormHandler(
     if (!parsed) {
       return Promise.resolve();
     }
-    const handleEdit = createEditHandler(vault, ctx, el, parsed, yaml, source);
+    const handleEdit = createEditHandler({
+      ctx,
+      el,
+      initialSource: source,
+      parsed,
+      vault,
+      yaml,
+    });
     const form = componentForLayout(noteShapeFor(parsed.model).layout);
     const banner = bannerForStatus(resolveStatus(parsed.id));
     const node =
@@ -107,25 +114,35 @@ function parseFormSource(
   }
 }
 
+interface EditHandlerInput {
+  ctx: MarkdownPostProcessorContext;
+  el: HTMLElement;
+  initialSource: string;
+  parsed: NoteFormData;
+  vault: Vault;
+  yaml: YamlEngine;
+}
+
 function createEditHandler(
-  vault: Vault,
-  ctx: MarkdownPostProcessorContext,
-  el: HTMLElement,
-  parsed: NoteFormData,
-  yaml: YamlEngine,
-  initialSource: string,
+  input: EditHandlerInput,
 ): (edit: NoteFormEdit) => void {
-  let savedSource = initialSource;
+  let savedSource = input.initialSource;
   function handleEdit(edit: NoteFormEdit): void {
-    const expectedSource = savedSource;
-    const merged = { ...parsed, ...edit };
-    void saveNoteFormEdit(vault, ctx, el, expectedSource, merged, yaml).then(
-      (next) => {
-        if (next !== null) {
-          savedSource = next;
-        }
+    const merged = { ...input.parsed, ...edit };
+    void saveNoteFormEdit(
+      {
+        ctx: input.ctx,
+        el: input.el,
+        expectedSource: savedSource,
+        vault: input.vault,
       },
-    );
+      merged,
+      input.yaml,
+    ).then((next) => {
+      if (next !== null) {
+        savedSource = next;
+      }
+    });
   }
   return handleEdit;
 }

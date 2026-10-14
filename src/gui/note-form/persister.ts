@@ -71,14 +71,19 @@ export async function replaceNoteFormSection(
   return true;
 }
 
+export interface NoteFormEditTarget {
+  readonly ctx: MarkdownPostProcessorContext;
+  readonly el: HTMLElement;
+  readonly expectedSource: string;
+  readonly vault: Vault;
+}
+
 export async function saveNoteFormEdit(
-  vault: Vault,
-  ctx: MarkdownPostProcessorContext,
-  el: HTMLElement,
-  expectedSource: string,
+  target: NoteFormEditTarget,
   data: NoteFormData,
   yaml: YamlEngine = obsidianYamlEngine,
 ): Promise<string | null> {
+  const { ctx, el, expectedSource, vault } = target;
   const section = readNoteFormSection(ctx, el);
   if (!section) {
     return null;

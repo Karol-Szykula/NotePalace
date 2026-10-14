@@ -33,6 +33,136 @@ export interface DeckListProps {
   readonly selectedName: string;
 }
 
+interface DeckCounts {
+  readonly isEmptyDeck: boolean;
+  readonly isFullyImported: boolean;
+  readonly upToDateCount: number;
+}
+
+function deckCounts({
+  syncedCount,
+  totalCount,
+  updatedCount,
+}: DeckItem): DeckCounts {
+  const upToDateCount =
+    updatedCount === null || updatedCount === undefined
+      ? syncedCount
+      : totalCount - updatedCount;
+  return {
+    isEmptyDeck: totalCount === 0,
+    isFullyImported: totalCount > 0 && upToDateCount === totalCount,
+    upToDateCount,
+  };
+}
+
+interface DeckTooltipOptions {
+  readonly alreadySyncedTooltip: string;
+  readonly emptyTooltip: string;
+  readonly isEmptyDeck: boolean;
+  readonly isFullyImported: boolean;
+  readonly tooltip: string | undefined;
+}
+
+function deckTooltip({
+  alreadySyncedTooltip,
+  emptyTooltip,
+  isEmptyDeck,
+  isFullyImported,
+  tooltip,
+}: DeckTooltipOptions): string {
+  if (isFullyImported) {
+    return alreadySyncedTooltip;
+  }
+  if (isEmptyDeck) {
+    return emptyTooltip;
+  }
+  return tooltip ?? "";
+}
+
+function deckRowClassName(
+  getRowClassName: DeckRowProps["getRowClassName"],
+  item: DeckItem,
+): string | undefined {
+  if (getRowClassName) {
+    return getRowClassName(item, item.isDisabled);
+  }
+  return mergeClasses(
+    listClasses.listRow,
+    item.isDisabled ? "opacity-50" : undefined,
+  );
+}
+
+interface DeckRowProps {
+  readonly alreadySyncedTooltip: string;
+  readonly emptyTooltip: string;
+  readonly getRowClassName?:
+    ((item: DeckItem, isDisabled: boolean) => string | undefined) | undefined;
+  readonly inputClassName?: string | undefined;
+  readonly inputName: string;
+  readonly item: DeckItem;
+  readonly labelClassName?: string | undefined;
+  readonly onSelect: (name: string) => void;
+  readonly selectedName: string;
+}
+
+function DeckRow({
+  alreadySyncedTooltip,
+  emptyTooltip,
+  getRowClassName,
+  inputClassName,
+  inputName,
+  item,
+  labelClassName,
+  onSelect,
+  selectedName,
+}: DeckRowProps): JSX.Element {
+  const { depth, isDisabled, name, shortName, tooltip, totalCount } = item;
+  const { isEmptyDeck, isFullyImported, upToDateCount } = deckCounts(item);
+  const resolvedTooltip = deckTooltip({
+    alreadySyncedTooltip,
+    emptyTooltip,
+    isEmptyDeck,
+    isFullyImported,
+    tooltip,
+  });
+  const cells = [
+    <LabeledControl
+      control={
+        <input
+          checked={name === selectedName}
+          className={inputClassName}
+          disabled={isDisabled}
+          name={inputName}
+          onChange={() => onSelect(name)}
+          title={resolvedTooltip}
+          type="radio"
+          value={name}
+        />
+      }
+      controlLabel={shortName}
+      disabled={isDisabled}
+      key="select"
+      label={<span className={labelClassName}>{shortName}</span>}
+      tooltip={resolvedTooltip}
+    />,
+    <span key="count">
+      {upToDateCount}/{totalCount}
+    </span>,
+  ];
+  return (
+    <ListRow
+      cells={cells}
+      className={deckRowClassName(getRowClassName, item)}
+      disabled={isDisabled}
+      key={name}
+      onSelect={() => onSelect(name)}
+      style={{
+        paddingLeft: `calc(${depth} * var(--notepalace-note-transfer-wizard-modal__row-indent) + 0.25rem)`,
+      }}
+    />
+  );
+}
+
 export function DeckList({
   items,
   selectedName,
@@ -61,91 +191,20 @@ export function DeckList({
     <div className={rootClassName}>
       <p>{prompt}</p>
       <List columns={listColumns} columnWidths="1fr auto" dividers="bottom">
-        {items.map(
-          ({
-            name,
-            shortName,
-            depth,
-            totalCount,
-            syncedCount,
-            updatedCount,
-            isDisabled,
-            tooltip,
-          }) => {
-            const upToDateCount =
-              updatedCount === null || updatedCount === undefined
-                ? syncedCount
-                : totalCount - updatedCount;
-            const isFullyImported =
-              totalCount > 0 && upToDateCount === totalCount;
-            const isEmptyDeck = totalCount === 0;
-            let deckTooltip: string;
-            if (isFullyImported) {
-              deckTooltip = alreadySyncedTooltip;
-            } else if (isEmptyDeck) {
-              deckTooltip = emptyTooltip;
-            } else {
-              deckTooltip = tooltip ?? "";
-            }
-
-            const deckRowCells = [
-              <LabeledControl
-                control={
-                  <input
-                    checked={name === selectedName}
-                    className={inputClassName}
-                    disabled={isDisabled}
-                    name={inputName}
-                    onChange={() => onSelect(name)}
-                    title={deckTooltip}
-                    type="radio"
-                    value={name}
-                  />
-                }
-                controlLabel={shortName}
-                disabled={isDisabled}
-                key="select"
-                label={<span className={labelClassName}>{shortName}</span>}
-                tooltip={deckTooltip}
-              />,
-              <span key="count">
-                {upToDateCount}/{totalCount}
-              </span>,
-            ];
-
-            const fallbackClassName = mergeClasses(
-              listClasses.listRow,
-              isDisabled ? "opacity-50" : undefined,
-            );
-            const rowClassName = getRowClassName
-              ? getRowClassName(
-                  {
-                    depth,
-                    isDisabled,
-                    name,
-                    shortName,
-                    syncedCount,
-                    tooltip,
-                    totalCount,
-                    updatedCount,
-                  },
-                  isDisabled,
-                )
-              : fallbackClassName;
-            return (
-              <ListRow
-                cells={deckRowCells}
-                className={rowClassName}
-                disabled={isDisabled}
-                key={name}
-                onSelect={() => onSelect(name)}
-                style={{
-                  paddingLeft: `calc(${depth} * var(--notepalace-note-transfer-wizard-modal__row-indent) + 0.25rem)`,
-                }}
-              />
-            );
-          },
-        )}
+        {items.map((item) => (
+          <DeckRow
+            alreadySyncedTooltip={alreadySyncedTooltip}
+            emptyTooltip={emptyTooltip}
+            getRowClassName={getRowClassName}
+            inputClassName={inputClassName}
+            inputName={inputName}
+            item={item}
+            key={item.name}
+            labelClassName={labelClassName}
+            onSelect={onSelect}
+            selectedName={selectedName}
+          />
+        ))}
       </List>
     </div>
   );

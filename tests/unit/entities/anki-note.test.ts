@@ -9,7 +9,13 @@ function basicFields(): Record<string, string> {
 }
 
 function basicNote(): BasicNote {
-  return new BasicNote(5, "Deck", basicFields(), false, ["tag"]);
+  return new BasicNote({
+    deckName: "Deck",
+    fields: basicFields(),
+    noteId: 5,
+    reversed: false,
+    tags: ["tag"],
+  });
 }
 
 function ankiNoteInfo(overrides: Partial<AnkiNoteInfo> = {}): AnkiNoteInfo {
@@ -38,7 +44,12 @@ describe("BasicNote", () => {
 
   test("given a reversed note when built then uses the reversed model", () => {
     // given
-    const note = new BasicNote(5, "Deck", basicFields(), true);
+    const note = new BasicNote({
+      deckName: "Deck",
+      fields: basicFields(),
+      noteId: 5,
+      reversed: true,
+    });
 
     // when
     const payload = note.toPayload(false);
@@ -72,7 +83,12 @@ describe("BasicNote", () => {
 describe("ClozeNote", () => {
   test("given a cloze note when built then uses the cloze model", () => {
     // given
-    const note = new ClozeNote(6, "Deck", { Text: "t", Extra: "e" }, false);
+    const note = new ClozeNote({
+      deckName: "Deck",
+      fields: { Text: "t", Extra: "e" },
+      noteId: 6,
+      reversed: false,
+    });
 
     // when
     const payload = note.toPayload(false);
@@ -86,15 +102,13 @@ describe("ClozeNote", () => {
 describe("CustomMappedNote", () => {
   test("given a custom model name when built then keeps it", () => {
     // given
-    const note = new CustomMappedNote(
-      7,
-      "Deck",
-      { Question: "Q" },
-      false,
-      [],
-      [],
-      "My Model",
-    );
+    const note = new CustomMappedNote({
+      deckName: "Deck",
+      fields: { Question: "Q" },
+      modelName: "My Model",
+      noteId: 7,
+      reversed: false,
+    });
 
     // when
     const payload = note.toPayload(false);
@@ -116,7 +130,12 @@ describe("getFormTemplate", () => {
 
   test("given a cloze note when resolved then returns the cloze shape", () => {
     // given
-    const note = new ClozeNote(6, "Deck", { Text: "t" }, false);
+    const note = new ClozeNote({
+      deckName: "Deck",
+      fields: { Text: "t" },
+      noteId: 6,
+      reversed: false,
+    });
 
     // when
     const template = note.getFormTemplate();
@@ -128,7 +147,13 @@ describe("getFormTemplate", () => {
 
   test("given a custom note when resolved then keeps its model with basic keys", () => {
     // given
-    const note = new CustomMappedNote(7, "Deck", {}, false, [], [], "My Model");
+    const note = new CustomMappedNote({
+      deckName: "Deck",
+      fields: {},
+      modelName: "My Model",
+      noteId: 7,
+      reversed: false,
+    });
 
     // when
     const template = note.getFormTemplate();

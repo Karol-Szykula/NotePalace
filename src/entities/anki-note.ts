@@ -18,6 +18,15 @@ export type AnkiNoteInfo = {
   cards?: number[];
 };
 
+export interface AnkiNoteInit {
+  deckName: string;
+  fields: Record<string, string>;
+  mediaNames?: string[] | undefined;
+  noteId?: number | undefined;
+  reversed: boolean;
+  tags?: string[] | undefined;
+}
+
 export abstract class AnkiNote {
   noteId: number;
   deckName: string;
@@ -29,20 +38,13 @@ export abstract class AnkiNote {
   oldTags: string[];
   modelName: string;
 
-  constructor(
-    noteId: number,
-    deckName: string,
-    fields: Record<string, string>,
-    reversed: boolean,
-    tags: string[],
-    mediaNames: string[],
-  ) {
-    this.noteId = noteId;
-    this.deckName = deckName;
-    this.fields = fields;
-    this.reversed = reversed;
-    this.tags = tags;
-    this.mediaNames = mediaNames;
+  constructor(init: AnkiNoteInit) {
+    this.noteId = init.noteId ?? -1;
+    this.deckName = init.deckName;
+    this.fields = init.fields;
+    this.reversed = init.reversed;
+    this.tags = init.tags ?? [];
+    this.mediaNames = init.mediaNames ?? [];
     this.mediaBase64Encoded = [];
     this.oldTags = [];
     this.modelName = "";

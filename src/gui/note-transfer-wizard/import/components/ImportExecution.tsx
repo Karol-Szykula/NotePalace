@@ -32,6 +32,27 @@ export interface ImportExecutionProps {
   readonly vaultNoteIndex?: VaultNoteIndex | undefined;
 }
 
+interface ImportRunContext {
+  anki: Anki;
+  deckName: string;
+  fieldMappings: Record<string, FieldMap>;
+  forcedNoteIds: Record<number, boolean>;
+  noteLifecycle: Record<number, NoteLifecycleRecord>;
+  notes: AnkiNoteInfo[];
+  notesSelectedToImport: Record<number, boolean>;
+  onProgress: (processed: number, total: number) => void;
+  previewStatuses: Record<number, NoteLifecycleStatus> | undefined;
+  vault: Vault;
+  vaultNoteIndex: VaultNoteIndex | undefined;
+}
+
+interface ImportExecutionState {
+  failure: string;
+  phase: ExecutionPhase;
+  progress: string;
+  report: ImportExecutionReport | null;
+}
+
 type ExecutionPhase = "running" | "done" | "failed";
 
 function baseReportParts(report: ImportExecutionReport): string[] {
@@ -70,51 +91,81 @@ function formatImportReport(report: ImportExecutionReport): string {
   return `${parts.join(", ")}${cancelled}.`;
 }
 
-export function ImportExecution({
+function selectedNoteIds(
+  notes: AnkiNoteInfo[],
+  notesSelectedToImport: Record<number, boolean>,
+): number[] {
+  return notes
+    .filter((note) => notesSelectedToImport[note.noteId] ?? false)
+    .map((note) => note.noteId);
+}
+
+function ankiWinsNoteIds(forcedNoteIds: Record<number, boolean>): number[] {
+  return Object.entries(forcedNoteIds)
+    .filter(([, isForced]) => isForced)
+    .map(([noteId]) => Number(noteId));
+}
+
+async function runImportExecution(
+  context: ImportRunContext,
+): Promise<ImportExecutionReport> {
+  const freshNotes = await fetchNotesByIds(
+    context.anki,
+    selectedNoteIds(context.notes, context.notesSelectedToImport),
+  );
+  return executeImport(context.anki, context.vault, {
+    freshNotes,
+    previewStatuses: context.previewStatuses,
+    ankiWinsNoteIds: ankiWinsNoteIds(context.forcedNoteIds),
+    decisions: context.notesSelectedToImport,
+    deckName: context.deckName,
+    fieldMappings: context.fieldMappings,
+    noteLifecycle: context.noteLifecycle,
+    notes: context.notes,
+    onProgress: context.onProgress,
+    targetFolder: "",
+    vaultNoteIndex: context.vaultNoteIndex,
+  });
+}
+
+function useImportExecution({
   anki,
-  notesSelectedToImport,
-  className,
   deckName,
   fieldMappings,
   forcedNoteIds,
   noteLifecycle,
   notes,
+  notesSelectedToImport,
   onFinish,
   previewStatuses,
   vault,
   vaultNoteIndex,
-}: ImportExecutionProps): JSX.Element {
+}: ImportExecutionProps): ImportExecutionState {
   const [phase, setPhase] = useState<ExecutionPhase>("running");
   const [progress, setProgress] = useState("");
   const [failure, setFailure] = useState("");
   const [report, setReport] = useState<ImportExecutionReport | null>(null);
   const importStarted = useRef(false);
 
+  const handleProgress = (processed: number, total: number) => {
+    setProgress(t("report.importingProgress", { processed, total }));
+  };
+
   const runImport = async () => {
     setPhase("running");
     setFailure("");
     try {
-      const freshNotes = await fetchNotesByIds(
+      const finished = await runImportExecution({
         anki,
-        notes
-          .filter((note) => notesSelectedToImport[note.noteId] ?? false)
-          .map((note) => note.noteId),
-      );
-      const finished = await executeImport(anki, vault, {
-        freshNotes,
-        previewStatuses,
-        ankiWinsNoteIds: Object.entries(forcedNoteIds)
-          .filter(([, isForced]) => isForced)
-          .map(([noteId]) => Number(noteId)),
-        decisions: notesSelectedToImport,
         deckName,
         fieldMappings,
+        forcedNoteIds,
         noteLifecycle,
         notes,
-        onProgress: (processed, total) => {
-          setProgress(t("report.importingProgress", { processed, total }));
-        },
-        targetFolder: "",
+        notesSelectedToImport,
+        onProgress: handleProgress,
+        previewStatuses,
+        vault,
         vaultNoteIndex,
       });
       setReport(finished);
@@ -137,6 +188,15 @@ export function ImportExecution({
   };
 
   useEffect(startImportOnce, []);
+
+  return { failure, phase, progress, report };
+}
+
+export function ImportExecution({
+  className,
+  ...props
+}: ImportExecutionProps): JSX.Element {
+  const { failure, phase, progress, report } = useImportExecution(props);
 
   return (
     <div className={mergeClasses(commonWizardClasses.pageView, className)}>
