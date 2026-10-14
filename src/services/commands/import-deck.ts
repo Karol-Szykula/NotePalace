@@ -191,8 +191,9 @@ function mappingAvailability(
   const packFor = packResolver(vault);
   return async (note) => {
     const modelName = note.modelName ?? "Unknown";
-    if (request.fieldMappings[modelName] !== undefined) {
-      return true;
+    const mapping = request.fieldMappings[modelName];
+    if (mapping !== undefined) {
+      return buildYamlNoteFields(note, mapping) !== null;
     }
     return (await packFor(note)) !== undefined;
   };
