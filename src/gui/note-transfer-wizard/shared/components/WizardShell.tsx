@@ -2,7 +2,7 @@ import { useMemo, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
 import { t } from "src/i18n";
 import { PageIndicator } from "./PageIndicator";
-import { Footer } from "./Footer";
+import { Footer, type FooterButton } from "./Footer";
 
 export interface WizardPage<Context = unknown> {
   readonly canAdvance?: (context: Context) => boolean;
@@ -44,13 +44,12 @@ export function WizardShell<Context>({
   const pageTitles = useMemo(() => pages.map((p) => p.title), [pages]);
 
   const [currentPage, setCurrentPage] = useState(initialPage);
+  const totalPages = pages.length;
   const activePage = pages[currentPage - 1];
-  const canAdvance = activePage
-    ? (activePage.canAdvance?.(context) ?? currentPage < pages.length)
-    : false;
+  const canAdvance = canAdvanceFrom(activePage, currentPage, pages, context);
 
   const goToNextPage = () => {
-    if (!canAdvance || currentPage >= pages.length) {
+    if (!canAdvance || currentPage >= totalPages) {
       return;
     }
     onBeforeAdvance?.(currentPage, context);
@@ -63,47 +62,97 @@ export function WizardShell<Context>({
     }
   };
 
-  const customNextLabel = getNextLabel?.(currentPage, context);
-  let defaultNextLabel: string | undefined;
-  if (currentPage < pages.length - 1) {
-    defaultNextLabel = t("wizard.next");
-  } else if (currentPage === pages.length - 1) {
-    defaultNextLabel = t("wizard.finish");
-  }
-  const nextLabel = customNextLabel ?? defaultNextLabel;
-
-  const rightButtons: {
-    label: string;
-    onClick: () => void;
-    disabled?: boolean;
-  }[] = [];
-  if (currentPage > 1 && currentPage < pages.length) {
-    rightButtons.push({ label: t("wizard.back"), onClick: goToPrevPage });
-  }
-  if (nextLabel !== undefined && currentPage < pages.length) {
-    rightButtons.push({
-      disabled: !canAdvance,
-      label: nextLabel,
-      onClick: goToNextPage,
-    });
-  }
-  if (currentPage === pages.length) {
-    rightButtons.push({ label: t("wizard.ok"), onClick: onCancel });
-  }
+  const nextLabel = nextLabelFor(
+    getNextLabel?.(currentPage, context),
+    currentPage,
+    totalPages,
+  );
+  const rightButtons = rightButtonsFor({
+    canAdvance,
+    currentPage,
+    goToNextPage,
+    goToPrevPage,
+    nextLabel,
+    onCancel,
+    totalPages,
+  });
 
   return (
     <div className={mergeClasses("wizard-shell", className)}>
       <PageIndicator currentPage={currentPage} pages={pageTitles} />
       {activePage?.render(context)}
       <Footer
-        leftButtons={
-          currentPage === pages.length
-            ? []
-            : [{ label: t("wizard.cancel"), onClick: onCancel }]
-        }
+        leftButtons={leftButtonsFor(currentPage, totalPages, onCancel)}
         pagination={getPagination?.(currentPage)}
         rightButtons={rightButtons}
       />
     </div>
   );
+}
+
+interface RightButtonsState {
+  canAdvance: boolean;
+  currentPage: number;
+  goToNextPage: () => void;
+  goToPrevPage: () => void;
+  nextLabel: string | undefined;
+  onCancel: () => void;
+  totalPages: number;
+}
+
+function canAdvanceFrom<Context>(
+  activePage: WizardPage<Context> | undefined,
+  currentPage: number,
+  pages: WizardPage<Context>[],
+  context: Context,
+): boolean {
+  if (activePage === undefined) {
+    return false;
+  }
+  return activePage.canAdvance?.(context) ?? currentPage < pages.length;
+}
+
+function nextLabelFor(
+  custom: string | undefined,
+  currentPage: number,
+  totalPages: number,
+): string | undefined {
+  if (custom !== undefined) {
+    return custom;
+  }
+  if (currentPage < totalPages - 1) {
+    return t("wizard.next");
+  }
+  if (currentPage === totalPages - 1) {
+    return t("wizard.finish");
+  }
+  return undefined;
+}
+
+function leftButtonsFor(
+  currentPage: number,
+  totalPages: number,
+  onCancel: () => void,
+): FooterButton[] {
+  return currentPage === totalPages
+    ? []
+    : [{ label: t("wizard.cancel"), onClick: onCancel }];
+}
+
+function rightButtonsFor(state: RightButtonsState): FooterButton[] {
+  const buttons: FooterButton[] = [];
+  if (state.currentPage > 1 && state.currentPage < state.totalPages) {
+    buttons.push({ label: t("wizard.back"), onClick: state.goToPrevPage });
+  }
+  if (state.nextLabel !== undefined && state.currentPage < state.totalPages) {
+    buttons.push({
+      disabled: !state.canAdvance,
+      label: state.nextLabel,
+      onClick: state.goToNextPage,
+    });
+  }
+  if (state.currentPage === state.totalPages) {
+    buttons.push({ label: t("wizard.ok"), onClick: state.onCancel });
+  }
+  return buttons;
 }

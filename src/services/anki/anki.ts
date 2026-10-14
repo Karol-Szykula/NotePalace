@@ -95,19 +95,27 @@ export class Anki {
         "batch addNotes failed, falling back to one-at-a-time",
         batchErr,
       );
-      const ids: number[] = [];
-      for (const note of notes) {
-        try {
-          const result = await this.invokeAllowPartial("addNotes", 6, {
-            notes: [note],
-          });
-          ids.push(result[0] ?? -1);
-        } catch (e) {
-          logger.warn("single addNote failed", e);
-          ids.push(-1);
-        }
-      }
-      return ids;
+      return await this.addNotesOneAtATime(notes);
+    }
+  }
+
+  private async addNotesOneAtATime(notes: AnkiNote[]): Promise<number[]> {
+    const ids: number[] = [];
+    for (const note of notes) {
+      ids.push(await this.addSingleNote(note));
+    }
+    return ids;
+  }
+
+  private async addSingleNote(note: AnkiNote): Promise<number> {
+    try {
+      const result = await this.invokeAllowPartial("addNotes", 6, {
+        notes: [note],
+      });
+      return result[0] ?? -1;
+    } catch (e) {
+      logger.warn("single addNote failed", e);
+      return -1;
     }
   }
 
@@ -123,34 +131,11 @@ export class Anki {
       );
       xhr.addEventListener("load", () => {
         try {
-          const parsed: unknown = JSON.parse(xhr.responseText);
-          const response: { error: unknown; result: unknown } =
-            isResultEnvelope(parsed) ? parsed : { error: null, result: parsed };
-          if (response.error) {
-            if (Array.isArray(response.error)) {
-              response.error.forEach((error: unknown, index: number) => {
-                if (error !== null) {
-                  const notes = params["notes"] as
-                    AnkiNotePayload[] | undefined;
-                  const noteName =
-                    notes?.[index]?.fields[ankiFieldNames.front] ??
-                    notes?.[index]?.fields[ankiFieldNames.text] ??
-                    "unknown";
-                  logger.warn(
-                    `addNote failed for "${noteName}": ${describeUnknown(error)}`,
-                  );
-                }
-              });
-            } else {
-              logger.warn(`addNotes error: ${describeUnknown(response.error)}`);
-            }
-            if (Array.isArray(response.result)) {
-              resolve(response.result as number[]);
-              return;
-            }
-            throw new Error(describeUnknown(response.error));
-          }
-          resolve(response.result as number[]);
+          settleLoadedResponse(
+            parseEnvelope(xhr.responseText),
+            params,
+            resolve,
+          );
         } catch (error) {
           reject(toError(error));
         }
@@ -358,6 +343,56 @@ export class Anki {
   public async requestPermission() {
     return this.invoke<{ permission: string }>("requestPermission", 6);
   }
+}
+
+function parseEnvelope(text: string): { error: unknown; result: unknown } {
+  const parsed: unknown = JSON.parse(text);
+  return isResultEnvelope(parsed) ? parsed : { error: null, result: parsed };
+}
+
+function settleLoadedResponse(
+  response: { error: unknown; result: unknown },
+  params: Record<string, unknown>,
+  resolve: (ids: number[]) => void,
+): void {
+  if (!response.error) {
+    resolve(response.result as number[]);
+    return;
+  }
+  logResponseErrors(response.error, params);
+  if (Array.isArray(response.result)) {
+    resolve(response.result as number[]);
+    return;
+  }
+  throw new Error(describeUnknown(response.error));
+}
+
+function logResponseErrors(
+  error: unknown,
+  params: Record<string, unknown>,
+): void {
+  if (!Array.isArray(error)) {
+    logger.warn(`addNotes error: ${describeUnknown(error)}`);
+    return;
+  }
+  error.forEach((entry: unknown, index: number) => {
+    logEntryError(entry, noteNameFor(params, index));
+  });
+}
+
+function logEntryError(entry: unknown, noteName: string): void {
+  if (entry !== null) {
+    logger.warn(`addNote failed for "${noteName}": ${describeUnknown(entry)}`);
+  }
+}
+
+function noteNameFor(params: Record<string, unknown>, index: number): string {
+  const notes = params["notes"] as AnkiNotePayload[] | undefined;
+  return (
+    notes?.[index]?.fields[ankiFieldNames.front] ??
+    notes?.[index]?.fields[ankiFieldNames.text] ??
+    "unknown"
+  );
 }
 
 export function describeUnknown(value: unknown): string {

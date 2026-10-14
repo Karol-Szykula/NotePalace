@@ -60,15 +60,24 @@ function buildGraph(report: DependencyCruiserReport): Graph {
   for (const module of report.modules) {
     const from = groupOf(module.source);
     nodes.add(from);
-    for (const resolved of srcDependencies(module)) {
-      const to = groupOf(resolved);
-      nodes.add(to);
-      if (from !== to) {
-        edges.add(edgeKey(from, to));
-      }
-    }
+    addEdgeTargets(module, from, nodes, edges);
   }
   return { edges, nodes };
+}
+
+function addEdgeTargets(
+  module: DependencyCruiserModule,
+  from: string,
+  nodes: Set<string>,
+  edges: Set<string>,
+): void {
+  for (const resolved of srcDependencies(module)) {
+    const to = groupOf(resolved);
+    nodes.add(to);
+    if (from !== to) {
+      edges.add(edgeKey(from, to));
+    }
+  }
 }
 
 function nodeId(group: string): string {

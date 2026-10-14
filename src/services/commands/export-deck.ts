@@ -23,6 +23,7 @@ import {
   classifyNoteLifecycle,
   syncedCleanRecord,
   transitionNoteLifecycle,
+  type NoteLifecycleEvent,
   type NoteLifecycleRecord,
   type NoteLifecycleStatus,
 } from "src/services/notes/lifecycle";
@@ -31,6 +32,7 @@ import { packForModel } from "src/services/notes/packs";
 import {
   isInScope,
   resolveCommandDecision,
+  type ResolvedCommandDecision,
 } from "src/services/notes/decision-table";
 import { deckForPath, isIgnoredPath } from "src/services/vault/vault";
 import { deckNameIndex, resolveDeckName } from "src/services/vault/paths";
@@ -91,26 +93,59 @@ export async function scanVaultBlocks(
     if (isIgnoredPath(file.path, ignoredDirectories)) {
       continue;
     }
-    const content = await vault.read(file);
-    const deckName = deckForPath(file.path);
-    const pattern = createNoteFencePattern();
-    let match: RegExpExecArray | null;
-    while ((match = pattern.exec(content)) !== null) {
-      try {
-        locations.push({
-          block: parseNoteForm(match[1] ?? "", yaml),
-          deckName,
-          end: pattern.lastIndex,
-          file,
-          start: match.index,
-        });
-      } catch {
-        unreadable += 1;
-        continue;
-      }
+    const scanned = await scanFileBlocks(vault, file, yaml);
+    locations.push(...scanned.locations);
+    unreadable += scanned.unreadable;
+  }
+  return { locations, unreadable };
+}
+
+async function scanFileBlocks(
+  vault: Vault,
+  file: TFile,
+  yaml: YamlEngine,
+): Promise<BlockScan> {
+  const content = await vault.read(file);
+  const deckName = deckForPath(file.path);
+  const pattern = createNoteFencePattern();
+  const locations: BlockLocation[] = [];
+  let unreadable = 0;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(content)) !== null) {
+    const location = tryParseBlock(
+      match,
+      pattern.lastIndex,
+      deckName,
+      file,
+      yaml,
+    );
+    if (location === null) {
+      unreadable += 1;
+    } else {
+      locations.push(location);
     }
   }
   return { locations, unreadable };
+}
+
+function tryParseBlock(
+  match: RegExpExecArray,
+  end: number,
+  deckName: string,
+  file: TFile,
+  yaml: YamlEngine,
+): BlockLocation | null {
+  try {
+    return {
+      block: parseNoteForm(match[1] ?? "", yaml),
+      deckName,
+      end,
+      file,
+      start: match.index,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function ensurePlannedDecks(anki: Anki, plan: ExportPlan): Promise<void> {
@@ -309,10 +344,7 @@ async function planBlock(
   const record =
     id === undefined ? undefined : context.settings.noteLifecycle[id];
   const status = await lifecycleStatusForBlock(location, anki, record);
-  const previewStatus = previewStatusOf(location, request);
-  if (previewStatus !== undefined && previewStatus !== status) {
-    plan.report.changedSincePreview += 1;
-  }
+  countPreviewChange(location, status, plan, request);
   const decision = resolveCommandDecision(
     "export",
     status,
@@ -324,15 +356,45 @@ async function planBlock(
     return;
   }
   transitionNoteLifecycle(status, decision.act);
-  if (decision.forcedFromOutOfScope) {
-    plan.report.forced += 1;
-  }
+  countForced(decision, plan);
   const pack = await context.packFor(location.block.model);
   if (pack === undefined) {
     plan.report.skippedUnmapped += 1;
     return;
   }
-  if (decision.act === "ENROLL" && anki !== undefined) {
+  await applyBlockDecision(context, location, anki, pack, decision.act, plan);
+}
+
+function countPreviewChange(
+  location: BlockLocation,
+  status: NoteLifecycleStatus,
+  plan: ExportPlan,
+  request: ExecuteExportRequest,
+): void {
+  const previewStatus = previewStatusOf(location, request);
+  if (previewStatus !== undefined && previewStatus !== status) {
+    plan.report.changedSincePreview += 1;
+  }
+}
+
+function countForced(
+  decision: ResolvedCommandDecision,
+  plan: ExportPlan,
+): void {
+  if (decision.forcedFromOutOfScope) {
+    plan.report.forced += 1;
+  }
+}
+
+async function applyBlockDecision(
+  context: BlockPlanContext,
+  location: BlockLocation,
+  anki: AnkiNoteInfo | undefined,
+  pack: NotePack,
+  act: NoteLifecycleEvent,
+  plan: ExportPlan,
+): Promise<void> {
+  if (act === "ENROLL" && anki !== undefined) {
     await enrollLinkedBlock(
       context.settings,
       location,
@@ -340,24 +402,26 @@ async function planBlock(
       pack,
       plan.report,
     );
+    return;
   }
-  if (decision.act === "CHECK") {
+  if (act === "CHECK") {
     plan.report.unchanged += 1;
     return;
   }
-  if (
-    (decision.act === "PUSH" || decision.act === "FORCE_PUSH") &&
-    anki !== undefined
-  ) {
+  if (isPushAct(act) && anki !== undefined) {
     plan.pushes.push(
       await buildPushedNote(context.vault, location, pack, anki),
     );
     return;
   }
-  if (decision.act === "EXPORT") {
+  if (act === "EXPORT") {
     const created = await buildCreatedNote(context.vault, location, pack);
     plan.creates.push({ location, ...created });
   }
+}
+
+function isPushAct(act: NoteLifecycleEvent): boolean {
+  return act === "PUSH" || act === "FORCE_PUSH";
 }
 
 async function planExport(
