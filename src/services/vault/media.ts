@@ -2,7 +2,7 @@ import type { Vault } from "obsidian";
 import type { Anki } from "src/services/anki/anki";
 import { escapeRegExp } from "src/utils";
 import { ensureFolderExists } from "src/services/vault/vault";
-import { uniquePath } from "src/services/vault/paths";
+import { deckSegments, uniquePath } from "src/services/vault/paths";
 
 export type MediaPathMap = Record<string, string>;
 
@@ -43,7 +43,7 @@ export function mediaFilenamesIn(htmlFields: string[]): string[] {
 }
 
 export function deckAttachmentsFolder(deckName: string): string {
-  return `${deckName.split("::").join("/")}/attachments`;
+  return `${deckSegments(deckName).join("/")}/attachments`;
 }
 
 export function resolveMediaPath(

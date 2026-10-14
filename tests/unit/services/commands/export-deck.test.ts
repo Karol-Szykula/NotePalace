@@ -132,6 +132,32 @@ describe("the export command stays inside its confinement", () => {
     expect(actions()).not.toContain("deleteNotes");
   });
 
+  test("given a vault folder matching a known deck after sanitizing when exported then no new deck is created", async () => {
+    // given
+    const realDeck = "CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite";
+    responder.respondWith({ decks: { [realDeck]: [] } });
+    const filePath =
+      "CCNA/Day 03 Flashcards - OSI Model, TCP-IP Suite/What-is-2-2.md";
+    const vault = vaultWith({ [filePath]: vaultOnlyBlock });
+
+    // when
+    await executeExport(
+      new Anki(),
+      vault,
+      createSettings(),
+      { ignoredDirectories: "", previewStatuses: undefined },
+      jsonEngine,
+    );
+
+    // then
+    expect(actions()).not.toContain("createDeck");
+    const addNotes = responder.state.requests.find(
+      (request) => request.action === "addNotes",
+    );
+    const payloads = addNotes?.params["notes"] as { deckName: string }[];
+    expect(payloads[0]?.deckName).toBe(realDeck);
+  });
+
   test("given a created Anki note when the export finishes then its id is written back into the block", async () => {
     // given
     responder.respondWith();

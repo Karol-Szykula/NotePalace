@@ -9,7 +9,6 @@ import type { TFile as ObsidianTFile, Vault as ObsidianVault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import { isKnownModel } from "src/services/anki/anki-models";
 import { discoverDeckModels } from "src/services/notes/fields";
-import { deckFolder } from "src/services/vault/paths";
 import { fetchDeckNotes } from "src/services/anki/read";
 import { normalizeNoteText } from "src/services/notes/text";
 import { setActiveDocument } from "../../../mocks/obsidian";
@@ -234,24 +233,6 @@ describe("fetchDeckNotes", () => {
       [200, totalNotes],
       [250, totalNotes],
     ]);
-  });
-});
-
-describe("deckFolder", () => {
-  test("given a plain deck without target when resolved then returns the deck folder", async () => {
-    // when
-    const folder = deckFolder("Languages", "");
-
-    // then
-    expect(folder).toBe("Languages");
-  });
-
-  test("given a nested deck with target when resolved then nests both", async () => {
-    // when
-    const folder = deckFolder("Medicine::Anatomy", "Import");
-
-    // then
-    expect(folder).toBe("Import/Medicine/Anatomy");
   });
 });
 

@@ -33,6 +33,7 @@ import {
   resolveCommandDecision,
 } from "src/services/notes/decision-table";
 import { deckForPath, isIgnoredPath } from "src/services/vault/vault";
+import { deckNameIndex, resolveDeckName } from "src/services/vault/paths";
 import { parseNoteForm } from "src/services/notes/document";
 import { obsidianYamlEngine, type YamlEngine } from "src/services/yaml-engine";
 import {
@@ -112,9 +113,14 @@ export async function scanVaultBlocks(
   return { locations, unreadable };
 }
 
-async function ensureDecks(anki: Anki, deckNames: string[]): Promise<void> {
-  const known = new Set(await anki.getDeckNames());
-  for (const deckName of deckNames) {
+async function ensurePlannedDecks(anki: Anki, plan: ExportPlan): Promise<void> {
+  const knownNames = await anki.getDeckNames();
+  const known = new Set(knownNames);
+  const index = deckNameIndex(knownNames);
+  for (const candidate of plan.creates) {
+    candidate.note.deckName = resolveDeckName(index, candidate.note.deckName);
+  }
+  for (const deckName of decksForCreates(plan)) {
     if (known.has(deckName)) {
       continue;
     }
@@ -426,7 +432,7 @@ async function createPlannedNotes(anki: Anki, plan: ExportPlan): Promise<void> {
   if (plan.creates.length === 0) {
     return;
   }
-  await ensureDecks(anki, decksForCreates(plan));
+  await ensurePlannedDecks(anki, plan);
   const noteIds = await anki.addNotes(
     plan.creates.map((candidate) => candidate.note),
   );

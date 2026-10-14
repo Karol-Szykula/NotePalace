@@ -163,7 +163,7 @@ export function ankiResponder(): AnkiResponder {
       }
       if (request.action === "deckNames") {
         return {
-          result: decks ? Object.keys(decks) : null,
+          result: decks ? Object.keys(decks) : [],
           error: null,
         };
       }

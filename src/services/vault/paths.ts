@@ -57,10 +57,34 @@ export function parentFolderOf(filePath: string): string {
   return slash < 0 ? "" : filePath.slice(0, slash);
 }
 
-/** A deck's `Parent::Child` chain is a nested vault folder. */
+/**
+ * A deck's `Parent::Child` chain is a nested vault folder. A segment is one
+ * deck name level, sanitized so a slash inside it cannot add a folder level.
+ */
+export function deckSegments(deckName: string): string[] {
+  return deckName.split("::").map((segment) => segment.split("/").join("-"));
+}
+
 export function deckFolder(deckName: string, targetFolder: string): string {
-  const deckPath = deckName.split("::").join("/");
+  const deckPath = deckSegments(deckName).join("/");
   return targetFolder ? `${targetFolder}/${deckPath}` : deckPath;
+}
+
+export function sanitizeDeckName(deckName: string): string {
+  return deckSegments(deckName).join("::");
+}
+
+export type DeckNameIndex = Map<string, string>;
+
+export function deckNameIndex(knownNames: string[]): DeckNameIndex {
+  return new Map(knownNames.map((known) => [sanitizeDeckName(known), known]));
+}
+
+export function resolveDeckName(
+  index: DeckNameIndex,
+  derivedName: string,
+): string {
+  return index.get(sanitizeDeckName(derivedName)) ?? derivedName;
 }
 
 function markdownFileName(title: string): {
