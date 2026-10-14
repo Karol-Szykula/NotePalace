@@ -112,6 +112,9 @@ function respondWithDecks(decks: Record<string, AnkiNoteInfo[]>): void {
         error: null,
       };
     }
+    if (request.action === "deckNames") {
+      return { result: Object.keys(decks), error: null };
+    }
     return { result: null, error: null };
   });
 }
@@ -311,6 +314,44 @@ describe("executeSync", () => {
     expect(await readPath(vault, "Languages/Q-101.md")).toBe(
       `${formBlock("Mine", "A", 101)}\n`,
     );
+  });
+
+  test("given a note in a sanitized deck folder when pushed then targets the real deck", async () => {
+    // given
+    const realDeck = "CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite";
+    const filePath =
+      "CCNA/Day 03 Flashcards - OSI Model, TCP-IP Suite/Q-101.md";
+    const vault = vaultWith({ [filePath]: `${formBlock("Mine", "A", 101)}\n` });
+    const settings = createSettings({
+      deckImportSnapshots: {
+        [realDeck]: {
+          deckName: realDeck,
+          fieldMappings: { Basic: { Back: "Back", Front: "Front" } },
+          importedAt: 0,
+        },
+      },
+    });
+    respondWithDecks({
+      [realDeck]: [basicAnkiNote(101, 100, "Q", "A", ["math"])],
+    });
+
+    // when
+    const report: SyncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report.decks[0]).toMatchObject({ pushed: 1 });
+    const changeDeck = recordedRequests
+      .flatMap(
+        (request) =>
+          (request.params["actions"] as RecordedRequest[] | undefined) ?? [],
+      )
+      .find((action) => action.action === "changeDeck");
+    expect(changeDeck?.params["deck"]).toBe(realDeck);
   });
 
   test("given an untracked note without any block when executed then still skips it", async () => {

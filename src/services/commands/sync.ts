@@ -29,6 +29,7 @@ import {
   type VaultNoteIndex,
 } from "src/services/vault/vault";
 import { executeImport } from "src/services/commands/import-deck";
+import { resolveDeckName } from "src/services/vault/paths";
 import { fetchDeckNotes } from "src/services/anki/read";
 import {
   ankiContentHash,
@@ -153,6 +154,7 @@ function decideMissingFile(
 
 interface SyncContext {
   anki: Anki;
+  deckNames: string[];
   index: VaultNoteIndex;
   pushes: PushedNote[];
   settings: ISettings;
@@ -196,7 +198,11 @@ async function stepForPresentNote(
     context.pushes.push(
       await buildPushedNote(
         context.vault,
-        { block, deckName: deckForPath(file.path), file },
+        {
+          block,
+          deckName: resolveDeckName(context.deckNames, deckForPath(file.path)),
+          file,
+        },
         pack,
         note,
       ),
@@ -242,19 +248,24 @@ async function applyPushedNotes(
   );
 }
 
-interface DeckScanInput {
+interface SyncScope {
   anki: Anki;
+  deckNames: string[];
   index: VaultNoteIndex;
   settings: ISettings;
-  snapshot: DeckImportSnapshot;
   vault: Vault;
   yaml: YamlEngine;
+}
+
+interface DeckScanInput extends SyncScope {
+  snapshot: DeckImportSnapshot;
 }
 
 function createDeckScan(input: DeckScanInput): DeckScan {
   return {
     context: {
       anki: input.anki,
+      deckNames: input.deckNames,
       index: input.index,
       pushes: [],
       settings: input.settings,
@@ -270,28 +281,29 @@ function createDeckScan(input: DeckScanInput): DeckScan {
 }
 
 async function syncDeckNotes(
-  anki: Anki,
-  vault: Vault,
-  settings: ISettings,
+  scope: SyncScope,
   snapshot: DeckImportSnapshot,
   notes: AnkiNoteInfo[],
-  index: VaultNoteIndex,
-  yaml: YamlEngine,
 ): Promise<SyncDeckResult> {
-  const scan = createDeckScan({ anki, index, settings, snapshot, vault, yaml });
+  const scan = createDeckScan({ ...scope, snapshot });
   for (const note of notes) {
-    await scanDeckNote(scan, snapshot, note, index);
+    await scanDeckNote(scan, snapshot, note, scope.index);
   }
   scan.counts.pushed = scan.context.pushes.length;
-  await applyPushedNotes(anki, settings, snapshot, scan.context.pushes);
+  await applyPushedNotes(
+    scope.anki,
+    scope.settings,
+    snapshot,
+    scan.context.pushes,
+  );
   if (scan.eligible.length > 0) {
     scan.counts.refreshed = await importEligibleNotes(
-      anki,
-      vault,
-      settings,
+      scope.anki,
+      scope.vault,
+      scope.settings,
       snapshot,
       scan,
-      yaml,
+      scope.yaml,
     );
   }
   return { deck: scan.counts, enrolled: scan.enrolled, purged: scan.purged };
@@ -599,23 +611,11 @@ export async function fillMissingBlockIds(
 }
 
 async function syncOneDeck(
-  anki: Anki,
-  vault: Vault,
-  settings: ISettings,
-  index: VaultNoteIndex,
-  yaml: YamlEngine,
+  scope: SyncScope,
   snapshot: DeckImportSnapshot,
 ): Promise<SyncedDeck> {
-  const notes = await fetchDeckNotes(anki, snapshot.deckName);
-  const result = await syncDeckNotes(
-    anki,
-    vault,
-    settings,
-    snapshot,
-    notes,
-    index,
-    yaml,
-  );
+  const notes = await fetchDeckNotes(scope.anki, snapshot.deckName);
+  const result = await syncDeckNotes(scope, snapshot, notes);
   return { liveIds: notes.map((note) => note.noteId), result };
 }
 
@@ -630,20 +630,20 @@ export async function executeSync(
     throw new Error(t("notice.noImportYet"));
   }
   await fillMissingBlockIds(vault, settings, yaml);
-  const index = await collectVaultNoteIndex(vault);
+  const scope: SyncScope = {
+    anki,
+    deckNames: await anki.getDeckNames(),
+    index: await collectVaultNoteIndex(vault),
+    settings,
+    vault,
+    yaml,
+  };
   const liveIds = new Set<number>();
   const decks: SyncDeckReport[] = [];
   let enrolled = 0;
   let purgedFromDeletions = 0;
   for (const snapshot of snapshots) {
-    const synced = await syncOneDeck(
-      anki,
-      vault,
-      settings,
-      index,
-      yaml,
-      snapshot,
-    );
+    const synced = await syncOneDeck(scope, snapshot);
     for (const noteId of synced.liveIds) {
       liveIds.add(noteId);
     }
@@ -656,7 +656,7 @@ export async function executeSync(
     vault,
     settings,
     liveIds,
-    index,
+    scope.index,
     yaml,
   );
   return {

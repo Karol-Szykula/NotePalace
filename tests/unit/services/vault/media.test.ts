@@ -61,6 +61,19 @@ describe("deckAttachmentsFolder", () => {
     // then
     expect(folder).toBe("Medicine/Anatomy/attachments");
   });
+
+  test("given a segment holding a slash when resolved then keeps the folder depth", async () => {
+    // given
+    const deckName = "CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite";
+
+    // when
+    const folder = deckAttachmentsFolder(deckName);
+
+    // then
+    expect(folder).toBe(
+      "CCNA/Day 03 Flashcards - OSI Model, TCP-IP Suite/attachments",
+    );
+  });
 });
 
 describe("resolveMediaPath", () => {
