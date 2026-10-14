@@ -1173,7 +1173,7 @@ describe("executeImport", () => {
     expect(vault.getMarkdownFiles()).toHaveLength(0);
   });
 
-  test("given a selected note with a mapping but no pack when executed then imports it", async () => {
+  test("given a foreign note with an ad-hoc mapping and no saved pack when executed then imports it", async () => {
     // given
     const { vault } = executeWith({});
     const notes = [
