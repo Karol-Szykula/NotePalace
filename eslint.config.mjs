@@ -68,18 +68,19 @@ export default [
     rules: {
       ...sonarjs.configs.recommended.rules,
       "notepalace/no-visible-literals": "error",
-      complexity: ["error", 18],
+      complexity: ["error", 17],
       "@typescript-eslint/consistent-type-imports": [
         "error",
         { fixStyle: "separate-type-imports" },
       ],
-      "max-depth": ["error", 4],
+      "max-depth": ["error", 3],
+      "max-nested-callbacks": ["error", 3],
       "max-lines-per-function": [
         "error",
         { max: 225, skipBlankLines: true, skipComments: true },
       ],
       "max-params": ["error", 7],
-      "max-statements": ["error", 55],
+      "max-statements": ["error", 40],
       "@typescript-eslint/no-confusing-void-expression": [
         "error",
         { ignoreArrowShorthand: true },
@@ -92,6 +93,9 @@ export default [
         { allowNumber: true },
       ],
       "sonarjs/cognitive-complexity": ["error", 20],
+      "sonarjs/no-collapsible-if": "error",
+      "sonarjs/no-identical-functions": "error",
+      "sonarjs/no-nested-conditional": "error",
       "@typescript-eslint/await-thenable": "off",
     },
   },
