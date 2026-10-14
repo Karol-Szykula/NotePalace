@@ -60,7 +60,7 @@ const cases: Case[] = [
   ["sync", "linked.unenrolled", OUT_OF_SCOPE],
   ["sync", "vaultOnly.unexported", OUT_OF_SCOPE],
   ["sync", "vaultOnly.unenrolled", OUT_OF_SCOPE],
-  ["sync", "vaultOnly.ankiDeleted", OUT_OF_SCOPE],
+  ["sync", "vaultOnly.ankiDeleted", "DELETE_FILE"],
   ["sync", "orphaned", OUT_OF_SCOPE],
 ];
 
@@ -123,6 +123,7 @@ const confinement: Record<SyncCommand, readonly SyncDecisionAct[]> = {
     "PUSH",
     "RESOLVE_NEWEST",
     "RESURRECT",
+    "DELETE_FILE",
     "ENROLL",
     "CHECK",
     OUT_OF_SCOPE,
@@ -205,11 +206,11 @@ describe("the decision table is total", () => {
     }
   });
 
-  test("given the state only Sync resolves when read then the rationale names the missing producer", () => {
+  test("given an Anki deletion when Sync resolves it then it deletes the vault block", () => {
     const row = syncDecisionFor("sync", "vaultOnly.ankiDeleted");
-    expect(row.act).toBe(OUT_OF_SCOPE);
+    expect(row.act).toBe("DELETE_FILE");
     expect(row.responsibleComponent).toBe("bidirectional-sync");
-    expect(resolveMessage("en", row.rationaleKey)).toMatch(/purge path/);
+    expect(resolveMessage("en", row.rationaleKey)).toMatch(/removes the block/);
   });
 
   test("given a deleted vault file when Sync resolves then it resurrects the note", () => {

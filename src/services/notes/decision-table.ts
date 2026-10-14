@@ -260,7 +260,7 @@ const canonicalDecisions: Record<NoteLifecycleStatus, CanonicalDecision> = {
       rationale: "decision.vaultOnly.ankiDeleted.import.rationale",
     },
     sync: {
-      act: OUT_OF_SCOPE,
+      act: "DELETE_FILE",
       kind: "missing",
       rationale: "decision.vaultOnly.ankiDeleted.sync.rationale",
     },

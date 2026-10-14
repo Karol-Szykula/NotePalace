@@ -271,7 +271,9 @@ const en = {
           forcedOutcome: "re-creates it in Anki.",
         },
         import: { rationale: "Gone from Anki: Sync deletes the file." },
-        sync: { rationale: "Gone from Anki: the purge path handles it." },
+        sync: {
+          rationale: "Gone from Anki: Sync removes the block from the vault.",
+        },
       },
     },
     orphaned: {
