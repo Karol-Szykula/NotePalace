@@ -242,32 +242,46 @@ export function classifyNoteLifecycle(
 ): NoteLifecycleStatus {
   const { anki, block, record } = inputs;
   if (anki === undefined) {
-    if (block === undefined) {
-      if (record === undefined) {
-        throw new Error(
-          "Nothing to classify: no anki note, vault block or record",
-        );
-      }
-      return "orphaned";
-    }
-    if (record === undefined) {
-      return block.id === undefined
-        ? "vaultOnly.unexported"
-        : "vaultOnly.unenrolled";
-    }
-    return "vaultOnly.ankiDeleted";
+    return classifyWithoutAnki(block, record);
   }
   if (block === undefined) {
-    if (record === undefined) {
-      return "ankiOnly.neverImported";
-    }
-    return "ankiOnly.fileDeleted";
+    return record === undefined
+      ? "ankiOnly.neverImported"
+      : "ankiOnly.fileDeleted";
   }
   if (record === undefined) {
     return "linked.unenrolled";
   }
-  const vaultDirty = block.hash !== record.lastHash;
-  const ankiDirty = (anki.mod ?? 0) > record.lastMod;
+  return syncStatus(
+    block.hash !== record.lastHash,
+    (anki.mod ?? 0) > record.lastMod,
+  );
+}
+
+function classifyWithoutAnki(
+  block: LifecycleInputs["block"],
+  record: NoteLifecycleRecord | undefined,
+): NoteLifecycleStatus {
+  if (block === undefined) {
+    if (record === undefined) {
+      throw new Error(
+        "Nothing to classify: no anki note, vault block or record",
+      );
+    }
+    return "orphaned";
+  }
+  if (record === undefined) {
+    return block.id === undefined
+      ? "vaultOnly.unexported"
+      : "vaultOnly.unenrolled";
+  }
+  return "vaultOnly.ankiDeleted";
+}
+
+function syncStatus(
+  vaultDirty: boolean,
+  ankiDirty: boolean,
+): NoteLifecycleStatus {
   if (vaultDirty && ankiDirty) {
     return "synced.diverged";
   }

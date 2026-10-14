@@ -193,6 +193,50 @@ function nameCollision(
   };
 }
 
+function recordModelStatus(
+  definition: BuiltInModelDefinition,
+  fieldsByModel: Record<string, string[]>,
+  knownNames: string[],
+  report: ModelAssuranceReport,
+  missing: BuiltInModelDefinition[],
+): void {
+  const actualFields = fieldsByModel[definition.modelName];
+  if (actualFields === undefined) {
+    recordAbsentModel(definition, knownNames, report, missing);
+    return;
+  }
+  recordPresentModel(definition, actualFields, report);
+}
+
+function recordAbsentModel(
+  definition: BuiltInModelDefinition,
+  knownNames: string[],
+  report: ModelAssuranceReport,
+  missing: BuiltInModelDefinition[],
+): void {
+  const collision = collidingModelName(definition.modelName, knownNames);
+  if (collision === undefined) {
+    missing.push(definition);
+    return;
+  }
+  report.mismatched.push(nameCollision(definition, collision));
+}
+
+function recordPresentModel(
+  definition: BuiltInModelDefinition,
+  actualFields: string[],
+  report: ModelAssuranceReport,
+): void {
+  const absentFields = definition.inOrderFields.filter(
+    (field) => !actualFields.includes(field),
+  );
+  if (absentFields.length === 0) {
+    report.assured.push(definition.modelName);
+    return;
+  }
+  report.mismatched.push(schemaMismatch(definition, actualFields));
+}
+
 export async function assureModels(
   anki: Anki,
   wantedModelNames: string[],
@@ -216,24 +260,7 @@ export async function assureModels(
   const knownNames = snapshot.modelNames;
   const missing: BuiltInModelDefinition[] = [];
   for (const definition of wanted) {
-    const actualFields = fieldsByModel[definition.modelName];
-    if (actualFields === undefined) {
-      const collision = collidingModelName(definition.modelName, knownNames);
-      if (collision !== undefined) {
-        report.mismatched.push(nameCollision(definition, collision));
-        continue;
-      }
-      missing.push(definition);
-      continue;
-    }
-    const absentFields = definition.inOrderFields.filter(
-      (field) => !actualFields.includes(field),
-    );
-    if (absentFields.length > 0) {
-      report.mismatched.push(schemaMismatch(definition, actualFields));
-      continue;
-    }
-    report.assured.push(definition.modelName);
+    recordModelStatus(definition, fieldsByModel, knownNames, report, missing);
   }
   await createMissingModels(anki, missing);
   report.created = missing.map((definition) => definition.modelName);
