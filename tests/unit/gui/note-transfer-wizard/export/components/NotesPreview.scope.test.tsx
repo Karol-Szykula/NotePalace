@@ -117,6 +117,25 @@ describe("export NotesPreview scope", () => {
     ).toBeInTheDocument();
   });
 
+  test("given a scoped front when the query is changed away then the hint falls back to the generic no-match message", async () => {
+    // given
+    const files = { "Languages/Fresh.md": `${noteBlock("Fresh note")}\n` };
+    renderScopedPreview(files, { initialQuery: "fresh" });
+    await screen.findByText("Fresh note");
+
+    // when
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "Search notes" }),
+      "zzz",
+    );
+
+    // then
+    expect(await screen.findByText(/No notes match /)).toBeInTheDocument();
+    expect(
+      screen.queryByText(t("preview.scopedNoMatch", { deck: "Languages" })),
+    ).not.toBeInTheDocument();
+  });
+
   test("given a scoped front when the clear control is activated then the whole folder returns", async () => {
     // given
     const files = {

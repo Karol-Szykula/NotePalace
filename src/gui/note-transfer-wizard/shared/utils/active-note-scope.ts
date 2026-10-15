@@ -18,6 +18,8 @@ export type WizardScope =
     }
   | { readonly kind: "unavailable" };
 
+const scopeQueryMaxLength = 80;
+
 export async function activeNoteScope(app: App): Promise<NoteScope | null> {
   const file = app.workspace.getActiveFile();
   if (!(file instanceof TFile) || file.extension !== "md") {
@@ -30,7 +32,7 @@ export async function activeNoteScope(app: App): Promise<NoteScope | null> {
   return {
     deckName: deckForPath(file.path),
     noteId: note.id,
-    query: normalizeNoteText(note.front).slice(0, 80),
+    query: normalizeNoteText(note.front).slice(0, scopeQueryMaxLength),
   };
 }
 

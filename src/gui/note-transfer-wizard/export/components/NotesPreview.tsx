@@ -15,9 +15,11 @@ export function NotesPreview(props: NotesPreviewProps): JSX.Element {
   );
   const preview = useExportPreview(props);
   const emptyMatchText =
-    props.initialQuery === undefined || props.initialQuery === ""
-      ? undefined
-      : t("preview.scopedNoMatch", { deck: props.deckName });
+    props.initialQuery !== undefined &&
+    props.initialQuery !== "" &&
+    preview.query.query === props.initialQuery
+      ? t("preview.scopedNoMatch", { deck: props.deckName })
+      : undefined;
 
   if (preview.loadError) {
     return (

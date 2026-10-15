@@ -15,6 +15,8 @@ import {
   type WizardScope,
 } from "src/gui/note-transfer-wizard/shared/utils/active-note-scope";
 import { existingDeckName } from "src/services/vault/paths";
+import { selectableDeckNames } from "src/services/commands/export-scan";
+import { obsidianYamlEngine } from "src/services/yaml-engine";
 import {
   clozeModelName,
   notepalaceIcon,
@@ -142,9 +144,17 @@ export default class NotePalace extends Plugin {
   private async exportScope(): Promise<WizardScope> {
     try {
       const scope = await activeNoteScope(this.app);
-      return scope === null
-        ? unavailableScope()
-        : scopedScope(scope.deckName, scope);
+      if (scope === null) {
+        return unavailableScope();
+      }
+      const decks = await selectableDeckNames(
+        this.app.vault,
+        this.settings.ignoredDirectories,
+        obsidianYamlEngine,
+      );
+      return decks.has(scope.deckName)
+        ? scopedScope(scope.deckName, scope)
+        : unavailableScope();
     } catch (error) {
       logger.error("resolving the active note scope failed", error);
       return unavailableScope();

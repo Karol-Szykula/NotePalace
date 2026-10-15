@@ -83,7 +83,7 @@ export function WizardShell<Context>({
   return (
     <div className={mergeClasses("wizard-shell", className)}>
       <PageIndicator currentPage={currentPage} pages={pageTitles} />
-      {notice !== undefined && (
+      {notice !== undefined && currentPage === initialPage && (
         <p className={noteTransferWizardClasses.notice}>{notice}</p>
       )}
       {activePage?.render(context)}
