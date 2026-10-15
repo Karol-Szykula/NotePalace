@@ -62,13 +62,7 @@ export interface NotesPreviewProps {
   readonly vaultNoteIndex: VaultNoteIndex;
 }
 
-export interface PreviewQuery {
-  readonly debouncedQuery: string;
-  readonly onQueryChange: (value: string) => void;
-  readonly onQueryClear: () => void;
-  readonly query: string;
-  readonly resetQuery: () => void;
-}
+export type { PreviewQuery } from "@shared/hooks/usePreviewQuery";
 
 export const previewPageSize = 100;
 

@@ -68,13 +68,7 @@ export interface ExportableBlock {
   readonly status: NoteLifecycleStatus;
 }
 
-export interface PreviewQuery {
-  readonly debouncedQuery: string;
-  readonly onQueryChange: (value: string) => void;
-  readonly onQueryClear: () => void;
-  readonly query: string;
-  readonly resetQuery: () => void;
-}
+export type { PreviewQuery } from "@shared/hooks/usePreviewQuery";
 
 export const previewPageSize = 100;
 

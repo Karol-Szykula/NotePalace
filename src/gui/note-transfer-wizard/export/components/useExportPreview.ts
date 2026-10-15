@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
-import { useDebouncedValue } from "@shared/hooks/useDebouncedValue";
+import {
+  usePreviewQuery,
+  type PreviewQuery,
+} from "@shared/hooks/usePreviewQuery";
 import type { Anki } from "src/services/anki/anki";
 import type { Vault } from "obsidian";
 import type { NoteLifecycleStatus } from "src/services/notes/lifecycle";
@@ -18,29 +21,7 @@ import {
   previewPageSize,
   type ExportableBlock,
   type NotesPreviewProps,
-  type PreviewQuery,
 } from "./exportPreviewHelpers";
-
-function usePreviewQuery(onPageChange: (page: number) => void): PreviewQuery {
-  const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query);
-
-  const onQueryChange = (value: string): void => {
-    setQuery(value);
-    onPageChange(0);
-  };
-
-  const onQueryClear = (): void => {
-    setQuery("");
-    onPageChange(0);
-  };
-
-  const resetQuery = (): void => {
-    setQuery("");
-  };
-
-  return { debouncedQuery, onQueryChange, onQueryClear, query, resetQuery };
-}
 
 interface ExportBlocksParams {
   readonly anki: Anki;
