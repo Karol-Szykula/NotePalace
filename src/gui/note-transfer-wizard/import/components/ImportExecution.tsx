@@ -26,6 +26,7 @@ export interface ImportExecutionProps {
   readonly noteLifecycle: Record<number, NoteLifecycleRecord>;
   readonly notes: AnkiNoteInfo[];
   readonly notesSelectedToImport: Record<number, boolean>;
+  readonly onFailure?: (() => void) | undefined;
   readonly onFinish: (report: ImportExecutionReport) => void;
   readonly previewStatuses?: Record<number, NoteLifecycleStatus> | undefined;
   readonly vault: Vault;
@@ -136,6 +137,7 @@ function useImportExecution({
   noteLifecycle,
   notes,
   notesSelectedToImport,
+  onFailure,
   onFinish,
   previewStatuses,
   vault,
@@ -176,6 +178,7 @@ function useImportExecution({
         error instanceof Error ? error.message : "Unknown import error.",
       );
       setPhase("failed");
+      onFailure?.();
     }
   };
 

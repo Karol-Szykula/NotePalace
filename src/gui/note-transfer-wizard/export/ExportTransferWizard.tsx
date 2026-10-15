@@ -21,6 +21,7 @@ export interface ExportTransferWizardProps {
 }
 
 interface ExportWizardShellProps {
+  readonly executionFinished: boolean;
   readonly initialPage: number;
   readonly notesSelectedToExportCount: number;
   readonly notice?: string | undefined;
@@ -38,6 +39,7 @@ function countSelected(selected: Record<number, boolean>): number {
 }
 
 function ExportWizardShell({
+  executionFinished,
   initialPage,
   notesSelectedToExportCount,
   notice,
@@ -53,6 +55,7 @@ function ExportWizardShell({
     <WizardShell
       className={noteTransferWizardClasses.modal}
       getContext={() => ({
+        executionFinished,
         notesSelectedToExportCount,
         selectedDeckName,
       })}
@@ -87,15 +90,20 @@ export function ExportTransferWizard({
   vault,
 }: ExportTransferWizardProps): JSX.Element {
   const [anki] = useState(() => new Anki());
+  const [executionFinished, setExecutionFinished] = useState(false);
   const state = useExportWizardState(activeScope);
 
+  const failExport = (): void => setExecutionFinished(true);
+
   const finishExport = (): void => {
+    setExecutionFinished(true);
     void saveSettings();
   };
 
   const pages = useExportWizardPages({
     ...state,
     anki,
+    failExport,
     finishExport,
     ignoredDirectories: settings.ignoredDirectories,
     settings,
@@ -111,6 +119,7 @@ export function ExportTransferWizard({
 
   return (
     <ExportWizardShell
+      executionFinished={executionFinished}
       initialPage={initialPage}
       notesSelectedToExportCount={notesSelectedToExportCount}
       notice={notice}

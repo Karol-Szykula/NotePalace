@@ -219,6 +219,11 @@ export abstract class WizardModalPO {
     return this.isButtonVisible(t("wizard.next"));
   }
 
+  async isOkButtonEnabled(): Promise<boolean> {
+    const okButton = await this.elements.okButton;
+    return !(okButton as HTMLButtonElement).disabled;
+  }
+
   async pageIndicatorTitles(): Promise<string[]> {
     return waitFor(() => {
       const pages = this.container.querySelectorAll(

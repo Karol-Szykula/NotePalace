@@ -11,12 +11,14 @@ import type { WizardPage } from "@shared/components";
 import { commonWizardClasses } from "@shared/classes";
 
 export interface ExportWizardContext {
+  readonly executionFinished: boolean;
   readonly notesSelectedToExportCount: number;
   readonly selectedDeckName: string;
 }
 
 export interface ExportWizardPageDeps {
   readonly anki: Anki;
+  readonly failExport: () => void;
   readonly finishExport: (report: ExportReport) => void;
   readonly forcedNoteIds: Record<number, boolean>;
   readonly handleNotesPreviewPageChange: (page: number) => void;
@@ -94,6 +96,7 @@ function buildExportExecutionPage(
   deps: ExportWizardPageDeps,
 ): WizardPage<ExportWizardContext> {
   return {
+    canFinish: (context) => context.executionFinished,
     render: () => (
       <ExportExecution
         anki={deps.anki}
@@ -102,6 +105,7 @@ function buildExportExecutionPage(
         ignoredDirectories={deps.ignoredDirectories}
         key={deps.selectedDeckName}
         notesSelectedToExport={deps.notesSelectedToExport}
+        onFailure={deps.failExport}
         onFinish={deps.finishExport}
         previewStatuses={deps.previewStatuses}
         settings={deps.settings}

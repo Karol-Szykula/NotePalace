@@ -1,8 +1,9 @@
 /**
  * @jest-environment jsdom
  *
- * The wizard notice explains why the wizard opened without a scope: it
- * belongs to the page the wizard opened on and leaves once the user moves on.
+ * The wizard shell frames the pages: the notice belongs to the page the
+ * wizard opened on, and OK on the last page waits until the page declares
+ * itself finished.
  */
 import "obsidian-test-mocks/jest-setup";
 import { render, screen } from "@testing-library/react";
@@ -78,4 +79,72 @@ test("given a notice and an advance when going back then the notice returns with
   // then
   expect(screen.getByText(noticeText)).toBeInTheDocument();
   expect(screen.getByText("First page")).toBeInTheDocument();
+});
+
+interface FinishGate {
+  readonly isFinished: boolean;
+}
+
+function renderFinishGate(gate: FinishGate): void {
+  const pages: WizardPage<FinishGate>[] = [
+    { render: () => <p>First page</p>, title: "One" },
+    {
+      canFinish: (context) => context.isFinished,
+      render: () => <p>Second page</p>,
+      title: "Two",
+    },
+  ];
+  render(
+    <WizardShell
+      getContext={() => gate}
+      initialPage={2}
+      onCancel={jest.fn()}
+      pages={pages}
+    />,
+  );
+}
+
+function renderPlainLastPage(): void {
+  const pages: WizardPage[] = [
+    { render: () => <p>First page</p>, title: "One" },
+    { render: () => <p>Second page</p>, title: "Two" },
+  ];
+  render(
+    <WizardShell
+      getContext={() => ({})}
+      initialPage={2}
+      onCancel={jest.fn()}
+      pages={pages}
+    />,
+  );
+}
+
+test("given a last page that is not finished when rendered then OK stays disabled", () => {
+  // given
+  const gate: FinishGate = { isFinished: false };
+
+  // when
+  renderFinishGate(gate);
+
+  // then
+  expect(screen.getByRole("button", { name: "OK" })).toBeDisabled();
+});
+
+test("given a last page that is finished when rendered then OK is enabled", () => {
+  // given
+  const gate: FinishGate = { isFinished: true };
+
+  // when
+  renderFinishGate(gate);
+
+  // then
+  expect(screen.getByRole("button", { name: "OK" })).toBeEnabled();
+});
+
+test("given a last page without a finish gate when rendered then OK is enabled", () => {
+  // given, when
+  renderPlainLastPage();
+
+  // then
+  expect(screen.getByRole("button", { name: "OK" })).toBeEnabled();
 });
