@@ -85,9 +85,13 @@ test("given an active note in an ignored directory when scoped then there is no 
     files: { "Templates/Note.md": `${noteBlock("Template note", 7)}\n` },
   });
   await activateFile(app as unknown as App, "Templates/Note.md");
+  const ignoredDirectories = "Templates";
 
   // when
-  const scope = await activeNoteScope(app as unknown as App, "Templates");
+  const scope = await activeNoteScope(
+    app as unknown as App,
+    ignoredDirectories,
+  );
 
   // then
   expect(scope).toBeNull();
