@@ -134,7 +134,7 @@ interface ExportPreviewState {
 }
 
 export function useExportPreview(props: NotesPreviewProps): ExportPreviewState {
-  const query = usePreviewQuery(props.onPageChange);
+  const query = usePreviewQuery(props.onPageChange, props.initialQuery ?? "");
   const blocks = useExportBlocks({
     anki: props.anki,
     deckName: props.deckName,

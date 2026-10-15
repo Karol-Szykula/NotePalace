@@ -11,6 +11,7 @@ import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { App } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
+import { unavailableScope } from "@shared/utils/active-note-scope";
 import {
   notesToImportPattern,
   createdPattern,
@@ -113,6 +114,7 @@ function openWizard(settings: ISettings) {
   const saveSettings = jest.fn(async (): Promise<void> => undefined);
   const { unmount } = render(
     <NotesImportWizard
+      activeScope={unavailableScope()}
       onCancel={onCancel}
       saveSettings={saveSettings}
       settings={settings}

@@ -20,6 +20,10 @@
   --notepalace-note-transfer-wizard-modal__page-view-margin-bottom: 0.5rem;
   --notepalace-note-transfer-wizard-modal__page-view-padding-right: 0.25rem;
 
+  --notepalace-note-transfer-wizard-modal__notice-color:                var(--text-muted);
+  --notepalace-note-transfer-wizard-modal__preview-highlight-background: var(--background-modifier-hover);
+  --notepalace-note-transfer-wizard-modal__preview-highlight-radius:     0.375rem;
+
   --notepalace-note-transfer-wizard-modal__footer-gap: 0.5rem;
   --notepalace-note-transfer-wizard-modal__edge-gap:   0.75rem;
 
@@ -380,6 +384,17 @@
 
 .notepalace-note-export-wizard-modal__preview-row--imported {
   opacity: 0.5;
+}
+
+.notepalace-note-transfer-wizard-modal__preview-row--highlighted {
+  background-color: var(--notepalace-note-transfer-wizard-modal__preview-highlight-background);
+  border-radius:    var(--notepalace-note-transfer-wizard-modal__preview-highlight-radius);
+}
+
+.notepalace-note-transfer-wizard-modal__notice {
+  color:     var(--notepalace-note-transfer-wizard-modal__notice-color);
+  margin:    var(--notepalace-note-transfer-wizard-modal__page-indicator-margin-top) 0 0;
+  font-size: var(--notepalace-note-transfer-wizard-modal__page-indicator-font-size);
 }
 
 .notepalace-note-transfer-wizard-modal__list {

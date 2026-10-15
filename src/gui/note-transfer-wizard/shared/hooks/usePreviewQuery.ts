@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useDebouncedValue } from "./useDebouncedValue";
 
 export interface PreviewQuery {
@@ -11,9 +11,11 @@ export interface PreviewQuery {
 
 export function usePreviewQuery(
   onPageChange: (page: number) => void,
+  initialQuery = "",
 ): PreviewQuery {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const debouncedQuery = useDebouncedValue(query);
+  const isSeeded = useRef(initialQuery.length > 0);
 
   const onQueryChange = (value: string): void => {
     setQuery(value);
@@ -26,6 +28,10 @@ export function usePreviewQuery(
   };
 
   const resetQuery = (): void => {
+    if (isSeeded.current) {
+      isSeeded.current = false;
+      return;
+    }
     setQuery("");
   };
 

@@ -7,7 +7,7 @@ import type { NotesTableProps } from "@shared/components/NotesTable";
 import { ankiWinsStrategy } from "@shared/types/AnkiWinsStrategy";
 import {
   countNotesToResurrect,
-  importRowClassName,
+  importRowClassNameFor,
   importRowDetails,
   isImportSelectedByDefault,
   noteSummary,
@@ -38,8 +38,10 @@ interface ImportPreviewTableProps {
   readonly className: string;
   readonly columns: ColumnDef<ClassifiedNote>[];
   readonly currentPage: number;
+  readonly emptyMatchText?: string | undefined;
   readonly filteredNotes: ClassifiedNote[];
   readonly forcedNoteIds: Record<number, boolean>;
+  readonly highlightKey?: number | null;
   readonly notesSelectedToImport: Record<number, boolean>;
   readonly onForcedNoteIdsChange: (
     forcedNoteIds: Record<number, boolean>,
@@ -59,9 +61,11 @@ function buildImportTableProps(
     allItems: params.classified,
     columns: params.columns,
     currentPage: params.currentPage,
-    emptyMatchText: t("preview.noSearchMatches", {
-      query: params.query.debouncedQuery,
-    }),
+    emptyMatchText:
+      params.emptyMatchText ??
+      t("preview.noSearchMatches", {
+        query: params.query.debouncedQuery,
+      }),
     forcedNoteIds: params.forcedNoteIds,
     forceStrategy: ankiWinsStrategy,
     getDefaultSelected: (item) => isImportSelectedByDefault(item.status),
@@ -69,7 +73,7 @@ function buildImportTableProps(
     getRow: (item) => syncDecisionFor("import", item.status),
     getRowAriaLabel: (item) =>
       t("preview.selectRow", { summary: noteSummary(item.note) }),
-    getRowClassName: importRowClassName,
+    getRowClassName: importRowClassNameFor(params.highlightKey ?? null),
     getRowDetails: (item) =>
       importRowDetails(item, params.forcedNoteIds[item.note.noteId] ?? false),
     getRowTitle: (item) => noteSummary(item.note),

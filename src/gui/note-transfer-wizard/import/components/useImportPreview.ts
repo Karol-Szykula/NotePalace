@@ -168,7 +168,7 @@ interface ImportPreviewState {
 }
 
 export function useImportPreview(props: NotesPreviewProps): ImportPreviewState {
-  const query = usePreviewQuery(props.onPageChange);
+  const query = usePreviewQuery(props.onPageChange, props.initialQuery ?? "");
   const deckNotes = useDeckNotes({
     anki: props.anki,
     deckName: props.deckName,

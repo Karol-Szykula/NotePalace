@@ -14,6 +14,7 @@ import type { AnkiNoteInfo } from "src/entities/anki-note";
 import { Anki } from "src/services/anki/anki";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
 import { FieldMapping } from "src/gui/note-transfer-wizard/import/components/FieldMapping";
+import { unavailableScope } from "@shared/utils/active-note-scope";
 import { t } from "src/i18n";
 import {
   notesToImportPattern,
@@ -120,6 +121,7 @@ test("given a custom model when advancing past fields then no pack is written", 
   const saveSettings = jest.fn(async (): Promise<void> => undefined);
   render(
     <NotesImportWizard
+      activeScope={unavailableScope()}
       onCancel={onCancel}
       saveSettings={saveSettings}
       settings={createSettings()}

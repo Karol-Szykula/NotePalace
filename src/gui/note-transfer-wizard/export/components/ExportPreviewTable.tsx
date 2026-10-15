@@ -8,7 +8,7 @@ import { recreateWarning } from "@shared/utils/preview";
 import {
   blockSummary,
   countBlocksToRecreate,
-  exportRowClassName,
+  exportRowClassNameFor,
   exportRowDetails,
   isExportSelectedByDefault,
   previewPageSize,
@@ -38,8 +38,10 @@ interface ExportPreviewTableProps {
   readonly className: string;
   readonly columns: ColumnDef<ExportableBlock>[];
   readonly currentPage: number;
+  readonly emptyMatchText?: string | undefined;
   readonly filteredBlocks: ExportableBlock[];
   readonly forcedNoteIds: Record<number, boolean>;
+  readonly highlightKey?: number | null;
   readonly notesSelectedToExport: Record<number, boolean>;
   readonly onForcedNoteIdsChange: (
     forcedNoteIds: Record<number, boolean>,
@@ -61,9 +63,11 @@ function buildExportTableProps(
     countText: (selectedCount, total) =>
       t("preview.notesToExport", { selected: selectedCount, total }),
     currentPage: params.currentPage,
-    emptyMatchText: t("preview.noSearchMatches", {
-      query: params.query.debouncedQuery,
-    }),
+    emptyMatchText:
+      params.emptyMatchText ??
+      t("preview.noSearchMatches", {
+        query: params.query.debouncedQuery,
+      }),
     forcedNoteIds: params.forcedNoteIds,
     forceStrategy: obsidianWinsStrategy,
     getDefaultSelected: (item) =>
@@ -72,7 +76,7 @@ function buildExportTableProps(
     getRow: (item) => syncDecisionFor("export", item.status),
     getRowAriaLabel: (item) =>
       t("preview.selectRow", { summary: blockSummary(item.block) }),
-    getRowClassName: exportRowClassName,
+    getRowClassName: exportRowClassNameFor(params.highlightKey ?? null),
     getRowDetails: (item) =>
       exportRowDetails(item, params.forcedNoteIds[item.rowKey] ?? false),
     getRowTitle: (item) => blockSummary(item.block),

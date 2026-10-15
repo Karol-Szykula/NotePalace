@@ -87,6 +87,13 @@ export function resolveDeckName(
   return index.get(sanitizeDeckName(derivedName)) ?? derivedName;
 }
 
+export function existingDeckName(
+  knownNames: string[],
+  derivedName: string,
+): string | null {
+  return deckNameIndex(knownNames).get(sanitizeDeckName(derivedName)) ?? null;
+}
+
 function markdownFileName(title: string): {
   stem: string;
   extension: string;

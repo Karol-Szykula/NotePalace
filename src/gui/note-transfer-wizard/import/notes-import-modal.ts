@@ -5,6 +5,7 @@ import type { Root } from "react-dom/client";
 import { createRoot } from "react-dom/client";
 import type { ISettings } from "src/conf/settings";
 import { NotesImportWizard } from "src/gui/note-transfer-wizard/import/NotesImportWizard";
+import type { WizardScope } from "src/gui/note-transfer-wizard/shared/utils/active-note-scope";
 
 export class NotesImportModal extends Modal {
   private settings: ISettings;
@@ -14,6 +15,7 @@ export class NotesImportModal extends Modal {
     app: App,
     settings: ISettings,
     private saveSettings: () => Promise<void>,
+    private activeScope: WizardScope,
   ) {
     super(app);
     this.settings = settings;
@@ -29,10 +31,11 @@ export class NotesImportModal extends Modal {
     this.reactRoot = createRoot(contentEl);
     this.reactRoot.render(
       createElement(NotesImportWizard, {
-        settings: this.settings,
-        vault: this.app.vault,
-        saveSettings: () => this.saveSettings(),
+        activeScope: this.activeScope,
         onCancel: () => this.close(),
+        settings: this.settings,
+        saveSettings: () => this.saveSettings(),
+        vault: this.app.vault,
       }),
     );
   }

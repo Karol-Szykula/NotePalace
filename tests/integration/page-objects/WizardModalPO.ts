@@ -11,12 +11,17 @@ import userEvent from "@testing-library/user-event";
 import type { App, Modal, Vault } from "obsidian";
 import { App as ObsidianApp } from "obsidian-test-mocks/obsidian";
 import { pageIndicatorClasses } from "@shared/classes/common";
+import {
+  unavailableScope,
+  type WizardScope,
+} from "@shared/utils/active-note-scope";
 import { t } from "src/i18n";
 import type { ISettings } from "src/conf/settings";
 import type { NoteLifecycleRecord } from "src/services/notes/lifecycle";
 import { createSettings } from "../../helpers/settings";
 
 export interface WizardModalFixture {
+  readonly activeScope?: WizardScope | undefined;
   readonly files?: Record<string, string> | undefined;
   readonly noteLifecycle?: Record<number, NoteLifecycleRecord> | undefined;
 }
@@ -25,6 +30,7 @@ export type NotePalaceModalConstructor = new (
   app: App,
   settings: ISettings,
   saveSettings: () => Promise<void>,
+  activeScope: WizardScope,
 ) => Modal;
 
 interface WizardModalElements {
@@ -95,6 +101,7 @@ export abstract class WizardModalPO {
       app as unknown as App,
       createSettings(settingsOverrides),
       saveSettingsSpy,
+      fixture.activeScope ?? unavailableScope(),
     );
     document.body.appendChild(modal.containerEl);
     act(() => {

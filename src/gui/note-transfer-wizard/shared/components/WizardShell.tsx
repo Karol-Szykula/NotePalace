@@ -1,6 +1,7 @@
 import { useMemo, useState, type JSX } from "react";
 import { mergeClasses } from "src/gui/classes";
 import { t } from "src/i18n";
+import { noteTransferWizardClasses } from "../classes";
 import { PageIndicator } from "./PageIndicator";
 import { Footer, type FooterButton } from "./Footer";
 
@@ -25,6 +26,7 @@ export interface WizardShellProps<Context> {
   ) => string | undefined;
   readonly getPagination?: (page: number) => WizardPagination | undefined;
   readonly initialPage: number;
+  readonly notice?: string | undefined;
   readonly onBeforeAdvance?: (fromPage: number, context: Context) => void;
   readonly onCancel: () => void;
   readonly pages: WizardPage<Context>[];
@@ -33,6 +35,7 @@ export interface WizardShellProps<Context> {
 export function WizardShell<Context>({
   pages,
   initialPage,
+  notice,
   getContext,
   getNextLabel,
   getPagination,
@@ -80,6 +83,9 @@ export function WizardShell<Context>({
   return (
     <div className={mergeClasses("wizard-shell", className)}>
       <PageIndicator currentPage={currentPage} pages={pageTitles} />
+      {notice !== undefined && (
+        <p className={noteTransferWizardClasses.notice}>{notice}</p>
+      )}
       {activePage?.render(context)}
       <Footer
         leftButtons={leftButtonsFor(currentPage, totalPages, onCancel)}

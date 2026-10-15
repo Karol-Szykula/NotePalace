@@ -118,6 +118,10 @@ const en = {
     searchPlaceholder: "Search notes\u2026",
     clearSearch: "Clear search",
     noSearchMatches: "No notes match \u201c{query}\u201d.",
+    scopedNoMatch:
+      "This note isn\u2019t in \u201c{deck}\u201d. Clear the search to see all notes.",
+    scopeUnavailable:
+      "Opened without a note: the active note has no note-form block, or its deck could not be found.",
     detailsBack: "Back",
     detailsTags: "Tags",
     detailsModel: "Model",
