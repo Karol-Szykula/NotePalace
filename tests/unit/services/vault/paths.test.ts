@@ -8,6 +8,7 @@ import "obsidian-test-mocks/jest-setup";
 import {
   deckFolder,
   deckNameIndex,
+  existingDeckName,
   resolveDeckName,
   sanitizeDeckName,
 } from "src/services/vault/paths";
@@ -100,5 +101,34 @@ describe("deck path round trip", () => {
     // then
     expect(derived).toBe(sanitizeDeckName(deckName));
     expect(resolveDeckName(deckNameIndex([deckName]), derived)).toBe(deckName);
+  });
+});
+
+describe("existingDeckName", () => {
+  test("given a derived name that a known deck matches when resolved then that deck returns", () => {
+    // given
+    const known = [
+      "Languages",
+      "CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite",
+    ];
+    const derived = "CCNA::Day 03 Flashcards - OSI Model, TCP-IP Suite";
+
+    // when
+    const deckName = existingDeckName(known, derived);
+
+    // then
+    expect(deckName).toBe("CCNA::Day 03 Flashcards - OSI Model, TCP/IP Suite");
+  });
+
+  test("given a derived name no known deck matches when resolved then there is no deck", () => {
+    // given
+    const known = ["Other"];
+    const derived = "Languages";
+
+    // when
+    const deckName = existingDeckName(known, derived);
+
+    // then
+    expect(deckName).toBeNull();
   });
 });

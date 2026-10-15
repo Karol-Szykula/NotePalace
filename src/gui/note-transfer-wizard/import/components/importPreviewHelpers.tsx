@@ -24,6 +24,7 @@ import { normalizeNoteText } from "src/services/notes/text";
 import type { VaultNoteIndex } from "src/services/vault/vault";
 import { findVaultNoteBlock } from "src/services/vault/vault";
 import type { Vault } from "obsidian";
+import { noteTransferWizardClasses } from "@shared/classes";
 import { StatusChip, type ColumnDef } from "@shared/components";
 import type { NoteDetailsData } from "@shared/components/NoteDetails";
 import { ankiWinsStrategy } from "@shared/types/AnkiWinsStrategy";
@@ -43,6 +44,8 @@ export interface NotesPreviewProps {
   readonly currentPage: number;
   readonly deckName: string;
   readonly forcedNoteIds: Record<number, boolean>;
+  readonly highlightKey?: number | null;
+  readonly initialQuery?: string;
   readonly noteLifecycle: Record<number, NoteLifecycleRecord>;
   readonly notesSelectedToImport: Record<number, boolean>;
   readonly onForcedNoteIdsChange: (
@@ -62,13 +65,7 @@ export interface NotesPreviewProps {
   readonly vaultNoteIndex: VaultNoteIndex;
 }
 
-export interface PreviewQuery {
-  readonly debouncedQuery: string;
-  readonly onQueryChange: (value: string) => void;
-  readonly onQueryClear: () => void;
-  readonly query: string;
-  readonly resetQuery: () => void;
-}
+export type { PreviewQuery } from "@shared/hooks/usePreviewQuery";
 
 export const previewPageSize = 100;
 
@@ -278,13 +275,25 @@ export function countNotesToResurrect(
   ).length;
 }
 
-export function importRowClassName(item: ClassifiedNote): string | undefined {
+function importRowClassName(item: ClassifiedNote): string | undefined {
   return mergeClasses(
     transferNotesPreviewClasses.previewRow,
     item.previewStatus === "upToDate"
       ? transferNotesPreviewClasses.previewRowImported
       : undefined,
   );
+}
+
+export function importRowClassNameFor(
+  highlightKey: number | null,
+): (item: ClassifiedNote) => string | undefined {
+  return (item) =>
+    mergeClasses(
+      importRowClassName(item),
+      item.note.noteId === highlightKey
+        ? noteTransferWizardClasses.previewHighlight
+        : undefined,
+    );
 }
 
 export function importRowDetails(

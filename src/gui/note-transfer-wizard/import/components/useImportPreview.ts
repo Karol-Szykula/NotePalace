@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { t } from "src/i18n";
 import { startAsyncLoad } from "@shared/hooks/useAsyncLoad";
 import { useApplyDefaultSelection } from "@shared/hooks/useApplyDefaultSelection";
-import { useDebouncedValue } from "@shared/hooks/useDebouncedValue";
+import {
+  usePreviewQuery,
+  type PreviewQuery,
+} from "@shared/hooks/usePreviewQuery";
 import type { AnkiNoteInfo } from "src/entities/anki-note";
 import type { Anki } from "src/services/anki/anki";
 import { fetchDeckNotes } from "src/services/anki/read";
@@ -22,29 +25,7 @@ import {
   importSearchableText,
   previewPageSize,
   type NotesPreviewProps,
-  type PreviewQuery,
 } from "./importPreviewHelpers";
-
-function usePreviewQuery(onPageChange: (page: number) => void): PreviewQuery {
-  const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query);
-
-  const onQueryChange = (value: string): void => {
-    setQuery(value);
-    onPageChange(0);
-  };
-
-  const onQueryClear = (): void => {
-    setQuery("");
-    onPageChange(0);
-  };
-
-  const resetQuery = (): void => {
-    setQuery("");
-  };
-
-  return { debouncedQuery, onQueryChange, onQueryClear, query, resetQuery };
-}
 
 interface DeckNotesParams {
   readonly anki: Anki;
@@ -187,7 +168,7 @@ interface ImportPreviewState {
 }
 
 export function useImportPreview(props: NotesPreviewProps): ImportPreviewState {
-  const query = usePreviewQuery(props.onPageChange);
+  const query = usePreviewQuery(props.onPageChange, props.initialQuery ?? "");
   const deckNotes = useDeckNotes({
     anki: props.anki,
     deckName: props.deckName,

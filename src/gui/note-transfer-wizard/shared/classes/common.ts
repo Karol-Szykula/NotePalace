@@ -4,6 +4,9 @@ export const commonWizardClasses = {
 
 export const noteTransferWizardClasses = {
   modal: "notepalace-note-transfer-wizard-modal",
+  notice: "notepalace-note-transfer-wizard-modal__notice",
+  previewHighlight:
+    "notepalace-note-transfer-wizard-modal__preview-row--highlighted",
 } as const;
 
 export const pageIndicatorClasses = {

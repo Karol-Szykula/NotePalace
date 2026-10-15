@@ -23,6 +23,7 @@ import type {
 import { normalizeNoteText } from "src/services/notes/text";
 import { obsidianYamlEngine } from "src/services/yaml-engine";
 import type { Vault } from "obsidian";
+import { noteTransferWizardClasses } from "@shared/classes";
 import { StatusChip, type ColumnDef } from "@shared/components";
 import type { NoteDetailsData } from "@shared/components/NoteDetails";
 import { obsidianWinsStrategy } from "@shared/types/ObsidianWinsStrategy";
@@ -41,7 +42,9 @@ export interface NotesPreviewProps {
   readonly currentPage: number;
   readonly deckName: string;
   readonly forcedNoteIds: Record<number, boolean>;
+  readonly highlightKey?: number | null;
   readonly ignoredDirectories: string;
+  readonly initialQuery?: string;
   readonly noteLifecycle: Record<number, NoteLifecycleRecord>;
   readonly notesSelectedToExport: Record<number, boolean>;
   readonly onForcedNoteIdsChange: (
@@ -68,13 +71,7 @@ export interface ExportableBlock {
   readonly status: NoteLifecycleStatus;
 }
 
-export interface PreviewQuery {
-  readonly debouncedQuery: string;
-  readonly onQueryChange: (value: string) => void;
-  readonly onQueryClear: () => void;
-  readonly query: string;
-  readonly resetQuery: () => void;
-}
+export type { PreviewQuery } from "@shared/hooks/usePreviewQuery";
 
 export const previewPageSize = 100;
 
@@ -277,13 +274,36 @@ export function countBlocksToRecreate(
   ).length;
 }
 
-export function exportRowClassName(item: ExportableBlock): string | undefined {
+function exportRowClassName(item: ExportableBlock): string | undefined {
   return mergeClasses(
     exportNotesPreviewClasses.previewRow,
     item.previewStatus === "upToDate"
       ? exportNotesPreviewClasses.previewRowImported
       : undefined,
   );
+}
+
+function isHighlightedBlock(
+  item: ExportableBlock,
+  highlightKey: number | null,
+): boolean {
+  return (
+    highlightKey !== null &&
+    item.block.id !== undefined &&
+    item.block.id === highlightKey
+  );
+}
+
+export function exportRowClassNameFor(
+  highlightKey: number | null,
+): (item: ExportableBlock) => string | undefined {
+  return (item) =>
+    mergeClasses(
+      exportRowClassName(item),
+      isHighlightedBlock(item, highlightKey)
+        ? noteTransferWizardClasses.previewHighlight
+        : undefined,
+    );
 }
 
 export function exportRowDetails(

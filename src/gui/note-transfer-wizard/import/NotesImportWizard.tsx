@@ -19,8 +19,10 @@ import {
 } from "src/gui/note-transfer-wizard/import/use-import-wizard";
 import { WizardShell, type WizardPage } from "@shared/components";
 import { noteTransferWizardClasses } from "@shared/classes";
+import type { WizardScope } from "@shared/utils/active-note-scope";
 
 export interface NotesImportWizardProps {
+  readonly activeScope: WizardScope;
   readonly onCancel: () => void;
   readonly saveSettings: () => Promise<void>;
   readonly settings: ISettings;
@@ -28,7 +30,9 @@ export interface NotesImportWizardProps {
 }
 
 interface ImportWizardShellProps {
+  readonly initialPage: number;
   readonly notesSelectedToImportCount: number;
+  readonly notice?: string | undefined;
   readonly onCancel: () => void;
   readonly onPreviewPageChange: (page: number) => void;
   readonly onPreviewReset: () => void;
@@ -43,7 +47,9 @@ function countSelected(selected: Record<number, boolean>): number {
 }
 
 function ImportWizardShell({
+  initialPage,
   notesSelectedToImportCount,
+  notice,
   onCancel,
   onPreviewPageChange,
   onPreviewReset,
@@ -69,7 +75,8 @@ function ImportWizardShell({
             }
           : undefined
       }
-      initialPage={1}
+      initialPage={initialPage}
+      notice={notice}
       onBeforeAdvance={(fromPage) => {
         if (fromPage === 3) {
           onPreviewReset();
@@ -82,13 +89,14 @@ function ImportWizardShell({
 }
 
 export function NotesImportWizard({
+  activeScope,
   onCancel,
   saveSettings,
   settings,
   vault,
 }: NotesImportWizardProps): JSX.Element {
   const [anki] = useState(() => new Anki());
-  const selection = useImportSelection();
+  const selection = useImportSelection(activeScope);
   const fieldMapping = useImportFieldMappings();
   const preview = useImportPreviewPagination();
   const vaultNoteIndex = useVaultNoteIndexLoader(vault, settings);
@@ -123,10 +131,17 @@ export function NotesImportWizard({
   const notesSelectedToImportCount = countSelected(
     selection.notesSelectedToImport,
   );
+  const initialPage = activeScope.kind === "scoped" ? 3 : 1;
+  const notice =
+    activeScope.kind === "unavailable"
+      ? t("preview.scopeUnavailable")
+      : undefined;
 
   return (
     <ImportWizardShell
+      initialPage={initialPage}
       notesSelectedToImportCount={notesSelectedToImportCount}
+      notice={notice}
       onCancel={onCancel}
       onPreviewPageChange={preview.handleNotesPreviewPageChange}
       onPreviewReset={preview.reset}

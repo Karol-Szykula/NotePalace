@@ -9,6 +9,13 @@ import { Anki } from "src/services/anki/anki";
 import { logger } from "src/services/logger";
 import { describeUnknown } from "src/services/anki/anki";
 import {
+  activeNoteScope,
+  scopedScope,
+  unavailableScope,
+  type WizardScope,
+} from "src/gui/note-transfer-wizard/shared/utils/active-note-scope";
+import { existingDeckName } from "src/services/vault/paths";
+import {
   clozeModelName,
   notepalaceIcon,
   noteFormLanguage,
@@ -74,13 +81,40 @@ export default class NotePalace extends Plugin {
       id: "import-deck-from-anki",
       name: t("commandNames.importDeck"),
       callback: () => {
-        new NotesImportModal(this.app, this.settings, () =>
-          this.saveData(this.settings),
-        )
-          .setTitle(t("commandNames.importDeck"))
-          .open();
+        void this.openImportWizard();
       },
     });
+  }
+
+  private async openImportWizard(): Promise<void> {
+    const activeScope = await this.importScope();
+    new NotesImportModal(
+      this.app,
+      this.settings,
+      () => this.saveData(this.settings),
+      activeScope,
+    )
+      .setTitle(t("commandNames.importDeck"))
+      .open();
+  }
+
+  private async importScope(): Promise<WizardScope> {
+    try {
+      const scope = await activeNoteScope(this.app);
+      if (scope === null) {
+        return unavailableScope();
+      }
+      const deckName = existingDeckName(
+        await new Anki().getDeckNames(),
+        scope.deckName,
+      );
+      return deckName === null
+        ? unavailableScope()
+        : scopedScope(deckName, scope);
+    } catch (error) {
+      logger.error("resolving the active note scope failed", error);
+      return unavailableScope();
+    }
   }
 
   private registerExportCommand(): void {
@@ -88,13 +122,36 @@ export default class NotePalace extends Plugin {
       id: "export-deck-to-anki",
       name: t("commandNames.exportDeck"),
       callback: () => {
-        new NotesExportModal(this.app, this.settings, () =>
-          this.saveData(this.settings),
-        )
-          .setTitle(t("commandNames.exportDeck"))
-          .open();
+        void this.openExportWizard();
       },
     });
+  }
+
+  private async openExportWizard(): Promise<void> {
+    const activeScope = await this.exportScope();
+    new NotesExportModal(
+      this.app,
+      this.settings,
+      () => this.saveData(this.settings),
+      activeScope,
+    )
+      .setTitle(t("commandNames.exportDeck"))
+      .open();
+  }
+
+  private async exportScope(): Promise<WizardScope> {
+    try {
+      const scope = await activeNoteScope(
+        this.app,
+        this.settings.ignoredDirectories,
+      );
+      return scope === null
+        ? unavailableScope()
+        : scopedScope(scope.deckName, scope);
+    } catch (error) {
+      logger.error("resolving the active note scope failed", error);
+      return unavailableScope();
+    }
   }
 
   private registerSyncCommand(): void {

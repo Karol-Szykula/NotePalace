@@ -11,6 +11,7 @@ import {
   type ImportWizardPageDeps,
 } from "src/gui/note-transfer-wizard/import/import-wizard-pages";
 import type { WizardPage } from "@shared/components";
+import type { WizardScope } from "@shared/utils/active-note-scope";
 
 interface ImportFieldMappings {
   readonly fieldMappings: Record<string, FieldMap>;
@@ -29,6 +30,8 @@ interface ImportPreviewPagination {
 
 interface ImportSelection {
   readonly forcedNoteIds: Record<number, boolean>;
+  readonly highlightKey: number | null;
+  readonly initialQuery: string;
   readonly notesSelectedToImport: Record<number, boolean>;
   readonly selectDeckName: (deckName: string) => void;
   readonly selectedDeckName: string;
@@ -38,12 +41,24 @@ interface ImportSelection {
   ) => void;
 }
 
+interface ScopedSeed {
+  readonly highlightKey: number | null;
+  readonly query: string;
+}
+
 interface ImportSyncState {
   readonly syncedMods: Record<number, number>;
 }
 
-export function useImportSelection(): ImportSelection {
-  const [selectedDeckName, setSelectedDeckName] = useState("");
+export function useImportSelection(activeScope: WizardScope): ImportSelection {
+  const [selectedDeckName, setSelectedDeckName] = useState(
+    activeScope.kind === "scoped" ? activeScope.deckName : "",
+  );
+  const [seed, setSeed] = useState<ScopedSeed | null>(
+    activeScope.kind === "scoped"
+      ? { highlightKey: activeScope.highlightKey, query: activeScope.query }
+      : null,
+  );
   const [notesSelectedToImport, setNotesSelectedToImport] = useState<
     Record<number, boolean>
   >({});
@@ -53,12 +68,15 @@ export function useImportSelection(): ImportSelection {
 
   const selectDeckName = (deckName: string): void => {
     setSelectedDeckName(deckName);
+    setSeed(null);
     setNotesSelectedToImport({});
     setForcedNoteIds({});
   };
 
   return {
     forcedNoteIds,
+    highlightKey: seed?.highlightKey ?? null,
+    initialQuery: seed?.query ?? "",
     notesSelectedToImport,
     selectDeckName,
     selectedDeckName,
@@ -151,6 +169,8 @@ export function useImportWizardPages(
       deps.handleNotesLoaded,
       deps.handleNotesPreviewPageChange,
       deps.handleNotesPreviewTotalPagesChange,
+      deps.highlightKey,
+      deps.initialQuery,
       deps.mergeSessionFieldMappings,
       deps.notesPreviewPage,
       deps.notesPreviewTotalPages,

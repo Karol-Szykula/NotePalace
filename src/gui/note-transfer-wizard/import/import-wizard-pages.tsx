@@ -38,6 +38,8 @@ export interface ImportWizardPageDeps {
   >["handleNotesLoaded"];
   readonly handleNotesPreviewPageChange: (page: number) => void;
   readonly handleNotesPreviewTotalPagesChange: (totalPages: number) => void;
+  readonly highlightKey: number | null;
+  readonly initialQuery: string;
   readonly mergeSessionFieldMappings: (
     mappings: Record<string, FieldMap>,
   ) => void;
@@ -144,6 +146,8 @@ function buildNotesPreviewPage(
         currentPage={deps.notesPreviewPage}
         deckName={deps.selectedDeckName}
         forcedNoteIds={deps.forcedNoteIds}
+        highlightKey={deps.highlightKey}
+        initialQuery={deps.initialQuery}
         key={deps.selectedDeckName}
         noteLifecycle={deps.settings.noteLifecycle}
         notesSelectedToImport={deps.notesSelectedToImport}

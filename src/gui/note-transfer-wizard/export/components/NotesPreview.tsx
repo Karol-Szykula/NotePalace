@@ -14,6 +14,12 @@ export function NotesPreview(props: NotesPreviewProps): JSX.Element {
     props.className,
   );
   const preview = useExportPreview(props);
+  const emptyMatchText =
+    props.initialQuery !== undefined &&
+    props.initialQuery !== "" &&
+    preview.query.query === props.initialQuery
+      ? t("preview.scopedNoMatch", { deck: props.deckName })
+      : undefined;
 
   if (preview.loadError) {
     return (
@@ -35,8 +41,10 @@ export function NotesPreview(props: NotesPreviewProps): JSX.Element {
       className={rootClassName}
       columns={preview.columns}
       currentPage={props.currentPage}
+      emptyMatchText={emptyMatchText}
       filteredBlocks={preview.filteredBlocks}
       forcedNoteIds={props.forcedNoteIds}
+      highlightKey={props.highlightKey ?? null}
       notesSelectedToExport={props.notesSelectedToExport}
       onForcedNoteIdsChange={props.onForcedNoteIdsChange}
       onNotesSelectedToExportChange={props.onNotesSelectedToExportChange}
