@@ -79,6 +79,38 @@ test("given no active file when scoped then there is no scope", async () => {
   expect(scope).toBeNull();
 });
 
+test("given an active note in an ignored directory when scoped then there is no scope", async () => {
+  // given
+  const app = ObsidianApp.createConfigured__({
+    files: { "Templates/Note.md": `${noteBlock("Template note", 7)}\n` },
+  });
+  await activateFile(app as unknown as App, "Templates/Note.md");
+
+  // when
+  const scope = await activeNoteScope(app as unknown as App, "Templates");
+
+  // then
+  expect(scope).toBeNull();
+});
+
+test("given an ignored directory when the import side scopes without it then the note still scopes", async () => {
+  // given
+  const app = ObsidianApp.createConfigured__({
+    files: { "Templates/Note.md": `${noteBlock("Template note", 7)}\n` },
+  });
+  await activateFile(app as unknown as App, "Templates/Note.md");
+
+  // when
+  const scope = await activeNoteScope(app as unknown as App);
+
+  // then
+  expect(scope).toEqual({
+    deckName: "Templates",
+    noteId: 7,
+    query: "Template note",
+  });
+});
+
 test("given a blob without an id when scoped then the highlight key is empty", () => {
   // given
   const scope = { deckName: "Languages", noteId: undefined, query: "Fresh" };

@@ -45,15 +45,6 @@ export async function scanVaultBlocks(
   return { locations, unreadable };
 }
 
-export async function selectableDeckNames(
-  vault: Vault,
-  ignoredDirectories: string,
-  yaml: YamlEngine,
-): Promise<Set<string>> {
-  const scan = await scanVaultBlocks(vault, ignoredDirectories, yaml);
-  return new Set(scan.locations.map((location) => location.deckName));
-}
-
 async function scanFileBlocks(
   vault: Vault,
   file: TFile,

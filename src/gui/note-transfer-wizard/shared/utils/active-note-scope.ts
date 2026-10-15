@@ -1,7 +1,7 @@
 import { TFile, type App } from "obsidian";
 import { parseYamlNotes } from "src/services/notes/document";
 import { normalizeNoteText } from "src/services/notes/text";
-import { deckForPath } from "src/services/vault/vault";
+import { deckForPath, isIgnoredPath } from "src/services/vault/vault";
 
 export interface NoteScope {
   readonly deckName: string;
@@ -20,9 +20,15 @@ export type WizardScope =
 
 const scopeQueryMaxLength = 80;
 
-export async function activeNoteScope(app: App): Promise<NoteScope | null> {
+export async function activeNoteScope(
+  app: App,
+  ignoredDirectories = "",
+): Promise<NoteScope | null> {
   const file = app.workspace.getActiveFile();
   if (!(file instanceof TFile) || file.extension !== "md") {
+    return null;
+  }
+  if (isIgnoredPath(file.path, ignoredDirectories)) {
     return null;
   }
   const [note] = parseYamlNotes(await app.vault.cachedRead(file));
