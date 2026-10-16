@@ -64,7 +64,16 @@ export default class NotePalace extends Plugin {
             ? undefined
             : this.settings.noteLifecycle[noteId]?.status,
         (markdown, el, sourcePath) =>
-          MarkdownRenderer.render(this.app, markdown, el, sourcePath, this),
+          MarkdownRenderer.render(
+            this.app,
+            markdown,
+            el,
+            sourcePath,
+            this,
+          ).catch((error: unknown) => {
+            logger.error("rendering a note-form field failed", error);
+            throw error;
+          }),
       ),
     );
     registerNoteFormAutoPreview(this);

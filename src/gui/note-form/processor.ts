@@ -94,26 +94,17 @@ export function createNoteFormHandler(
     });
     const form = componentForLayout(noteShapeFor(parsed.model).layout);
     const banner = bannerForStatus(resolveStatus(parsed.id));
-    const renderField: RenderMarkdown = (markdown, target) => {
-      void renderMarkdown(markdown, target, ctx.sourcePath);
-    };
+    const renderField: RenderMarkdown = (markdown, target) =>
+      renderMarkdown(markdown, target, ctx.sourcePath);
+    const formNode = createElement(form, {
+      data: parsed,
+      onEdit: handleEdit,
+      renderMarkdown: renderField,
+    });
     const node =
       banner === undefined
-        ? createElement(form, {
-            data: parsed,
-            onEdit: handleEdit,
-            renderMarkdown: renderField,
-          })
-        : createElement(
-            "div",
-            null,
-            renderBanner(banner),
-            createElement(form, {
-              data: parsed,
-              onEdit: handleEdit,
-              renderMarkdown: renderField,
-            }),
-          );
+        ? formNode
+        : createElement("div", null, renderBanner(banner), formNode);
     ctx.addChild(new NoteFormChild(el, node));
     return Promise.resolve();
   }

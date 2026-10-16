@@ -10,12 +10,20 @@ import type { FieldMapping, FieldTarget } from "src/entities/field-mapping";
  */
 const markdownConverter = new showdown.Converter();
 
-const ankiImageTag = /<img[^>]*>/gi;
+const ankiImageTag = /<img(?:[^>"']|"[^"]*"|'[^']*')*>/gi;
+const imageSource = /src\s*=\s*(["'])(.*?)\1/i;
+const imageAlt = /alt\s*=\s*(["'])(.*?)\1/i;
+const imageTokenPrefix = "NOTEPALACEIMGBEGIN";
+const imageTokenSuffix = "NOTEPALACEEND";
+
+function imageTokenFor(index: number): string {
+  return `${imageTokenPrefix}${index}${imageTokenSuffix}`;
+}
 
 function imageMarkdownFor(tag: string): string {
-  const source = /src="([^"]*)"/i.exec(tag)?.[1] ?? "";
-  const alt = /alt="([^"]*)"/i.exec(tag)?.[1] ?? "";
-  return source === "" ? "" : `![${alt}](${source})`;
+  const source = imageSource.exec(tag)?.[2] ?? "";
+  const alt = imageAlt.exec(tag)?.[2] ?? "";
+  return source === "" ? "" : `![${alt}](<${source}>)`;
 }
 
 function neutralizeImageTags(html: string): { html: string; images: string[] } {
@@ -25,7 +33,7 @@ function neutralizeImageTags(html: string): { html: string; images: string[] } {
     if (markdown === "") {
       return "";
     }
-    const token = `NOTEPALACEIMG${images.length}`;
+    const token = imageTokenFor(images.length);
     images.push(markdown);
     return token;
   });
@@ -35,7 +43,7 @@ function neutralizeImageTags(html: string): { html: string; images: string[] } {
 function restoreImageTokens(markdown: string, images: string[]): string {
   return images.reduce(
     (restored, image, index) =>
-      restored.replace(`NOTEPALACEIMG${index}`, image),
+      restored.replace(imageTokenFor(index), () => image),
     markdown,
   );
 }

@@ -71,6 +71,25 @@ describe("BasicNoteForm", () => {
     expect(screen.getByText("Q ![[a.png]]")).toBeInTheDocument();
   });
 
+  test("given a renderer that fails when rendered then shows an error", async () => {
+    // given
+    render(
+      <BasicNoteForm
+        data={formData()}
+        onEdit={() => {}}
+        renderMarkdown={() => Promise.reject(new Error("boom"))}
+      />,
+    );
+
+    // when
+    // (rendered by the read view)
+
+    // then
+    expect(
+      (await screen.findAllByText("Error: could not render the field.")).length,
+    ).toBeGreaterThan(0);
+  });
+
   test("given the edit button when clicked then shows editable fields without an id row", async () => {
     // given
     const edits: NoteFormEdit[] = [];

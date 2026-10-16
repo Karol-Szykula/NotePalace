@@ -304,6 +304,7 @@ const en = {
     edit: "Edit",
     front: "Front",
     invalidBlock: "Invalid note-form block",
+    renderError: "Error: could not render the field.",
     tags: "Tags",
     text: "Text",
   },

@@ -5,7 +5,10 @@ import { noteFormClasses } from "src/gui/note-form/classes";
 import type { NoteShape } from "src/entities/note-shapes";
 import type { NoteFormData, NoteFormEdit } from "src/entities/note-form-data";
 
-export type RenderMarkdown = (markdown: string, el: HTMLElement) => void;
+export type RenderMarkdown = (
+  markdown: string,
+  el: HTMLElement,
+) => void | Promise<void>;
 
 export interface NoteFormFieldsProps {
   readonly className?: string | undefined;
@@ -60,16 +63,20 @@ function NoteFormField({
   );
 }
 
-function renderMarkdownInto(
+function renderFieldInto(
   el: HTMLDivElement | null,
   markdown: string,
   renderMarkdown: RenderMarkdown,
+  reportError: (hasError: boolean) => void,
 ): void {
   if (el === null) {
     return;
   }
   el.innerHTML = "";
-  renderMarkdown(markdown, el);
+  reportError(false);
+  void Promise.resolve(renderMarkdown(markdown, el)).catch(() => {
+    reportError(true);
+  });
 }
 
 interface RenderedMarkdownProps {
@@ -82,12 +89,22 @@ function RenderedMarkdown({
   renderMarkdown,
 }: RenderedMarkdownProps): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    renderMarkdownInto(ref.current, markdown, renderMarkdown);
+    renderFieldInto(ref.current, markdown, renderMarkdown, setHasError);
   }, [markdown, renderMarkdown]);
 
-  return <div className={noteFormClasses.readValue} ref={ref} />;
+  return (
+    <>
+      <div className={noteFormClasses.readValue} ref={ref} />
+      {hasError ? (
+        <span className={noteFormClasses.error}>
+          {t("noteForm.renderError")}
+        </span>
+      ) : null}
+    </>
+  );
 }
 
 interface NoteFormReadFieldProps {
