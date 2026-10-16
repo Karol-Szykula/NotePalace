@@ -89,6 +89,17 @@ describe("mappedFieldValue", () => {
     expect(value).toBe("![a > b](<a.png>)");
   });
 
+  test("given a source containing an angle bracket when mapped then encodes it", () => {
+    // given
+    const html = '<p><img src="a>b.png"></p>';
+
+    // when
+    const value = frontValue(html);
+
+    // then
+    expect(value).toBe("![](<a%3Eb.png>)");
+  });
+
   test("given a remote image when mapped then keeps it as a markdown image", () => {
     // given
     const html = '<p><img src="https://example.com/a.png"></p>';

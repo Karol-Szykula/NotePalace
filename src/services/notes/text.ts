@@ -20,10 +20,14 @@ function imageTokenFor(index: number): string {
   return `${imageTokenPrefix}${index}${imageTokenSuffix}`;
 }
 
+function encodeAngleBrackets(source: string): string {
+  return source.replace(/[<>]/g, (char) => (char === "<" ? "%3C" : "%3E"));
+}
+
 function imageMarkdownFor(tag: string): string {
   const source = imageSource.exec(tag)?.[2] ?? "";
   const alt = imageAlt.exec(tag)?.[2] ?? "";
-  return source === "" ? "" : `![${alt}](<${source}>)`;
+  return source === "" ? "" : `![${alt}](<${encodeAngleBrackets(source)}>)`;
 }
 
 function neutralizeImageTags(html: string): { html: string; images: string[] } {
