@@ -20,15 +20,21 @@ function formData(overrides: Partial<NoteFormData> = {}): NoteFormData {
   };
 }
 
+function renderText(markdown: string, el: HTMLElement): void {
+  el.textContent = markdown;
+}
+
 function renderForm(
   data: NoteFormData,
   onEdit: (edit: NoteFormEdit) => void,
 ): void {
-  render(<ClozeNoteForm data={data} onEdit={onEdit} />);
+  render(
+    <ClozeNoteForm data={data} onEdit={onEdit} renderMarkdown={renderText} />,
+  );
 }
 
 describe("ClozeNoteForm", () => {
-  test("given cloze data when rendered then shows text fields without an id row", async () => {
+  test("given cloze data when rendered then shows fields as markdown, not inputs", () => {
     // given
     const edits: NoteFormEdit[] = [];
 
@@ -36,6 +42,23 @@ describe("ClozeNoteForm", () => {
     renderForm(formData(), (edit) => {
       edits.push(edit);
     });
+
+    // then
+    expect(screen.getByText("Paris is {{c1::France}}")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Text")).not.toBeInTheDocument();
+    expect(edits).toEqual([]);
+  });
+
+  test("given the edit button when clicked then shows text fields without an id row", async () => {
+    // given
+    const edits: NoteFormEdit[] = [];
+    renderForm(formData(), (edit) => {
+      edits.push(edit);
+    });
+    const user = userEvent.setup();
+
+    // when
+    await user.click(screen.getByRole("button", { name: "Edit" }));
 
     // then
     expect(await screen.findByLabelText("Text")).toHaveValue(
@@ -54,6 +77,7 @@ describe("ClozeNoteForm", () => {
       edits.push(edit);
     });
     const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Edit" }));
 
     // when
     const text = await screen.findByLabelText("Text");

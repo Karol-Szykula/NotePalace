@@ -10,7 +10,7 @@ import type {
   Vault as ObsidianVault,
 } from "obsidian";
 import userEvent from "@testing-library/user-event";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import { t } from "src/i18n";
 import { createNoteFormHandler } from "src/gui/note-form/processor";
 import type { NoteFormChild } from "src/gui/note-form/processor";
@@ -26,6 +26,10 @@ const noteLines = [
   "After",
 ];
 const blockSource = '{"front": "Q", "back": "A", "tags": "math"}';
+
+function renderText(markdown: string, el: HTMLElement): void {
+  el.textContent = markdown;
+}
 
 function vaultWithNote(): ObsidianVault {
   const app = App.createConfigured__({
@@ -53,6 +57,12 @@ async function readNote(vault: ObsidianVault): Promise<string> {
   return vault.read(file);
 }
 
+function mountChild(children: NoteFormChild[]): void {
+  act(() => {
+    required(children[0], "child").onload();
+  });
+}
+
 afterEach(() => {
   document.body.innerHTML = "";
 });
@@ -65,11 +75,18 @@ describe("createNoteFormHandler", () => {
     const ctx = renderContext(children);
     const el = document.createElement("div");
     document.body.appendChild(el);
-    const handle = createNoteFormHandler(vault, () => undefined, jsonEngine);
+    const handle = createNoteFormHandler(
+      vault,
+      () => undefined,
+      renderText,
+      jsonEngine,
+    );
+    await handle(blockSource, el, ctx);
+    mountChild(children);
+    const user = userEvent.setup();
 
     // when
-    await handle(blockSource, el, ctx);
-    required(children[0], "child").onload();
+    await user.click(screen.getByRole("button", { name: t("noteForm.edit") }));
 
     // then
     expect(await screen.findByLabelText(t("noteForm.front"))).toHaveValue("Q");
@@ -85,13 +102,20 @@ describe("createNoteFormHandler", () => {
     const ctx = renderContext(children);
     const el = document.createElement("div");
     document.body.appendChild(el);
-    const handle = createNoteFormHandler(vault, () => undefined, jsonEngine);
+    const handle = createNoteFormHandler(
+      vault,
+      () => undefined,
+      renderText,
+      jsonEngine,
+    );
     const clozeSource =
       '{"model": "Cloze", "text": "Paris is {{c1::France}}", "tags": "geo"}';
+    await handle(clozeSource, el, ctx);
+    mountChild(children);
+    const user = userEvent.setup();
 
     // when
-    await handle(clozeSource, el, ctx);
-    required(children[0], "child").onload();
+    await user.click(screen.getByRole("button", { name: t("noteForm.edit") }));
 
     // then
     expect(await screen.findByLabelText(t("noteForm.text"))).toHaveValue(
@@ -109,10 +133,16 @@ describe("createNoteFormHandler", () => {
     const ctx = renderContext(children);
     const el = document.createElement("div");
     document.body.appendChild(el);
-    const handle = createNoteFormHandler(vault, () => undefined, jsonEngine);
+    const handle = createNoteFormHandler(
+      vault,
+      () => undefined,
+      renderText,
+      jsonEngine,
+    );
     await handle(blockSource, el, ctx);
-    required(children[0], "child").onload();
+    mountChild(children);
     const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: t("noteForm.edit") }));
 
     // when
     const front = await screen.findByLabelText(t("noteForm.front"));
@@ -144,7 +174,12 @@ describe("createNoteFormHandler", () => {
     const ctx = renderContext(children);
     const el = document.createElement("div");
     document.body.appendChild(el);
-    const handle = createNoteFormHandler(vault, () => undefined, jsonEngine);
+    const handle = createNoteFormHandler(
+      vault,
+      () => undefined,
+      renderText,
+      jsonEngine,
+    );
 
     // when
     await handle("not json {{{", el, ctx);
@@ -168,16 +203,19 @@ describe("createNoteFormHandler", () => {
     const handle = createNoteFormHandler(
       vault,
       () => "synced.diverged",
+      renderText,
       jsonEngine,
     );
 
     // when
     await handle(blockSource, el, ctx);
-    required(children[0], "child").onload();
+    mountChild(children);
 
     // then
     expect(await screen.findByText(t("banners.diverged"))).toBeInTheDocument();
-    expect(screen.getByLabelText(t("noteForm.front"))).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: t("noteForm.edit") }),
+    ).toBeInTheDocument();
   });
 
   test("given a clean note when processed then shows no banner", async () => {
@@ -190,16 +228,17 @@ describe("createNoteFormHandler", () => {
     const handle = createNoteFormHandler(
       vault,
       () => "synced.clean",
+      renderText,
       jsonEngine,
     );
 
     // when
     await handle(blockSource, el, ctx);
-    required(children[0], "child").onload();
+    mountChild(children);
 
     // then
     expect(
-      await screen.findByLabelText(t("noteForm.front")),
+      await screen.findByRole("button", { name: t("noteForm.edit") }),
     ).toBeInTheDocument();
     expect(screen.queryByText(t("banners.diverged"))).not.toBeInTheDocument();
   });

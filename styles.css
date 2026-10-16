@@ -679,6 +679,15 @@
   background:    var(--background-secondary);
 }
 
+.note-form__read-value {
+  color: var(--text-normal);
+}
+
+.note-form__edit,
+.note-form__done {
+  align-self: flex-start;
+}
+
 .notepalace-dev-reset {
   display: flex;
   flex-direction: column;
