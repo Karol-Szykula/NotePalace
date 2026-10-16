@@ -29,7 +29,7 @@
     "anki"
   ],
   "author": "Karol Szykuła",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@mermaid-js/mermaid-cli": "^11.17.0",
