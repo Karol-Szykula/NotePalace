@@ -44,29 +44,20 @@ Zero means the dev code stayed out of the release bundle. The dev bundle always
 keeps the file name `main.js`, because that is the name Obsidian loads, even
 though the entry is `main.dev.ts`.
 
-## Prepare release files
+## Release
 
-Run:
+Releases are built by the GitHub Actions workflow in
+`.github/workflows/releases.yml`. Push a tag that matches the version in
+`manifest.json`:
 
 ```bash
-pnpm run release
+git tag 1.0.0
+git push github main 1.0.0
 ```
 
-The release folder will be created at:
-
-```text
-dist/notepalace/
-```
-
-It contains the files Obsidian needs:
-
-```text
-main.js
-manifest.json
-styles.css
-```
-
-For a release, upload `main.js`, `manifest.json` and `styles.css` as release assets. You can also zip the contents of `dist/notepalace/`, but the files should be at the top level of the zip.
+The workflow runs `pnpm run check`, builds `main.js`, attests the build and
+creates a GitHub release with `main.js`, `manifest.json` and `styles.css` as
+assets. `versions.json` maps every release to the `minAppVersion` it needs.
 
 ## Manual install in Obsidian
 
