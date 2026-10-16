@@ -29,6 +29,13 @@ An Obsidian plugin that turns your vault into an Anki deck: import Anki notes as
 
 The plugin talks only to AnkiConnect on your own machine, over HTTP at `http://127.0.0.1:8765`. It sends no data anywhere else.
 
+## Credits
+
+NotePalace builds on two MIT-licensed projects, whose copyright notices are kept in [NOTICE](./NOTICE):
+
+- [Flashcards](https://github.com/reuseman/flashcards-obsidian) by Alex Colucci.
+- [Better Flashcards](https://github.com/mihirpatel1112/better-flashcards) by Mihir Patel, Alex Colucci and Noah Rousell.
+
 ## License
 
 [AGPL-3.0](./LICENSE) © 2026 Karol Szykuła.
