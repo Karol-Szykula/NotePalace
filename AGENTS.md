@@ -125,4 +125,7 @@ and issues, never in source prose.
 - GitLab operations go through the GitLab MCP tools, never the `glab` CLI.
 - Never change GitLab settings (labels, assignees, milestones, issue or MR
   state, descriptions, deletion) without explicit user consent.
+- Never close an issue without an explicit command, not even after its merge
+  request lands.
+- Never add an issue or merge request comment without an explicit command.
 

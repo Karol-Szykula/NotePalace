@@ -567,6 +567,33 @@ describe("executeSync", () => {
     expect(await readPath(vault, "Languages/Q-101.md")).toBe(before);
   });
 
+  test("given a note edited in both sides in the same second when executed then Obsidian wins", async () => {
+    // given
+    const before = `${formBlock("Mine", "A", 101)}\n`;
+    const vault = vaultWith({ "Languages/Q-101.md": before });
+    const settings = await snapshotSettings("Languages", {
+      101: { back: "A", front: "Q", mod: 100 },
+    });
+    const file = required(
+      vault.getAbstractFileByPath("Languages/Q-101.md") as TFile | undefined,
+      "file",
+    );
+    file.stat.mtime = 101_000;
+    respondWithDecks({ Languages: [basicAnkiNote(101, 101, "Q2")] });
+
+    // when
+    const report: SyncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(report.decks[0]).toMatchObject({ pushed: 1, refreshed: 0 });
+    expect(await readPath(vault, "Languages/Q-101.md")).toBe(before);
+  });
+
   test("given a tracked note whose file is gone and no deletion time when executed then forgets the record without recreating", async () => {
     // given
     const vault = vaultWith({});

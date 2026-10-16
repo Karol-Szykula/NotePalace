@@ -308,6 +308,17 @@ export function mediaFileCount(notes: AnkiNote[]): number {
   );
 }
 
-export function isAnkiNewer(source: AnkiNoteInfo, file: TFile): boolean {
-  return (source.mod ?? 0) * 1000 > file.stat.mtime;
+export type SyncSide = "anki" | "vault";
+
+const tieBreakWinner: SyncSide = "vault";
+
+export function newestSide(source: AnkiNoteInfo, file: TFile): SyncSide {
+  const ankiModifiedMs = (source.mod ?? 0) * 1000;
+  if (ankiModifiedMs > file.stat.mtime) {
+    return "anki";
+  }
+  if (ankiModifiedMs < file.stat.mtime) {
+    return "vault";
+  }
+  return tieBreakWinner;
 }
