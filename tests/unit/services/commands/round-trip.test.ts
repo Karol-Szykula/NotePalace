@@ -2,21 +2,27 @@
  * @jest-environment jsdom
  *
  * App.createConfigured__ touches DOM globals. The round trip drives the real
- * export and the real import against one fake Anki, so a block exported to Anki
- * and imported back can never become a second file or a second Anki note.
+ * export, import and sync against one fake Anki, so a block moved across the
+ * commands can never become a second file or a second Anki note.
  */
 import "obsidian-test-mocks/jest-setup";
 import { App, TFile } from "obsidian-test-mocks/obsidian";
 import type { Vault as ObsidianVault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import { executeExport } from "src/services/commands/export-deck";
-import { executeImport } from "src/services/commands/import-deck";
+import {
+  executeImport,
+  type ImportExecutionReport,
+} from "src/services/commands/import-deck";
+import { executeSync } from "src/services/commands/sync";
+import { syncedCleanRecord } from "src/services/notes/lifecycle";
 import { collectVaultNoteIndex } from "src/services/vault/vault";
 import { createSettings } from "../../../helpers/settings";
 import type { ISettings } from "src/conf/settings";
 import { AnkiConnectMock } from "../../../mocks/anki-connect";
 import { ankiResponder } from "../../../helpers/anki-responder";
 import { jsonEngine } from "../../../helpers/json-engine";
+import { required } from "../../../helpers/required";
 
 AnkiConnectMock.install();
 
@@ -83,9 +89,9 @@ async function importDeck(
   decisions: Record<number, boolean>,
   ankiWinsNoteIds: number[] = [],
   deckName = "Languages",
-): Promise<void> {
+): Promise<ImportExecutionReport> {
   const vaultNoteIndex = await collectVaultNoteIndex(vault);
-  await executeImport(
+  return await executeImport(
     new Anki(),
     vault,
     {
@@ -101,6 +107,40 @@ async function importDeck(
     },
     jsonEngine,
   );
+}
+
+function enrollSyncedNotes(
+  settings: ISettings,
+  report: ImportExecutionReport,
+): void {
+  for (const [id, mod] of Object.entries(report.syncedNotes)) {
+    const noteId = Number(id);
+    settings.noteLifecycle[noteId] = syncedCleanRecord(
+      mod,
+      required(report.syncedHashes[noteId], "hash"),
+      0,
+    );
+  }
+}
+
+function recordDeckImportSnapshot(settings: ISettings, deckName: string): void {
+  settings.deckImportSnapshots = {
+    ...settings.deckImportSnapshots,
+    [deckName]: {
+      deckName,
+      fieldMappings: { Basic: { Back: "Back", Front: "Front" } },
+      importedAt: 0,
+    },
+  };
+}
+
+function completeImportState(
+  settings: ISettings,
+  deckName: string,
+  report: ImportExecutionReport,
+): void {
+  enrollSyncedNotes(settings, report);
+  recordDeckImportSnapshot(settings, deckName);
 }
 
 describe("export then import round trip", () => {
@@ -218,5 +258,40 @@ describe("export then import round trip", () => {
     expect(vault.getMarkdownFiles()).toHaveLength(1);
     expect(ankiState.notes).toHaveLength(1);
     expect(await readPath(vault, path)).toBe(afterForce);
+  });
+
+  test("given a note exported then imported when synced then one copy remains everywhere", async () => {
+    // given
+    responder.respondWith();
+    const vault = vaultWith({
+      "Languages/What-is-2-2.md": `${formBlock("What is 2+2?", "4", null)}\n`,
+    });
+    const settings = createSettings();
+    const noteId = await exportOneNote(vault, settings);
+    const report = await importDeck(vault, settings, { [noteId]: true }, [
+      noteId,
+    ]);
+    completeImportState(settings, "Languages", report);
+
+    // when
+    const syncReport = await executeSync(
+      new Anki(),
+      vault,
+      settings,
+      jsonEngine,
+    );
+
+    // then
+    expect(vault.getMarkdownFiles()).toHaveLength(1);
+    expect(ankiState.notes).toHaveLength(1);
+    expect(
+      countIdLines(await readPath(vault, `Languages/What-is-2-2-${noteId}.md`)),
+    ).toBe(1);
+    expect(syncReport.decks).toHaveLength(1);
+    expect(syncReport.decks[0]).toMatchObject({
+      pushed: 0,
+      refreshed: 0,
+      upToDate: 1,
+    });
   });
 });
