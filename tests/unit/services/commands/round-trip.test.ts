@@ -22,6 +22,7 @@ import type { ISettings } from "src/conf/settings";
 import { AnkiConnectMock } from "../../../mocks/anki-connect";
 import { ankiResponder } from "../../../helpers/anki-responder";
 import { jsonEngine } from "../../../helpers/json-engine";
+import { required } from "../../../helpers/required";
 
 AnkiConnectMock.install();
 
@@ -108,19 +109,21 @@ async function importDeck(
   );
 }
 
-function completeImportState(
+function enrollSyncedNotes(
   settings: ISettings,
-  deckName: string,
   report: ImportExecutionReport,
 ): void {
   for (const [id, mod] of Object.entries(report.syncedNotes)) {
     const noteId = Number(id);
     settings.noteLifecycle[noteId] = syncedCleanRecord(
       mod,
-      report.syncedHashes[noteId] ?? "",
+      required(report.syncedHashes[noteId], "hash"),
       0,
     );
   }
+}
+
+function recordDeckImportSnapshot(settings: ISettings, deckName: string): void {
   settings.deckImportSnapshots = {
     ...settings.deckImportSnapshots,
     [deckName]: {
@@ -129,6 +132,15 @@ function completeImportState(
       importedAt: 0,
     },
   };
+}
+
+function completeImportState(
+  settings: ISettings,
+  deckName: string,
+  report: ImportExecutionReport,
+): void {
+  enrollSyncedNotes(settings, report);
+  recordDeckImportSnapshot(settings, deckName);
 }
 
 describe("export then import round trip", () => {
@@ -275,6 +287,7 @@ describe("export then import round trip", () => {
     expect(
       countIdLines(await readPath(vault, `Languages/What-is-2-2-${noteId}.md`)),
     ).toBe(1);
+    expect(syncReport.decks).toHaveLength(1);
     expect(syncReport.decks[0]).toMatchObject({
       pushed: 0,
       refreshed: 0,
