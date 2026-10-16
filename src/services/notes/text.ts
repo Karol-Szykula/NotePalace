@@ -10,6 +10,36 @@ import type { FieldMapping, FieldTarget } from "src/entities/field-mapping";
  */
 const markdownConverter = new showdown.Converter();
 
+const ankiImageTag = /<img[^>]*>/gi;
+
+function imageMarkdownFor(tag: string): string {
+  const source = /src="([^"]*)"/i.exec(tag)?.[1] ?? "";
+  const alt = /alt="([^"]*)"/i.exec(tag)?.[1] ?? "";
+  return source === "" ? "" : `![${alt}](${source})`;
+}
+
+function neutralizeImageTags(html: string): { html: string; images: string[] } {
+  const images: string[] = [];
+  const neutralized = html.replace(ankiImageTag, (tag) => {
+    const markdown = imageMarkdownFor(tag);
+    if (markdown === "") {
+      return "";
+    }
+    const token = `NOTEPALACEIMG${images.length}`;
+    images.push(markdown);
+    return token;
+  });
+  return { html: neutralized, images };
+}
+
+function restoreImageTokens(markdown: string, images: string[]): string {
+  return images.reduce(
+    (restored, image, index) =>
+      restored.replace(`NOTEPALACEIMG${index}`, image),
+    markdown,
+  );
+}
+
 export function mappedFieldValue(
   note: AnkiNoteInfo,
   mapping: FieldMapping,
@@ -17,7 +47,11 @@ export function mappedFieldValue(
 ): string {
   const field = Object.keys(mapping).find((name) => mapping[name] === target);
   const html = field ? (note.fields[field]?.value ?? "") : "";
-  return cleanConvertedMarkdown(markdownConverter.makeMarkdown(html));
+  const neutralized = neutralizeImageTags(html);
+  const markdown = cleanConvertedMarkdown(
+    markdownConverter.makeMarkdown(neutralized.html),
+  );
+  return restoreImageTokens(markdown, neutralized.images);
 }
 
 export function normalizeNoteText(input: string): string {
