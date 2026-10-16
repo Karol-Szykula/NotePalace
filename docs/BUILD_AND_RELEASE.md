@@ -47,12 +47,13 @@ though the entry is `main.dev.ts`.
 ## Release
 
 Releases are built by the GitHub Actions workflow in
-`.github/workflows/releases.yml`. Push a tag that matches the version in
-`manifest.json`:
+`.github/workflows/releases.yml`. `main` on GitHub mirrors `develop`, so a
+release is a normal fast-forward: tag the commit that carries the version bump
+in `manifest.json` and push it, then publish that same commit to `main`:
 
 ```bash
 git tag 1.0.0
-git push github main 1.0.0
+git push github develop:main 1.0.0
 ```
 
 The workflow runs `pnpm run check`, builds `main.js`, attests the build and
