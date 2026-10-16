@@ -7,11 +7,13 @@ import { collectVaultNoteIndex } from "src/services/vault/vault";
 import type { FieldMapping as FieldMap } from "src/entities/field-mapping";
 import {
   buildImportWizardPages,
+  completeImport,
   type ImportWizardContext,
   type ImportWizardPageDeps,
 } from "src/gui/note-transfer-wizard/import/import-wizard-pages";
 import type { WizardPage } from "@shared/components";
 import type { WizardScope } from "@shared/utils/active-note-scope";
+import type { ImportExecutionReport } from "src/services/commands/import-deck";
 
 interface ImportFieldMappings {
   readonly fieldMappings: Record<string, FieldMap>;
@@ -48,6 +50,42 @@ interface ScopedSeed {
 
 interface ImportSyncState {
   readonly syncedMods: Record<number, number>;
+}
+
+interface ImportCompletionDeps {
+  readonly fieldMappings: Record<string, FieldMap>;
+  readonly saveSettings: () => Promise<void>;
+  readonly selectedDeckName: string;
+  readonly settings: ISettings;
+  readonly vault: Vault;
+}
+
+interface ImportCompletion {
+  readonly executionFinished: boolean;
+  readonly failImport: () => void;
+  readonly finishImport: (report: ImportExecutionReport) => void;
+}
+
+export function useImportCompletion(
+  deps: ImportCompletionDeps,
+): ImportCompletion {
+  const [executionFinished, setExecutionFinished] = useState(false);
+
+  const failImport = (): void => setExecutionFinished(true);
+
+  const finishImport = (report: ImportExecutionReport): void => {
+    setExecutionFinished(true);
+    completeImport({
+      fieldMappings: deps.fieldMappings,
+      report,
+      saveSettings: deps.saveSettings,
+      selectedDeckName: deps.selectedDeckName,
+      settings: deps.settings,
+      vault: deps.vault,
+    });
+  };
+
+  return { executionFinished, failImport, finishImport };
 }
 
 export function useImportSelection(activeScope: WizardScope): ImportSelection {
@@ -163,6 +201,7 @@ export function useImportWizardPages(
     [
       deps.anki,
       deps.deckNotes,
+      deps.failImport,
       deps.fieldMappings,
       deps.finishImport,
       deps.forcedNoteIds,

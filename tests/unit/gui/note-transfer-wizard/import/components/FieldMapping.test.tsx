@@ -151,3 +151,22 @@ test("given a custom model when advancing past fields then no pack is written", 
   const packExists = await adapter.exists(customPackPath);
   expect(packExists).toBe(false);
 });
+
+test("given Anki is unreachable when the field mapping opens then the page reports it", async () => {
+  // given
+  AnkiConnectMock.setConnectionDown(true);
+
+  // when
+  render(
+    <FieldMapping
+      anki={new Anki()}
+      deckName={deckName}
+      onMappingsChange={jest.fn()}
+      savedMappings={{}}
+    />,
+  );
+  const message = await screen.findByText(t("errors.ankiNotConnected"));
+
+  // then
+  expect(message).toBeInTheDocument();
+});

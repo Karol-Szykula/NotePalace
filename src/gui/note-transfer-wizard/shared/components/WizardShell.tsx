@@ -7,6 +7,7 @@ import { Footer, type FooterButton } from "./Footer";
 
 export interface WizardPage<Context = unknown> {
   readonly canAdvance?: (context: Context) => boolean;
+  readonly canFinish?: (context: Context) => boolean;
   readonly render: (context: Context) => JSX.Element;
   readonly title: string;
 }
@@ -50,6 +51,7 @@ export function WizardShell<Context>({
   const totalPages = pages.length;
   const activePage = pages[currentPage - 1];
   const canAdvance = canAdvanceFrom(activePage, currentPage, pages, context);
+  const canFinish = activePage?.canFinish?.(context) ?? true;
 
   const goToNextPage = () => {
     if (!canAdvance || currentPage >= totalPages) {
@@ -72,6 +74,7 @@ export function WizardShell<Context>({
   );
   const rightButtons = rightButtonsFor({
     canAdvance,
+    canFinish,
     currentPage,
     goToNextPage,
     goToPrevPage,
@@ -98,6 +101,7 @@ export function WizardShell<Context>({
 
 interface RightButtonsState {
   canAdvance: boolean;
+  canFinish: boolean;
   currentPage: number;
   goToNextPage: () => void;
   goToPrevPage: () => void;
@@ -158,7 +162,11 @@ function rightButtonsFor(state: RightButtonsState): FooterButton[] {
     });
   }
   if (state.currentPage === state.totalPages) {
-    buttons.push({ label: t("wizard.ok"), onClick: state.onCancel });
+    buttons.push({
+      disabled: !state.canFinish,
+      label: t("wizard.ok"),
+      onClick: state.onCancel,
+    });
   }
   return buttons;
 }

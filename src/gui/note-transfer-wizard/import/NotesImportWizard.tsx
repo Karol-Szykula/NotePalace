@@ -3,13 +3,10 @@ import { t } from "src/i18n";
 import type { Vault } from "obsidian";
 import { Anki } from "src/services/anki/anki";
 import type { ISettings } from "src/conf/settings";
-import type { ImportExecutionReport } from "src/services/commands/import-deck";
 import { useDeckPreview } from "src/gui/note-transfer-wizard/import/use-deck-preview";
+import { type ImportWizardContext } from "src/gui/note-transfer-wizard/import/import-wizard-pages";
 import {
-  completeImport,
-  type ImportWizardContext,
-} from "src/gui/note-transfer-wizard/import/import-wizard-pages";
-import {
+  useImportCompletion,
   useImportFieldMappings,
   useImportPreviewPagination,
   useImportSelection,
@@ -30,6 +27,7 @@ export interface NotesImportWizardProps {
 }
 
 interface ImportWizardShellProps {
+  readonly executionFinished: boolean;
   readonly initialPage: number;
   readonly notesSelectedToImportCount: number;
   readonly notice?: string | undefined;
@@ -47,6 +45,7 @@ function countSelected(selected: Record<number, boolean>): number {
 }
 
 function ImportWizardShell({
+  executionFinished,
   initialPage,
   notesSelectedToImportCount,
   notice,
@@ -62,6 +61,7 @@ function ImportWizardShell({
     <WizardShell
       className={noteTransferWizardClasses.modal}
       getContext={() => ({
+        executionFinished,
         notesSelectedToImportCount,
         selectedDeckName,
       })}
@@ -102,24 +102,21 @@ export function NotesImportWizard({
   const vaultNoteIndex = useVaultNoteIndexLoader(vault, settings);
   const { deckNotes, handleNotesLoaded, previewStatuses } = useDeckPreview();
   const syncState = useImportSyncState(settings.noteLifecycle);
-
-  const finishImport = (report: ImportExecutionReport): void =>
-    completeImport({
-      fieldMappings: fieldMapping.fieldMappings,
-      report,
-      saveSettings,
-      selectedDeckName: selection.selectedDeckName,
-      settings,
-      vault,
-    });
+  const completion = useImportCompletion({
+    fieldMappings: fieldMapping.fieldMappings,
+    saveSettings,
+    selectedDeckName: selection.selectedDeckName,
+    settings,
+    vault,
+  });
 
   const pages = useImportWizardPages({
+    ...completion,
     ...fieldMapping,
     ...preview,
     ...selection,
     anki,
     deckNotes,
-    finishImport,
     handleNotesLoaded,
     previewStatuses,
     settings,
@@ -139,6 +136,7 @@ export function NotesImportWizard({
 
   return (
     <ImportWizardShell
+      executionFinished={completion.executionFinished}
       initialPage={initialPage}
       notesSelectedToImportCount={notesSelectedToImportCount}
       notice={notice}

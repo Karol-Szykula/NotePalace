@@ -87,6 +87,9 @@ export default class NotePalace extends Plugin {
   }
 
   private async openImportWizard(): Promise<void> {
+    if (!(await this.ensureAnkiReachable())) {
+      return;
+    }
     const activeScope = await this.importScope();
     new NotesImportModal(
       this.app,
@@ -128,6 +131,9 @@ export default class NotePalace extends Plugin {
   }
 
   private async openExportWizard(): Promise<void> {
+    if (!(await this.ensureAnkiReachable())) {
+      return;
+    }
     const activeScope = await this.exportScope();
     new NotesExportModal(
       this.app,
@@ -164,16 +170,23 @@ export default class NotePalace extends Plugin {
     });
   }
 
+  private async ensureAnkiReachable(): Promise<boolean> {
+    try {
+      await new Anki().ping();
+      return true;
+    } catch {
+      new Notice(t("errors.ankiNotConnected"), noticeTimeout);
+      return false;
+    }
+  }
+
   private async runSync(): Promise<void> {
     const snapshots = this.settings.deckImportSnapshots;
     if (Object.keys(snapshots).length === 0) {
       new Notice(t("notice.noImportYet"), noticeTimeout);
       return;
     }
-    try {
-      await new Anki().ping();
-    } catch {
-      new Notice(t("errors.ankiNotConnected"), noticeTimeout);
+    if (!(await this.ensureAnkiReachable())) {
       return;
     }
     try {

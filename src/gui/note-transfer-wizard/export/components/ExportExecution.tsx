@@ -17,6 +17,7 @@ export interface ExportExecutionProps {
   readonly forcedNoteIds: Record<number, boolean>;
   readonly ignoredDirectories: string;
   readonly notesSelectedToExport: Record<number, boolean>;
+  readonly onFailure?: (() => void) | undefined;
   readonly onFinish: (report: ExportReport) => void;
   readonly previewStatuses?: Record<number, NoteLifecycleStatus> | undefined;
   readonly settings: ISettings;
@@ -54,12 +55,19 @@ function formatExportReport(report: ExportReport): string {
   return `${parts.join(", ")}.`;
 }
 
+function forcedIdsList(forcedNoteIds: Record<number, boolean>): number[] {
+  return Object.entries(forcedNoteIds)
+    .filter(([, isForced]) => isForced)
+    .map(([noteId]) => Number(noteId));
+}
+
 export function ExportExecution({
   anki,
   notesSelectedToExport,
   className,
   forcedNoteIds,
   ignoredDirectories,
+  onFailure,
   onFinish,
   previewStatuses,
   settings,
@@ -77,9 +85,7 @@ export function ExportExecution({
     try {
       const finished = await executeExport(anki, vault, settings, {
         decisions: notesSelectedToExport,
-        forcedNoteIds: Object.entries(forcedNoteIds)
-          .filter(([, isForced]) => isForced)
-          .map(([noteId]) => Number(noteId)),
+        forcedNoteIds: forcedIdsList(forcedNoteIds),
         ignoredDirectories,
         onProgress: (processed, total) => {
           setProgress(t("report.exportingProgress", { processed, total }));
@@ -94,6 +100,7 @@ export function ExportExecution({
         error instanceof Error ? error.message : "Unknown export error.",
       );
       setPhase("failed");
+      onFailure?.();
     }
   };
 

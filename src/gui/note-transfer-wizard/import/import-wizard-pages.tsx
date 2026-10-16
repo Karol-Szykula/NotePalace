@@ -23,6 +23,7 @@ import type { WizardPage } from "@shared/components";
 import { commonWizardClasses } from "@shared/classes";
 
 export interface ImportWizardContext {
+  readonly executionFinished: boolean;
   readonly notesSelectedToImportCount: number;
   readonly selectedDeckName: string;
 }
@@ -30,6 +31,7 @@ export interface ImportWizardContext {
 export interface ImportWizardPageDeps {
   readonly anki: Anki;
   readonly deckNotes: ReturnType<typeof useDeckPreview>["deckNotes"];
+  readonly failImport: () => void;
   readonly fieldMappings: Record<string, FieldMap>;
   readonly finishImport: (report: ImportExecutionReport) => void;
   readonly forcedNoteIds: Record<number, boolean>;
@@ -169,6 +171,7 @@ function buildImportExecutionPage(
   deps: ImportWizardPageDeps,
 ): WizardPage<ImportWizardContext> {
   return {
+    canFinish: (context) => context.executionFinished,
     render: () => (
       <ImportExecution
         anki={deps.anki}
@@ -180,6 +183,7 @@ function buildImportExecutionPage(
         noteLifecycle={deps.settings.noteLifecycle}
         notes={deps.deckNotes}
         notesSelectedToImport={deps.notesSelectedToImport}
+        onFailure={deps.failImport}
         onFinish={deps.finishImport}
         previewStatuses={deps.previewStatuses}
         vault={deps.vault}
