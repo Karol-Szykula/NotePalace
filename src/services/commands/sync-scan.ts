@@ -15,6 +15,7 @@ import {
   buildPushedNote,
   newestSide,
   type PushedNote,
+  type SyncSide,
 } from "src/services/commands/push";
 import { deckForPath } from "src/services/vault/vault";
 import { resolveDeckName } from "src/services/vault/paths";
@@ -45,7 +46,8 @@ function isVaultNewer(
   file: TFile,
   act: NoteLifecycleEvent,
 ): boolean {
-  return act === "RESOLVE_NEWEST" && newestSide(note, file) === "vault";
+  const winner: SyncSide = newestSide(note, file);
+  return act === "RESOLVE_NEWEST" && winner === "vault";
 }
 
 async function ankiSideHash(
