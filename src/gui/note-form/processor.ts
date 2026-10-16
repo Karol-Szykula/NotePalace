@@ -7,6 +7,7 @@ import { BasicNoteForm } from "src/gui/note-form/BasicNoteForm";
 import { ClozeNoteForm } from "src/gui/note-form/ClozeNoteForm";
 import { bannerForStatus } from "src/gui/note-form/banners";
 import { noteFormClasses } from "src/gui/note-form/classes";
+import type { RenderMarkdown } from "src/gui/note-form/NoteFormFields";
 import { parseNoteForm } from "src/services/notes/document";
 import { saveNoteFormEdit } from "src/gui/note-form/persister";
 import { noteShapeFor, type NoteFormLayout } from "src/entities/note-shapes";
@@ -58,6 +59,12 @@ export type NoteStatusResolver = (
   noteId: number | undefined,
 ) => NoteLifecycleStatus | undefined;
 
+export type NoteFormMarkdownRenderer = (
+  markdown: string,
+  el: HTMLElement,
+  sourcePath: string,
+) => void | Promise<void>;
+
 function renderBanner(banner: string): ReactNode {
   return createElement("div", { className: noteFormClasses.banner }, banner);
 }
@@ -65,6 +72,7 @@ function renderBanner(banner: string): ReactNode {
 export function createNoteFormHandler(
   vault: Vault,
   resolveStatus: NoteStatusResolver,
+  renderMarkdown: NoteFormMarkdownRenderer,
   yaml: YamlEngine = obsidianYamlEngine,
 ) {
   function handleNoteForm(
@@ -86,14 +94,25 @@ export function createNoteFormHandler(
     });
     const form = componentForLayout(noteShapeFor(parsed.model).layout);
     const banner = bannerForStatus(resolveStatus(parsed.id));
+    const renderField: RenderMarkdown = (markdown, target) => {
+      void renderMarkdown(markdown, target, ctx.sourcePath);
+    };
     const node =
       banner === undefined
-        ? createElement(form, { data: parsed, onEdit: handleEdit })
+        ? createElement(form, {
+            data: parsed,
+            onEdit: handleEdit,
+            renderMarkdown: renderField,
+          })
         : createElement(
             "div",
             null,
             renderBanner(banner),
-            createElement(form, { data: parsed, onEdit: handleEdit }),
+            createElement(form, {
+              data: parsed,
+              onEdit: handleEdit,
+              renderMarkdown: renderField,
+            }),
           );
     ctx.addChild(new NoteFormChild(el, node));
     return Promise.resolve();

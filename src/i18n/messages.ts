@@ -298,12 +298,14 @@ const en = {
     outcome: "{force}: {outcome}",
   },
   noteForm: {
-    front: "Front",
     back: "Back",
-    text: "Text",
     backExtra: "Back Extra",
-    tags: "Tags",
+    done: "Done",
+    edit: "Edit",
+    front: "Front",
     invalidBlock: "Invalid note-form block",
+    tags: "Tags",
+    text: "Text",
   },
   status: {
     anki: "Anki",

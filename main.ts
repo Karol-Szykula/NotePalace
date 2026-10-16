@@ -1,4 +1,4 @@
-import { addIcon, Notice, Plugin } from "obsidian";
+import { addIcon, MarkdownRenderer, Notice, Plugin } from "obsidian";
 import type { ISettings } from "src/conf/settings";
 import { normalizeSettings } from "src/conf/normalize-settings";
 import { t } from "src/i18n";
@@ -57,10 +57,14 @@ export default class NotePalace extends Plugin {
   private registerNoteFormRendering(): void {
     this.registerMarkdownCodeBlockProcessor(
       noteFormLanguage,
-      createNoteFormHandler(this.app.vault, (noteId) =>
-        noteId === undefined
-          ? undefined
-          : this.settings.noteLifecycle[noteId]?.status,
+      createNoteFormHandler(
+        this.app.vault,
+        (noteId) =>
+          noteId === undefined
+            ? undefined
+            : this.settings.noteLifecycle[noteId]?.status,
+        (markdown, el, sourcePath) =>
+          MarkdownRenderer.render(this.app, markdown, el, sourcePath, this),
       ),
     );
     registerNoteFormAutoPreview(this);
