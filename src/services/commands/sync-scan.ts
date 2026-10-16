@@ -13,7 +13,7 @@ import {
 import { decisionActFor, isInScope } from "src/services/notes/decision-table";
 import {
   buildPushedNote,
-  isAnkiNewer,
+  newestSide,
   type PushedNote,
 } from "src/services/commands/push";
 import { deckForPath } from "src/services/vault/vault";
@@ -45,7 +45,7 @@ function isVaultNewer(
   file: TFile,
   act: NoteLifecycleEvent,
 ): boolean {
-  return act === "RESOLVE_NEWEST" && !isAnkiNewer(note, file);
+  return act === "RESOLVE_NEWEST" && newestSide(note, file) === "vault";
 }
 
 async function ankiSideHash(

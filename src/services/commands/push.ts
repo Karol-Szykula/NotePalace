@@ -308,6 +308,9 @@ export function mediaFileCount(notes: AnkiNote[]): number {
   );
 }
 
-export function isAnkiNewer(source: AnkiNoteInfo, file: TFile): boolean {
-  return (source.mod ?? 0) * 1000 > file.stat.mtime;
+export function newestSide(
+  source: AnkiNoteInfo,
+  file: TFile,
+): "anki" | "vault" {
+  return (source.mod ?? 0) * 1000 > file.stat.mtime ? "anki" : "vault";
 }
