@@ -54,7 +54,7 @@
     "jest-environment-jsdom": "^30.5.1",
     "jscpd": "^5.2.1",
     "knip": "^6.36.0",
-    "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
+    "obsidian": "1.14.4",
     "obsidian-test-mocks": "5.1.0",
     "prettier": "^3.9.8",
     "rollup": "4.62.4",
