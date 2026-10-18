@@ -1,11 +1,19 @@
 import { readFileSync } from "node:fs";
 
+const headerFieldsBytes = 8;
+const jsonSizeOffset = 12;
+const jsonStartOffset = 16;
+
 export function openAsar(asarPath) {
   const buffer = readFileSync(asarPath);
   const headerSize = buffer.readUInt32LE(4);
-  const headerText = buffer.subarray(8, 8 + headerSize).toString("utf8");
-  const header = JSON.parse(headerText.slice(headerText.indexOf("{")));
-  const baseOffset = 8 + headerSize;
+  const jsonSize = buffer.readUInt32LE(jsonSizeOffset);
+  const header = JSON.parse(
+    buffer
+      .subarray(jsonStartOffset, jsonStartOffset + jsonSize)
+      .toString("utf8"),
+  );
+  const baseOffset = headerFieldsBytes + headerSize;
 
   const entryFor = (name) =>
     name.split("/").reduce((node, part) => node?.files?.[part], header);
@@ -31,6 +39,9 @@ export function openAsar(asarPath) {
       const entry = entryFor(name);
       if (entry === undefined || entry.files !== undefined) {
         throw new Error(`${name} is not a file in ${asarPath}`);
+      }
+      if (entry.unpacked === true || typeof entry.offset !== "string") {
+        throw new Error(`${name} is stored outside of ${asarPath}`);
       }
       const start = baseOffset + Number.parseInt(entry.offset, 10);
       return buffer.subarray(start, start + entry.size);
