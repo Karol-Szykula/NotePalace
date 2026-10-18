@@ -683,6 +683,19 @@
   color: var(--text-normal);
 }
 
+.note-form__read-value > :first-child {
+  margin-block-start: 0;
+}
+
+.note-form__read-value > :last-child {
+  margin-block-end: 0;
+}
+
+.note-form__read-value img {
+  max-width: 100%;
+  height:   auto;
+}
+
 .note-form__edit,
 .note-form__done {
   align-self: flex-start;

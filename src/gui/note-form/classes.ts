@@ -8,5 +8,6 @@ export const noteFormClasses = {
   input: "note-form__input",
   inputReadonly: "note-form__input--readonly",
   label: "note-form__label",
+  markdownRendered: "markdown-rendered",
   readValue: "note-form__read-value",
 } as const;

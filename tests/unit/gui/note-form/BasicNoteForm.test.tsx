@@ -49,6 +49,18 @@ describe("BasicNoteForm", () => {
     expect(edits).toEqual([]);
   });
 
+  test("given rendered markdown when the read view shows then the value is scoped for markdown styling", () => {
+    // given
+    const data = formData();
+    const saveEdit = () => {};
+
+    // when
+    renderForm(data, saveEdit);
+
+    // then
+    expect(screen.getByText("What is 2+2?")).toHaveClass("markdown-rendered");
+  });
+
   test("given a front with an image when rendered then passes the field to the renderer", () => {
     // given
     const rendered: string[] = [];
