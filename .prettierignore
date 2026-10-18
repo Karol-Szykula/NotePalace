@@ -7,3 +7,7 @@ node_modules/
 pnpm-lock.yaml
 *.md
 styles.css
+playwright/.cache/
+playwright/gallery/build/
+playwright-report/
+test-results/

@@ -7,6 +7,9 @@
     "dev": "rollup --config rollup.config.js -w",
     "build": "esbuild main.ts --bundle --external:obsidian --format=cjs --platform=browser --target=es2018 --outfile=main.js --sourcemap=inline",
     "test": "jest",
+    "test:visual": "playwright test --project=components",
+    "test:visual:update": "playwright test --project=components --update-snapshots",
+    "gallery": "node playwright/server/serve.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "knip": "knip",
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@mermaid-js/mermaid-cli": "^11.17.0",
+    "@playwright/test": "1.64.0",
     "@rollup/plugin-commonjs": "29.0.3",
     "@rollup/plugin-node-resolve": "16.0.3",
     "@rollup/plugin-typescript": "12.3.0",
