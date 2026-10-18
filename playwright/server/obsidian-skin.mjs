@@ -52,7 +52,16 @@ function writeObsidianSkin(cacheDir, source) {
 export function materializeSkin({ cacheDir, candidates, fallbackCss }) {
   mkdirSync(cacheDir, { recursive: true });
   const source = candidates.find((candidate) => existsSync(candidate));
-  return source === undefined
-    ? writeFallbackAppCss(cacheDir, fallbackCss)
-    : writeObsidianSkin(cacheDir, source);
+  if (source === undefined) {
+    return writeFallbackAppCss(cacheDir, fallbackCss);
+  }
+  try {
+    return writeObsidianSkin(cacheDir, source);
+  } catch (error) {
+    console.warn(
+      `NotePalace gallery: ${source} is not a readable Obsidian archive, using the fallback theme.`,
+      error,
+    );
+    return writeFallbackAppCss(cacheDir, fallbackCss);
+  }
 }
