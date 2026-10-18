@@ -4,6 +4,7 @@ import {
   type ComponentType,
   type JSX,
   type ReactNode,
+  useLayoutEffect,
 } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { stories, storyIds } from "./stories";
@@ -26,6 +27,11 @@ interface StoryErrorBoundaryProps {
 
 interface GalleryIndexProps {
   readonly theme: GalleryTheme;
+}
+
+interface StoryReadyProps {
+  readonly children?: ReactNode;
+  readonly onReady: () => void;
 }
 
 declare global {
@@ -52,6 +58,13 @@ class StoryErrorBoundary extends Component<
   override render(): ReactNode {
     return this.state.hasError ? null : this.props.children;
   }
+}
+
+function StoryReady({ children, onReady }: StoryReadyProps): JSX.Element {
+  useLayoutEffect(() => {
+    onReady();
+  }, [onReady]);
+  return <>{children}</>;
 }
 
 function GalleryIndex({ theme }: GalleryIndexProps): JSX.Element {
@@ -90,10 +103,13 @@ function rootElement(): HTMLElement {
 function render(node: ReactNode): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     root ??= createRoot(rootElement());
-    root.render(createElement(StoryErrorBoundary, { onError: reject }, node));
-    requestAnimationFrame(() => {
-      resolve();
-    });
+    root.render(
+      createElement(
+        StoryErrorBoundary,
+        { onError: reject },
+        createElement(StoryReady, { onReady: resolve }, node),
+      ),
+    );
   });
 }
 
