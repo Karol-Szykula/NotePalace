@@ -32,3 +32,11 @@ export const ReadWithImage = (): JSX.Element => (
     renderMarkdown={fakeMarkdown}
   />
 );
+
+export const ReadWithError = (): JSX.Element => (
+  <ClozeNoteForm
+    data={baseData}
+    onEdit={noEdit}
+    renderMarkdown={() => Promise.reject(new Error("boom"))}
+  />
+);

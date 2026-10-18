@@ -86,3 +86,18 @@ test("given the cloze story when mounted then renders its text", async ({
     form.getByText("The capital of France is {{c1::Paris}}."),
   ).toBeVisible();
 });
+
+test("given a failing cloze renderer when mounted then shows the render error", async ({
+  mount,
+}) => {
+  // given
+  const storyId = "note-form/ClozeNoteForm/ReadWithError";
+
+  // when
+  const form = await mount(storyId);
+
+  // then
+  await expect(
+    form.getByText("Error: could not render the field."),
+  ).toHaveCount(2);
+});
