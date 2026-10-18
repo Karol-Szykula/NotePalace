@@ -30,7 +30,17 @@ const layerViolation = {
 
 export default [
   {
-    ignores: ["node_modules/", "coverage/", "dist/", "main.js", "docs/**"],
+    ignores: [
+      "node_modules/",
+      "coverage/",
+      "dist/",
+      "main.js",
+      "docs/**",
+      "playwright/.cache/**",
+      "playwright/gallery/build/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
   },
   js.configs.recommended,
   ...tsPlugin.configs["flat/recommended"].map((config) => ({
@@ -161,6 +171,15 @@ export default [
     languageOptions: {
       globals: {
         ...globals.jest,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ["playwright/**/*", "playwright.config.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
         ...globals.node,
       },
     },

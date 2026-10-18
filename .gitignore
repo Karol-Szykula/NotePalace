@@ -45,3 +45,9 @@ move.sh
 # misc
 .env
 docs/test-vault/.obsidian/themes/
+
+# playwright
+playwright/.cache/
+playwright/gallery/build/
+playwright-report/
+test-results/
