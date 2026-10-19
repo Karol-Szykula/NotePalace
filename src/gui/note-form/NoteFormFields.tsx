@@ -97,7 +97,14 @@ function RenderedMarkdown({
 
   return (
     <>
-      <div className={noteFormClasses.readValue} ref={ref} />
+      <div
+        className={mergeClasses(
+          noteFormClasses.readValue,
+          noteFormClasses.markdownRendered,
+          noteFormClasses.readMultiline,
+        )}
+        ref={ref}
+      />
       {hasError ? (
         <span className={noteFormClasses.error}>
           {t("noteForm.renderError")}
