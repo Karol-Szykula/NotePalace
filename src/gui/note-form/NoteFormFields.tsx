@@ -101,6 +101,7 @@ function RenderedMarkdown({
         className={mergeClasses(
           noteFormClasses.readValue,
           noteFormClasses.markdownRendered,
+          noteFormClasses.readMultiline,
         )}
         ref={ref}
       />

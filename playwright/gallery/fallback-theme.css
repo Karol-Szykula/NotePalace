@@ -12,10 +12,14 @@
   --background-primary: #ffffff;
   --background-secondary: #f2f2f2;
   --background-modifier-border: #dddddd;
+  --background-modifier-form-field: #f2f2f2;
   --background-modifier-hover: rgba(0, 0, 0, 0.06);
   --interactive-accent: #7b6cd9;
   --image-radius: 4px;
+  --input-border-width: 1px;
+  --font-ui-small: 13px;
   --p-spacing: 1rem;
+  --line-height-tight: 1.3;
   --line-height-normal: 1.5;
 }
 
